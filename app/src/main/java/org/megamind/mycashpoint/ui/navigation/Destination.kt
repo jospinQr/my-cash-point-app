@@ -7,6 +7,11 @@ enum class Destination(route: String) {
     REGISTER("register"),
     MAIN("main"),
     CHASPOINT("cashpoint"),
+    SPLASH("splash"),
 
-    SPLASH("splash")
+    OPERATEUR("operateur"),
+
+    TRANSACTION("transaction"),
+    CAISSE("caisse"),
+    RAPPORT("rapport"),
 }

@@ -23,23 +23,32 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import kotlin.text.all
 import kotlin.text.isDigit
@@ -203,8 +212,7 @@ fun FormTextField(
                             if (it.all { it.isDigit() }) {
 
                                 onValueChange(it)
-                            }
-                            else{
+                            } else {
                                 isError
                             }
                         } else {
@@ -246,3 +254,116 @@ fun FormTextField(
         }
     }
 }
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomOutlinedTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    label: String? = null,
+    placeholder: String? = null,
+    leadingIcon: (@Composable (() -> Unit))? = null,
+    trailingIcon: (@Composable (() -> Unit))? = null,
+    showClearButton: Boolean = true,                     // bouton "X" pour effacer
+    isError: Boolean = false,
+    errorMessage: String? = null,
+    maxChars: Int? = null,                               // compteur facultatif
+    maxLines: Int = 1,
+    singleLine: Boolean = true,
+    textStyle: TextStyle = LocalTextStyle.current,
+    textSize: TextUnit? = null,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    imeAction: ImeAction = ImeAction.Done,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    supportingText: (@Composable (() -> Unit))? = null,  // zone sous le champ (ex : aide)
+    shape: androidx.compose.foundation.shape.CornerBasedShape = MaterialTheme.shapes.small,
+    colors: TextFieldColors = TextFieldDefaults.colors()
+) {
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {
+                val new = if (maxChars != null) it.take(maxChars) else it
+                onValueChange(new)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            label = label?.let { { Text(it) } },
+            placeholder = placeholder?.let { { Text(it) } },
+            leadingIcon = leadingIcon,
+            trailingIcon = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // custom trailing icon si fourni
+                    if (trailingIcon != null) {
+                        trailingIcon()
+                        Spacer(Modifier.width(8.dp))
+                    }
+
+                    // bouton clear automatique
+                    if (showClearButton && value.isNotEmpty()) {
+                        IconButton(onClick = { onValueChange("") }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Clear"
+                            )
+                        }
+                    }
+                }
+            },
+            isError = isError,
+            maxLines = maxLines,
+            singleLine = singleLine,
+            textStyle = textStyle,
+            visualTransformation = visualTransformation,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = keyboardType,
+                imeAction = imeAction
+            ),
+            keyboardActions = keyboardActions,
+            shape = shape,
+            colors = colors
+        )
+
+        // Support / erreur / compteur
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, top = 4.dp, end = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // message de support ou message d'erreur (priorité erreur)
+            when {
+                isError && !errorMessage.isNullOrBlank() -> {
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                supportingText != null -> {
+                    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
+                        supportingText()
+                    }
+                }
+
+                else -> {
+                    Spacer(modifier = Modifier.height(0.dp))
+                }
+            }
+
+            // compteur caractère
+            if (maxChars != null) {
+                Text(
+                    text = "${value.length} / $maxChars",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (maxChars - value.length < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+

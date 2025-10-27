@@ -1,78 +1,130 @@
 package org.megamind.mycashpoint.ui.screen.main
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.window.core.layout.WindowSizeClass
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import org.megamind.mycashpoint.ui.navigation.Destination
+import org.megamind.mycashpoint.ui.navigation.MyNavHost
+import kotlin.collections.contains
+
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier, windowSizeClass: WindowSizeClass) {
+fun MyCashPointApp() {
+
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    // Déterminer si on doit afficher le BottomBar
+    val showBottomBar = currentDestination?.hierarchy?.any {
+        it.route in listOf(
+            Destination.OPERATEUR.name,
+            Destination.CAISSE.name,
+            Destination.RAPPORT.name
+        )
+    } == true
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = fadeIn() ,
+
+            ) {
 
 
-    val isScreenCompact = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f),
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+                {
 
+                    navBarItem.forEachIndexed { index, item ->
 
-    if (isScreenCompact) {
-        Scaffold(
-
-            bottomBar = {
-                NavigationBar() {
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = {},
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Home,
-                                contentDescription = null
-                            )
-                        })
-
-                }
-            }
-        ) { innePadding ->
-
-
-        }
-    } else {
-
-        Scaffold { innnerPadding ->
-
-            Row {
-
-                NavigationRail {
-                    NavigationRailItem(
-                        selected = true,
-                        onClick = {},
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Home,
-                                contentDescription = null
-                            )
+                        val selected = currentDestination?.hierarchy?.any {
+                            it.route == item.route
                         }
+                        NavigationBarItem(
+                            selected = selected == true,
+                            onClick = {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            label = {
+                                Text(
+                                    item.title,
+                                    color = if (selected == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+                                )
+                            },
+                            icon = {
 
-                    )
+                                if (selected == true) {
+                                    Crossfade(
+                                        targetState = index,
+                                        animationSpec = spring(
+                                            dampingRatio = Spring.DampingRatioHighBouncy,
+                                            stiffness = Spring.StiffnessMedium
+                                        )
+                                    ) { index ->
+                                        Icon(
+                                            imageVector = item.selectedIcon,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                } else {
+                                    Crossfade(targetState = item) {
+                                        Icon(
+                                            imageVector = it.unSelectedIcon,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            }
+                        )
+
+
+                    }
 
                 }
-
-
             }
 
+
         }
+
+
+    ) { innerPadding ->
+
+
+        MyNavHost(
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
+            navController = navController
+        )
+
     }
-
 }
-
-
-
-
-
-

@@ -1,7 +1,9 @@
 package org.megamind.mycashpoint.data.data_source.local.entity
+
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Index
+import org.megamind.mycashpoint.utils.Constants
 
 /**
  * Représente le solde pour un opérateur de mobile money spécifique dans la base de données locale.
@@ -25,7 +27,7 @@ data class SoldeEntity(
     val idOperateur: String,         // ex : "AIRTEL", "ORANGE"
 
     val montant: Long,               // Solde actuel en centimes
-    val devise: String = "CDF",      // Devise
+    val devise: Constants.Devise,      // Devise
 
     val dernierMiseAJour: Long,      // Timestamp
     val seuilAlerte: Long? = null,   // Optionnel : seuil d'alerte

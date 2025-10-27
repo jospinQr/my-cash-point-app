@@ -1,5 +1,6 @@
 [versions]
 agp = "8.12.3"
+
 kotlin = "2.0.21"
 coreKtx = "1.17.0"
 junit = "4.13.2"
@@ -11,6 +12,7 @@ composeBom = "2024.09.00"
 material3 = "1.4.0"
 materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.5"
+composeAnimation = "1.7.3"
 roomCompiler = "2.8.1"
 koinAndroid = "4.1.1"
 material3WindowSizeClass = "1.4.0"
@@ -18,6 +20,8 @@ adaptive = "1.1.0"
 
 
 [libraries]
+
+androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "composeAnimation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }

@@ -1,36 +1,118 @@
 package org.megamind.mycashpoint.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = ChashPointGreen60,
-    secondary = ChashPointBlue50,
-    tertiary = AlertOrange50
+    // Couleurs principales
+    primary = CashPointRed70,
+    onPrimary = CashPointRed10,
+    primaryContainer = CashPointRed30,
+    onPrimaryContainer = CashPointRed90,
+
+    // Couleurs secondaires
+    secondary = CashPointBlue70,
+    onSecondary = CashPointBlue10,
+    secondaryContainer = CashPointBlue30,
+    onSecondaryContainer = CashPointBlue90,
+
+    // Couleurs tertiaires
+    tertiary = AlertOrange70,
+    onTertiary = AlertOrange10,
+    tertiaryContainer = AlertOrange30,
+    onTertiaryContainer = AlertOrange90,
+
+    // Arrière-plans et surfaces
+    background = NeutralGrey10,
+    onBackground = NeutralGrey90,
+    surface = NeutralGrey10,
+    onSurface = NeutralGrey90,
+    surfaceVariant = NeutralGrey20,
+    onSurfaceVariant = NeutralGrey80,
+    surfaceTint = CashPointRed70,
+
+    // Conteneurs de surface
+    surfaceContainer = NeutralGrey15,
+    surfaceContainerHigh = NeutralGrey20,
+    surfaceContainerHighest = NeutralGrey30,
+    surfaceContainerLow = NeutralGrey10,
+    surfaceContainerLowest = Color(0xFF0F1113),
+
+    // Inverse (pour les éléments contrastants)
+    inverseSurface = NeutralGrey90,
+    inverseOnSurface = NeutralGrey20,
+    inversePrimary = CashPointRed40,
+
+    // Erreurs
+    error = EmergencyCorail80,
+    onError = EmergencyCorail20,
+    errorContainer = EmergencyCorail30,
+    onErrorContainer = EmergencyCorail90,
+
+    // Contours
+    outline = NeutralGrey60,
+    outlineVariant = NeutralGrey30,
+
+    // Scrim (overlays)
+    scrim = Color.Black,
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = ChashPointGreen50,
-    secondary = ChashPointBlue50,
-    tertiary = AlertOrange50
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    // Couleurs principales
+    primary = CashPointRed50,
     onPrimary = Color.White,
+    primaryContainer = CashPointRed90,
+    onPrimaryContainer = CashPointRed10,
+
+    // Couleurs secondaires
+    secondary = CashPointBlue50,
     onSecondary = Color.White,
+    secondaryContainer = CashPointBlue90,
+    onSecondaryContainer = CashPointBlue10,
+
+    // Couleurs tertiaires
+    tertiary = AlertOrange50,
     onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    tertiaryContainer = AlertOrange90,
+    onTertiaryContainer = AlertOrange10,
+
+    // Arrière-plans et surfaces
+    background = NeutralGrey99,
+    onBackground = NeutralGrey10,
+    surface = NeutralGrey99,
+    onSurface = NeutralGrey10,
+    surfaceVariant = NeutralGrey90,
+    onSurfaceVariant = NeutralGrey30,
+    surfaceTint = CashPointRed50,
+
+    // Conteneurs de surface
+    surfaceContainer = NeutralGrey94,
+    surfaceContainerHigh = NeutralGrey90,
+    surfaceContainerHighest = NeutralGrey85,
+    surfaceContainerLow = NeutralGrey96,
+    surfaceContainerLowest = Color.White,
+
+    // Inverse (pour les éléments contrastants)
+    inverseSurface = NeutralGrey20,
+    inverseOnSurface = NeutralGrey95,
+    inversePrimary = CashPointRed80,
+
+    // Erreurs
+    error = EmergencyCorail50,
+    onError = Color.White,
+    errorContainer = EmergencyCorail90,
+    onErrorContainer = EmergencyCorail10,
+
+    // Contours
+    outline = NeutralGrey50,
+    outlineVariant = NeutralGrey80,
+
+    // Scrim (overlays)
+    scrim = Color.Black,
 )
 
 @Composable

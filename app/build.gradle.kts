@@ -73,10 +73,13 @@ dependencies {
     //navigation
     implementation(libs.androidx.navigation.compose)
 
+
     //icons
     implementation(libs.androidx.material.icons.extended)
 
     // win classe de taille
     implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.androidx.adaptive)
+
+
 }
