@@ -6,10 +6,10 @@ import org.megamind.mycashpoint.data.data_source.local.AppDatabase
 import org.megamind.mycashpoint.data.data_source.local.dao.SoldeDao
 import org.megamind.mycashpoint.data.data_source.local.dao.TransactionDao
 import org.megamind.mycashpoint.data.data_source.local.dao.UserDao
+import kotlin.math.sin
 
 
 val roomModule = module {
-
 
 
     single {
@@ -26,6 +26,7 @@ val roomModule = module {
     single { get<AppDatabase>().userDao() }
     single { get<AppDatabase>().soldeDao() }
     single { get<AppDatabase>().transactionDao() }
+    single { get<AppDatabase>().agenceDao() }
 
 
 }

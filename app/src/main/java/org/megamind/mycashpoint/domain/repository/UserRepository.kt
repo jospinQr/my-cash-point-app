@@ -6,9 +6,14 @@ import org.megamind.mycashpoint.utils.Result
 
 interface UserRepository {
 
-    suspend fun login(userName: String, password: String): Flow<Result<User>>
+    suspend fun login(userName: String, password: String, agenceId: String): Flow<Result<User>>
 
-    suspend fun register(name: String, email: String, password: String): Flow<Result<User>>
+    suspend fun register(
+        name: String,
+        email: String,
+        password: String,
+        agenceId: String
+    ): Flow<Result<User>>
 
     suspend fun getUserByEmail(email: String): Flow<Result<User?>>
 

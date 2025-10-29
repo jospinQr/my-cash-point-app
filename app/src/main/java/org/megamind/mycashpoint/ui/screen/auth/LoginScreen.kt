@@ -21,10 +21,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -44,10 +48,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
+import org.megamind.mycashpoint.data.data_source.local.entity.Agence
+import org.megamind.mycashpoint.ui.Agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.component.AuthTextField
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.CustomerTextButton
@@ -75,6 +82,7 @@ import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 fun LoginInScreen(
     modifier: Modifier = Modifier,
     viewModel: SignInViewModel = koinViewModel(),
+    agenceViewModel: AgenceViewModel = koinViewModel(),
     navigateToMainScreen: () -> Unit,
     onNavigateToSignUp: () -> Unit,
     windowSizeClass: WindowSizeClass,
@@ -83,6 +91,9 @@ fun LoginInScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+
+    val agences by agenceViewModel.agences.collectAsStateWithLifecycle()
+
 
 
     SignInEventHandler(
@@ -103,9 +114,13 @@ fun LoginInScreen(
         onSendingPasswordResetClick = { viewModel.showPasswordResetDialog() },
         onSendingPasswordResetDismiss = { viewModel.dismissPasswordResetDialog() },
         onNavigateToSignUp = onNavigateToSignUp,
+        onAgenceMenuExpanded = { viewModel.onAgenceMenuExpanded() },
+        onAgenceMenuDismiss = { viewModel.onAgenceMenuDismiss() },
+        onSelectedAgenceChange = { viewModel.onAgenceChange(it) },
+        agences = agences
 
 
-        )
+    )
 
 }
 
@@ -120,7 +135,11 @@ fun SignInScreenContent(
     sendPasswordResetMail: () -> Unit,
     onSendingPasswordResetClick: () -> Unit,
     onSendingPasswordResetDismiss: () -> Unit,
-    onNavigateToSignUp: () -> Unit
+    onNavigateToSignUp: () -> Unit,
+    onAgenceMenuExpanded: () -> Unit,
+    onAgenceMenuDismiss: () -> Unit,
+    onSelectedAgenceChange: (Agence) -> Unit,
+    agences: List<Agence>,
 ) {
     val isCompact = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
 
@@ -136,10 +155,14 @@ fun SignInScreenContent(
             sendPasswordResetMail = sendPasswordResetMail,
             onSendingPasswordResetClick = onSendingPasswordResetClick,
             onSendingPasswordResetDismiss = onSendingPasswordResetDismiss,
-            onNavigateToSignUp = onNavigateToSignUp
+            onNavigateToSignUp = onNavigateToSignUp,
+            onAgenceMenuExpanded = onAgenceMenuExpanded,
+            onAgenceMenuDismiss = onAgenceMenuDismiss,
+            onSelectedAgenceChange = onSelectedAgenceChange,
+            agences = agences,
 
 
-        )
+            )
     }
 
 
@@ -171,7 +194,11 @@ private fun AdaptiveSignInLayout(
     sendPasswordResetMail: () -> Unit,
     onSendingPasswordResetClick: () -> Unit,
     onSendingPasswordResetDismiss: () -> Unit,
-    onNavigateToSignUp: () -> Unit
+    onNavigateToSignUp: () -> Unit,
+    onAgenceMenuExpanded: () -> Unit,
+    onAgenceMenuDismiss: () -> Unit,
+    onSelectedAgenceChange: (Agence) -> Unit,
+    agences: List<Agence>,
 ) {
     if (isCompact) {
         Column(
@@ -193,7 +220,11 @@ private fun AdaptiveSignInLayout(
                 onPasswordVisibilityChange = onPasswordVisibilityChange,
                 showLogoAbove = true,
                 onSendingPasswordResetClick = onSendingPasswordResetClick,
-                onNavigateToSignUp = onNavigateToSignUp
+                onNavigateToSignUp = onNavigateToSignUp,
+                onAgenceMenuExpanded = onAgenceMenuExpanded,
+                onAgenceMenuDismiss = onAgenceMenuDismiss,
+                onSelectedAgenceChange = onSelectedAgenceChange,
+                agences = agences
 
             )
         }
@@ -221,10 +252,13 @@ private fun AdaptiveSignInLayout(
                     onPasswordVisibilityChange = onPasswordVisibilityChange,
                     onNavigateToSignUp = onNavigateToSignUp,
                     showLogoAbove = false,
-
                     onSendingPasswordResetClick = onSendingPasswordResetClick,
+                    onAgenceMenuExpanded = onAgenceMenuExpanded,
+                    onAgenceMenuDismiss = onAgenceMenuDismiss,
+                    onSelectedAgenceChange = onSelectedAgenceChange,
+                    agences = agences
 
-                    )
+                )
             }
         }
     }
@@ -240,43 +274,96 @@ private fun SignInContent(
     onNavigateToSignUp: () -> Unit,
     showLogoAbove: Boolean,
     onSendingPasswordResetClick: () -> Unit,
+    onAgenceMenuExpanded: () -> Unit,
+    onAgenceMenuDismiss: () -> Unit,
+    onSelectedAgenceChange: (Agence) -> Unit,
+    agences: List<Agence>
 
-    ) {
+
+) {
     if (showLogoAbove) {
         LogoSection()
     }
 
 
+    AuthTextField(
+        value = uiState.email,
+        onValueChange = onEmailChange,
+        label = "Email",
+        modifier = Modifier.fillMaxWidth(),
+        isError = uiState.isEmailError,
+        supportText = "Entrer une adresse email valide"
+    )
+    Spacer(modifier = Modifier.height(4.dp))
+
+    AuthTextField(
+        value = uiState.password,
+
+        onValueChange = onPasswordChange,
+        label = "Mot de passe",
+        modifier = Modifier.fillMaxWidth(),
+        visualTransformation = if (uiState.isPasswordShown) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            PasswordVisibilityIcon(
+                isPasswordShown = uiState.isPasswordShown,
+                onPasswordVisibilityChange = onPasswordVisibilityChange
+            )
+        },
+        isError = uiState.isPasswordError,
+        supportText = "Entrer un mot de passe valide"
+    )
+
+
+    Column {
         AuthTextField(
-            value = uiState.email,
-            onValueChange = onEmailChange,
-            label = "Email",
-            modifier = Modifier.fillMaxWidth(),
-            isError = uiState.isEmailError,
-            supportText = "Entrer une adresse email valide"
+            label = uiState.selectedAgence?.id?:"0",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    onAgenceMenuExpanded()
+                },
+            enabled = false,
+            value = uiState.agence,
+            onValueChange = {
+
+            },
+
+            trailingIcon = {
+
+                IconButton(onClick = { onAgenceMenuExpanded() }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = null
+                    )
+                }
+            }
         )
         Spacer(modifier = Modifier.height(4.dp))
+        DropdownMenu(
+            expanded = uiState.isAgenceExpanded,
+            onDismissRequest = { onAgenceMenuDismiss() }
 
-        AuthTextField(
-            value = uiState.password,
+        )
+        {
 
-            onValueChange = onPasswordChange,
-            label = "Mot de passe",
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = if (uiState.isPasswordShown) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                PasswordVisibilityIcon(
-                    isPasswordShown = uiState.isPasswordShown,
-                    onPasswordVisibilityChange = onPasswordVisibilityChange
+            agences.forEach {
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+
+                            Text(it.designation)
+
+                        }
+
+                    }, onClick = {
+                        onSelectedAgenceChange(it)
+                        onAgenceMenuDismiss()
+                    }
                 )
-            },
-            isError = uiState.isPasswordError,
-            supportText = "Entrer un mot de passe valide"
-        )
+            }
+        }
+    }
 
-        ForgotPasswordSection(
-            askForSendPasswordResetMail = onSendingPasswordResetClick
-        )
 
 
 

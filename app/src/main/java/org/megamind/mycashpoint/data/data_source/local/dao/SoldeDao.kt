@@ -18,12 +18,13 @@ interface SoldeDao {
         """
     )
     suspend fun getSoldeByOperateurEtDevise(
-        idOperateur: String,
+        idOperateur: Int,
         devise: Constants.Devise
     ): SoldeEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(solde: SoldeEntity)
+
 
     @Query(
         """
@@ -33,9 +34,9 @@ interface SoldeDao {
         """
     )
     suspend fun updateMontant(
-        idOperateur: String,
+        idOperateur: Int,
         devise: Constants.Devise,
-        montant: Long,
+        montant: Double,
         timestamp: Long = System.currentTimeMillis()
     )
 
@@ -44,7 +45,7 @@ interface SoldeDao {
 
     @Query("DELETE FROM soldes WHERE idOperateur = :idOperateur AND devise = :devise")
     suspend fun deleteByOperateurEtDevise(
-        idOperateur: String,
+        idOperateur: Int,
         devise: Constants.Devise
     )
 }

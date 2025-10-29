@@ -12,12 +12,13 @@ import java.util.UUID
 class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
     override suspend fun login(
         userName: String,
-        password: String
+        password: String,
+        agenceId: String
     ): Flow<Result<User>> = flow {
         emit(Result.Loading)
         val user = userDao.getUserByEmail(userName)
         val hashedPassword = hashPassword(password, user?.salt ?: "")
-        if (user != null && user.password == hashedPassword) {
+        if (user != null && user.password == hashedPassword && user.idAgence == agenceId) {
             emit(Result.Succes(user))
         } else {
             emit(Result.Error(Throwable("Email ou mot de passe incorrect")))
@@ -29,22 +30,24 @@ class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
     override suspend fun register(
         name: String,
         email: String,
-        password: String
-    ): Flow<Result<User>> = flow{
+        password: String,
+        agenceId: String,
+    ): Flow<Result<User>> = flow {
 
         emit(Result.Loading)
 
-       try {
-           val salt = UUID.randomUUID().toString()
-           val hashedPassword = hashPassword(password, salt)
-           val user = User(0, name, email, hashedPassword, salt)
-           userDao.insertUser(user)
-           emit(Result.Succes(user))
-       }catch (e: Exception){
-           emit(Result.Error(e))
-       }
+        try {
+            val salt = UUID.randomUUID().toString()
+            val hashedPassword = hashPassword(password, salt)
+            val user = User(0, name, email, hashedPassword, salt, agenceId)
+            userDao.insertUser(user)
+            emit(Result.Succes(user))
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
 
     }
+
     override suspend fun getUserByEmail(email: String): Flow<Result<User?>> = flow {
 
         try {
@@ -52,8 +55,7 @@ class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
             emit(Result.Loading)
             val user = userDao.getUserByEmail(email)
             emit(Result.Succes(user))
-        }
-        catch (e: Exception){
+        } catch (e: Exception) {
             emit(Result.Error(e))
         }
 

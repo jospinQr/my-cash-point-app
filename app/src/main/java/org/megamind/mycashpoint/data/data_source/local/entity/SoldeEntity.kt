@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Index
 import org.megamind.mycashpoint.utils.Constants
+import java.time.LocalDate
 
 /**
  * Représente le solde pour un opérateur de mobile money spécifique dans la base de données locale.
@@ -18,20 +19,17 @@ import org.megamind.mycashpoint.utils.Constants
  */
 @Entity(
     tableName = "soldes",
+    primaryKeys = ["idOperateur", "devise"],
     indices = [
-        Index(value = ["idOperateur"], unique = true)
+        Index(value = ["idOperateur"])
     ]
 )
 data class SoldeEntity(
-    @PrimaryKey
-    val idOperateur: String,         // ex : "AIRTEL", "ORANGE"
 
-    val montant: Long,               // Solde actuel en centimes
+    val idOperateur: Int,         // ex : "AIRTEL", "ORANGE"
+    val montant: Double,               // Solde actuel en centimes
     val devise: Constants.Devise,      // Devise
-
-    val dernierMiseAJour: Long,      // Timestamp
-    val seuilAlerte: Long? = null,   // Optionnel : seuil d'alerte
-
-    // Pour multi-utilisateur
+    val dernierMiseAJour: Long = System.currentTimeMillis(),      // Timestamp
+    val seuilAlerte: Double? = null,   // Optionnel : seuil d'alerte
     val misAJourPar: String? = null  // ex: "user_123"
 )

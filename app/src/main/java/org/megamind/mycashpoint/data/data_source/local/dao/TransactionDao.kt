@@ -57,7 +57,7 @@ interface TransactionDao {
         val soldeActuel = soldeDao.getSoldeByOperateurEtDevise(transaction.idOperateur, devise)
             ?: SoldeEntity(
                 idOperateur = transaction.idOperateur,
-                montant = 0L,
+                montant = 0.0,
                 devise = devise,
                 dernierMiseAJour = System.currentTimeMillis()
             )

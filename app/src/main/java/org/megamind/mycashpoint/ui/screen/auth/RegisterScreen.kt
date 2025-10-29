@@ -2,6 +2,7 @@ package org.megamind.mycashpoint.ui.screen.auth
 
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -21,11 +22,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -44,9 +49,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import org.koin.androidx.compose.koinViewModel
+import org.megamind.mycashpoint.data.data_source.local.entity.Agence
+import org.megamind.mycashpoint.ui.Agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.component.AuthTextField
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.CustomerTextButton
@@ -57,14 +65,38 @@ import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 fun RegisterScreen(
     modifier: Modifier = Modifier,
     viewModel: RegisterViewModel = koinViewModel(),
+    agenceViewModel: AgenceViewModel = koinViewModel(),
     navigateToHome: () -> Unit,
     onNavigateToSignUp: () -> Unit,
     windowSizeClass: WindowSizeClass,
 
+
     ) {
 
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    val agences by agenceViewModel.agences.collectAsStateWithLifecycle()
+
+
+
+
+
+    LaunchedEffect(viewModel) {
+
+        viewModel.uiEvent.collect { uiEvent ->
+
+            when (uiEvent) {
+                RegisterUiEvent.NavigateToHome -> {
+                    Toast.makeText(context, "Reuissit", Toast.LENGTH_LONG).show()
+                }
+
+                is RegisterUiEvent.ShowError -> {
+                    Toast.makeText(context, uiEvent.message, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     RegisterEventHandler(
         viewModel = viewModel,
@@ -83,9 +115,11 @@ fun RegisterScreen(
         onPasswordVisibilityChange = { viewModel.onPasswordVisibilityChange() },
         windowSizeClass = windowSizeClass,
         onNavigateToSignUp = onNavigateToSignUp,
-
-
-        )
+        onAgenceMenuExpanded = { viewModel.onAgenceMenuExpanded() },
+        onAgenceMenuDismiss = { viewModel.onAgenceMenuDismiss() },
+        onSelectedAgenceChange = { viewModel.onAgenceChange(it) },
+        agences = agences
+    )
 
 }
 
@@ -99,7 +133,11 @@ fun RegisterScreenContent(
     onSignIn: () -> Unit,
     onPasswordVisibilityChange: () -> Unit,
     windowSizeClass: WindowSizeClass,
-    onNavigateToSignUp: () -> Unit
+    onNavigateToSignUp: () -> Unit,
+    onAgenceMenuExpanded: () -> Unit,
+    onAgenceMenuDismiss: () -> Unit,
+    onSelectedAgenceChange: (Agence) -> Unit,
+    agences: List<Agence>
 
 ) {
     val isCompact = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
@@ -116,6 +154,10 @@ fun RegisterScreenContent(
             onNavigateToSignUp = onNavigateToSignUp,
             onNameChange = onNameChange,
             onPasswordRepeatChange = onPasswordRepeatChange,
+            onAgenceMenuExpanded = onAgenceMenuExpanded,
+            onAgenceMenuDismiss = onAgenceMenuDismiss,
+            onSelectedAgenceChange = onSelectedAgenceChange,
+            agences = agences,
 
 
             )
@@ -136,9 +178,13 @@ private fun AdaptiveRegisterLayout(
     onSignIn: () -> Unit,
     onPasswordVisibilityChange: () -> Unit,
     onNavigateToSignUp: () -> Unit,
+    onAgenceMenuExpanded: () -> Unit,
+    onAgenceMenuDismiss: () -> Unit,
+    onSelectedAgenceChange: (Agence) -> Unit,
+    agences: List<Agence>
 
 
-    ) {
+) {
     if (isCompact) {
         Column(
             modifier = modifier
@@ -161,8 +207,11 @@ private fun AdaptiveRegisterLayout(
                 onPasswordRepeatChange = onPasswordRepeatChange,
                 onSignIn = onSignIn,
                 onPasswordVisibilityChange = onPasswordVisibilityChange,
-                onNavigateToSignUp = onNavigateToSignUp
-
+                onNavigateToSignUp = onNavigateToSignUp,
+                onAgenceMenuExpanded = onAgenceMenuExpanded,
+                onAgenceMenuDismiss = onAgenceMenuDismiss,
+                onSelectedAgenceChange = onSelectedAgenceChange,
+                agences = agences,
             )
         }
     } else {
@@ -190,6 +239,10 @@ private fun AdaptiveRegisterLayout(
                     onSignIn = onSignIn,
                     onPasswordVisibilityChange = onPasswordVisibilityChange,
                     onNavigateToSignUp = onNavigateToSignUp,
+                    onAgenceMenuExpanded = onAgenceMenuExpanded,
+                    onAgenceMenuDismiss = onAgenceMenuDismiss,
+                    onSelectedAgenceChange = onSelectedAgenceChange,
+                    agences = agences,
 
 
                     )
@@ -208,9 +261,13 @@ private fun RegisterContent(
     onSignIn: () -> Unit,
     onPasswordVisibilityChange: () -> Unit,
     onNavigateToSignUp: () -> Unit,
+    onAgenceMenuExpanded: () -> Unit,
+    onAgenceMenuDismiss: () -> Unit,
+    onSelectedAgenceChange: (Agence) -> Unit,
+    agences: List<Agence>
 
 
-    ) {
+) {
 
 
     AuthTextField(
@@ -249,6 +306,55 @@ private fun RegisterContent(
         supportText = "Entrer un mot de passe valide(8 caractères minimum)"
     )
     Spacer(modifier = Modifier.height(4.dp))
+    Column {
+        AuthTextField(
+            label = "Agence",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    onAgenceMenuExpanded()
+                },
+            enabled = false,
+            value = uiState.agence,
+            onValueChange = {
+
+            },
+
+            trailingIcon = {
+
+                IconButton(onClick = { onAgenceMenuExpanded() }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = null
+                    )
+                }
+            }
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        DropdownMenu(
+            expanded = uiState.isAgenceExpanded,
+            onDismissRequest = { onAgenceMenuDismiss() }
+
+        )
+        {
+
+            agences.forEach {
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+
+                            Text(it.designation)
+
+                        }
+
+                    }, onClick = {
+                        onSelectedAgenceChange(it)
+                        onAgenceMenuDismiss()
+                    }
+                )
+            }
+        }
+    }
     AuthTextField(
         value = uiState.passWordRepeat,
 

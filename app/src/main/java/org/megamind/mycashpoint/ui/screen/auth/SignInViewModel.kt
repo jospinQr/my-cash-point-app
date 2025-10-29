@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.megamind.mycashpoint.data.data_source.local.entity.Agence
 import org.megamind.mycashpoint.domain.repository.UserRepository
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.utils.UtilsFonctions
@@ -30,6 +31,9 @@ class SignInViewModel(private val userRepository: UserRepository) : ViewModel() 
     private val _password: String
         get() = _uiState.value.password
 
+    private val _agenceId: String
+        get() = _uiState.value.selectedAgence?.id ?: ""
+
 
     fun onEmailChange(email: String) {
         _uiState.update {
@@ -46,6 +50,11 @@ class SignInViewModel(private val userRepository: UserRepository) : ViewModel() 
         }
     }
 
+    fun onAgenceChange(agence: Agence) {
+        _uiState.update {
+            it.copy(agence = agence.designation, selectedAgence = agence)
+        }
+    }
 
     fun onSignIn() {
 
@@ -69,7 +78,8 @@ class SignInViewModel(private val userRepository: UserRepository) : ViewModel() 
             userRepository
                 .login(
                     _email,
-                    _password
+                    _password,
+                    _agenceId
                 ).collect { result ->
 
                     when (val result = result) {
@@ -136,12 +146,25 @@ class SignInViewModel(private val userRepository: UserRepository) : ViewModel() 
             it.copy(isSendingPasswordResetDialogShown = false)
         }
     }
+
+    fun onAgenceMenuDismiss() {
+        _uiState.update {
+            it.copy(isAgenceExpanded = false)
+        }
+    }
+
+    fun onAgenceMenuExpanded() {
+        _uiState.update {
+            it.copy(isAgenceExpanded = true)
+        }
+    }
 }
 
 
 data class SignInUiState(
-    val email: String = "",
-    val password: String = "",
+    val email: String = "joekahereni25@gmail.com",
+    val password: String = "1234567890",
+    val agence: String = "",
     val isLoading: Boolean = false,
     val isSendingPasswordResetDialogShown: Boolean = false,
     val isPasswordError: Boolean = false,
@@ -149,8 +172,12 @@ data class SignInUiState(
     val isSigningIn: Boolean = false,
     val isPasswordShown: Boolean = false,
     val isEmailError: Boolean = false,
+    val selectedAgence: Agence? = null,
+    val isAgenceExpanded: Boolean = false,
 
-    )
+    ) {
+
+}
 
 sealed class SignInUiEvent {
 

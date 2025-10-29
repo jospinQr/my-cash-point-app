@@ -24,28 +24,31 @@ enum class StatutSync {
     ]
 )
 data class TransactionEntity(
+
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
-
-    val idOperateur: String,             // ex: "AIRTEL"
-
+    val idOperateur: Int,             // ex: "AIRTEL"
     val type: TypTransct,                  // Type de mouvement
-    val montant: Long,                   // Montant en centimes
-    val device: Constants.Devise,
-    val soldeAvant: Long? = null,        // Solde précédent
-    val soldeApres: Long? = null,        // Solde après
+    val montant: Double,
 
+    val nomClient: String? = null,// Montant en centimes
+    val numClient: String? = null,
+
+    val nomBeneficaire: String? = null,
+    val numBeneficaire: String? = null,
+
+    val soldeAvant: Double? = null,
+    val soldeApres: Double? = null,
+
+    val device: Constants.Devise,
     val reference: String? = null,       // Ex: reçu opérateur
     val note: String? = null,
-
     val horodatage: Long = System.currentTimeMillis(),
-
     val creePar: String? = null,         // Utilisateur local
-
     val statutSync: StatutSync = StatutSync.EN_ATTENTE,
-    val idServeur: String? = null
-) {
-    fun montantSigne(): Long = when (type) {
+
+    ) {
+    fun montantSigne(): Double = when (type) {
         TypTransct.DEPOT, TypTransct.TRANSFERT_ENTRANT -> montant
         TypTransct.RETRAIT, TypTransct.TRANSFERT_SORTANT, TypTransct.COMMISSION -> -montant
     }

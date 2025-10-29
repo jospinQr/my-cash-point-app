@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -261,8 +262,9 @@ fun FormTextField(
 fun CustomOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth(),
+    modifier: Modifier = Modifier,
     label: String? = null,
+    enabled: Boolean = true,
     placeholder: String? = null,
     leadingIcon: (@Composable (() -> Unit))? = null,
     trailingIcon: (@Composable (() -> Unit))? = null,
@@ -280,17 +282,26 @@ fun CustomOutlinedTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     supportingText: (@Composable (() -> Unit))? = null,  // zone sous le champ (ex : aide)
     shape: androidx.compose.foundation.shape.CornerBasedShape = MaterialTheme.shapes.small,
-    colors: TextFieldColors = TextFieldDefaults.colors()
+    colors: TextFieldColors = TextFieldDefaults.colors(
+        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+        focusedContainerColor = MaterialTheme.colorScheme.background,
+        disabledContainerColor = MaterialTheme.colorScheme.background,
+        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+        disabledIndicatorColor = MaterialTheme.colorScheme.onSurface
+
+
+    )
 ) {
     Column(modifier = modifier) {
         OutlinedTextField(
+            enabled = enabled,
             value = value,
             onValueChange = {
                 val new = if (maxChars != null) it.take(maxChars) else it
                 onValueChange(new)
             },
             modifier = Modifier.fillMaxWidth(),
-            label = label?.let { { Text(it) } },
+            label = label?.let { { Text(it, fontWeight = FontWeight.Bold) } },
             placeholder = placeholder?.let { { Text(it) } },
             leadingIcon = leadingIcon,
             trailingIcon = {
@@ -326,43 +337,13 @@ fun CustomOutlinedTextField(
             colors = colors
         )
 
-        // Support / erreur / compteur
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 8.dp, top = 4.dp, end = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // message de support ou message d'erreur (priorité erreur)
-            when {
-                isError && !errorMessage.isNullOrBlank() -> {
-                    Text(
-                        text = errorMessage,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
-                supportingText != null -> {
-                    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
-                        supportingText()
-                    }
-                }
-
-                else -> {
-                    Spacer(modifier = Modifier.height(0.dp))
-                }
-            }
-
-            // compteur caractère
-            if (maxChars != null) {
-                Text(
-                    text = "${value.length} / $maxChars",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (maxChars - value.length < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        AnimatedVisibility(isError) {
+            Text(
+                modifier = Modifier.padding(6.dp),
+                text = errorMessage!!,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }

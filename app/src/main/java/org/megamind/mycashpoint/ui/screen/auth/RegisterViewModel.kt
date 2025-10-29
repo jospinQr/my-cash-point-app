@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.megamind.mycashpoint.data.data_source.local.entity.Agence
 import org.megamind.mycashpoint.domain.repository.UserRepository
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.utils.UtilsFonctions
@@ -55,6 +56,11 @@ class RegisterViewModel(private val userRepository: UserRepository) : ViewModel(
         }
     }
 
+    fun onAgenceChange(agence: Agence) {
+        _uiState.update {
+            it.copy(agence = agence.designation, selectedAgence = agence)
+        }
+    }
 
     fun onRegister() {
 
@@ -100,6 +106,7 @@ class RegisterViewModel(private val userRepository: UserRepository) : ViewModel(
                     name = _uiState.value.userName,
                     email = _uiState.value.email,
                     password = _uiState.value.password,
+                    agenceId = _uiState.value.selectedAgence?.id!!
                 ).collect { result ->
 
                     when (val result = result) {
@@ -146,15 +153,26 @@ class RegisterViewModel(private val userRepository: UserRepository) : ViewModel(
         }
     }
 
+    fun onAgenceMenuDismiss() {
+        _uiState.update {
+            it.copy(isAgenceExpanded = false)
+        }
+    }
 
+    fun onAgenceMenuExpanded() {
+        _uiState.update {
+            it.copy(isAgenceExpanded = true)
+        }
+    }
 }
 
 
 data class RegisterUiState(
-    val userName: String = "",
-    val email: String = "",
-    val password: String = "",
-    val passWordRepeat: String = "",
+    val userName: String = "joe",
+    val email: String = "joekahereni25@gmail.com",
+    val password: String = "1234567890",
+    val agence: String = "",
+    val passWordRepeat: String = "1234567890",
     val isPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
     val isPasswordShown: Boolean = false,
@@ -163,7 +181,10 @@ data class RegisterUiState(
     val isPasswordRepError: Boolean = false,
     val isNameError: Boolean = false,
     val isRegisting: Boolean = false,
+    val selectedAgence: Agence? = null,
+    val isAgenceExpanded: Boolean = false,
 ) {
+
 
 }
 

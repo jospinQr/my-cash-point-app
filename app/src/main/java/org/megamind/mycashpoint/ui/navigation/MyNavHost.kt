@@ -9,6 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.window.core.layout.WindowSizeClass
+import org.megamind.mycashpoint.ui.Agence.AgenceScreen
 import org.megamind.mycashpoint.ui.screen.SplashScreen
 import org.megamind.mycashpoint.ui.screen.auth.LoginInScreen
 import org.megamind.mycashpoint.ui.screen.auth.RegisterScreen
@@ -66,7 +67,9 @@ fun MyNavHost(
 
             composable(route = Destination.REGISTER.name) {
                 RegisterScreen(
-                    onNavigateToSignUp = {},
+                    onNavigateToSignUp = {
+                        navController.navigate(Destination.AGENCE.name)
+                    },
                     windowSizeClass = windowSizeClass,
                     navigateToHome = {}
                 )
@@ -106,6 +109,11 @@ fun MyNavHost(
                 )
 
             }
+            composable(route = Destination.AGENCE.name) {
+                AgenceScreen()
+            }
+
+
         }
 
     }

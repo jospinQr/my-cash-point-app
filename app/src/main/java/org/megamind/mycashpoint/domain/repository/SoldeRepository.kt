@@ -8,7 +8,7 @@ import org.megamind.mycashpoint.utils.Result
 interface SoldeRepository {
 
     suspend fun getSoldeByOperateurEtDevise(
-        idOperateur: String,
+        idOperateur: Int,
         devise: Constants.Devise
     ): Flow<Result<SoldeEntity?>>
 
@@ -17,13 +17,13 @@ interface SoldeRepository {
     suspend fun insertOrUpdate(solde: SoldeEntity): Flow<Result<Unit>>
 
     suspend fun updateMontant(
-        idOperateur: String,
+        idOperateur: Int,
         devise: Constants.Devise,
-        montant: Long
+        montant: Double
     ): Flow<Result<Unit>>
 
     suspend fun deleteByOperateurEtDevise(
-        idOperateur: String,
+        idOperateur: Int,
         devise: Constants.Devise
     ): Flow<Result<Unit>>
 }

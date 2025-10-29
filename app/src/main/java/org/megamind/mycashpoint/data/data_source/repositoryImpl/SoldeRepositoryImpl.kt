@@ -11,7 +11,7 @@ import org.megamind.mycashpoint.utils.Result
 class SoldeRepositoryImpl(private val soldeDao: SoldeDao) : SoldeRepository {
 
     override suspend fun getSoldeByOperateurEtDevise(
-        idOperateur: String,
+        idOperateur: Int,
         devise: Constants.Devise
     ): Flow<Result<SoldeEntity?>> = flow {
         try {
@@ -44,9 +44,9 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao) : SoldeRepository {
     }
 
     override suspend fun updateMontant(
-        idOperateur: String,
+        idOperateur: Int,
         devise: Constants.Devise,
-        montant: Long
+        montant: Double
     ): Flow<Result<Unit>> = flow {
         try {
             emit(Result.Loading)
@@ -58,7 +58,7 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao) : SoldeRepository {
     }
 
     override suspend fun deleteByOperateurEtDevise(
-        idOperateur: String,
+        idOperateur: Int,
         devise: Constants.Devise
     ): Flow<Result<Unit>> = flow {
         try {

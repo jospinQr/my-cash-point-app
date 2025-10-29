@@ -14,4 +14,6 @@ enum class Destination(route: String) {
     TRANSACTION("transaction"),
     CAISSE("caisse"),
     RAPPORT("rapport"),
+
+    AGENCE("agences")
 }
