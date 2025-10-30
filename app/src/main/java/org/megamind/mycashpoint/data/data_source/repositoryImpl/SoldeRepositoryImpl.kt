@@ -12,7 +12,7 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao) : SoldeRepository {
 
     override suspend fun getSoldeByOperateurEtDevise(
         idOperateur: Int,
-        devise: Constants.Devise
+        devise: String,
     ): Flow<Result<SoldeEntity?>> = flow {
         try {
             emit(Result.Loading)

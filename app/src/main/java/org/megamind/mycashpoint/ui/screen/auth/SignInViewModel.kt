@@ -12,10 +12,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.data.data_source.local.entity.Agence
 import org.megamind.mycashpoint.domain.repository.UserRepository
+import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.utils.UtilsFonctions
 
-class SignInViewModel(private val userRepository: UserRepository) : ViewModel() {
+class SignInViewModel(
+    private val userRepository: UserRepository,
+    private val storageManager: DataStorageManager
+) : ViewModel() {
 
 
     private val _uiState = MutableStateFlow(SignInUiState())
@@ -95,6 +99,8 @@ class SignInViewModel(private val userRepository: UserRepository) : ViewModel() 
                                 it.copy(isLoading = false)
                             }
                             _uiEvent.emit(SignInUiEvent.NavigateToHome)
+
+                            storageManager.saveUserId(result.data?.id!!)
 
                         }
 

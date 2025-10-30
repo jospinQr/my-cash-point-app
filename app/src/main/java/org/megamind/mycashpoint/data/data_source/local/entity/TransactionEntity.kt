@@ -1,7 +1,7 @@
 package org.megamind.mycashpoint.data.data_source.local.entity
 
-import android.health.connect.datatypes.Device
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Index
 import org.megamind.mycashpoint.utils.Constants
@@ -21,7 +21,15 @@ enum class StatutSync {
     indices = [
         Index("idOperateur"),
         Index("horodatage")
-    ]
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = User::class,
+            parentColumns = ["id"],
+            childColumns = ["creePar"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
 )
 data class TransactionEntity(
 
@@ -44,7 +52,7 @@ data class TransactionEntity(
     val reference: String? = null,       // Ex: reçu opérateur
     val note: String? = null,
     val horodatage: Long = System.currentTimeMillis(),
-    val creePar: String? = null,         // Utilisateur local
+    val creePar: Int?,         // Utilisateur local
     val statutSync: StatutSync = StatutSync.EN_ATTENTE,
 
     ) {

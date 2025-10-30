@@ -81,5 +81,7 @@ dependencies {
     implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.androidx.adaptive)
 
+    implementation(libs.androidx.datastore.preferences)
+
 
 }

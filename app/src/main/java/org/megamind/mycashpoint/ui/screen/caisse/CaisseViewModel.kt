@@ -6,15 +6,21 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
 import org.megamind.mycashpoint.domain.model.Operateur
+import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.repository.SoldeRepository
 import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
 
-class CaisseViewModel(private val repository: SoldeRepository) : ViewModel() {
+class CaisseViewModel(
+    private val repository: SoldeRepository,
+    val storageManager: DataStorageManager
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CaisseUiState())
     val uiState = _uiState.asStateFlow()
@@ -45,7 +51,7 @@ class CaisseViewModel(private val repository: SoldeRepository) : ViewModel() {
 
     fun onDeviseChange(devise: Constants.Devise) {
         _uiState.update {
-            it.copy(selectDevise = devise)
+            it.copy(selectedDevise = devise)
         }
 
     }
@@ -94,18 +100,16 @@ class CaisseViewModel(private val repository: SoldeRepository) : ViewModel() {
     fun onSaveClick() {
 
 
-        val solde = SoldeEntity(
-            idOperateur = uiState.value.selectedoperateur!!.id,
-            montant = uiState.value.solde.toDouble(),
-            devise = uiState.value.selectDevise,
-            seuilAlerte = uiState.value.seuilAlert?.toDouble(),
-            dernierMiseAJour = System.currentTimeMillis(),
-            misAJourPar = "user_123"
-
-        )
-
         viewModelScope.launch {
+            val solde = SoldeEntity(
+                idOperateur = uiState.value.selectedoperateur.id,
+                montant = uiState.value.solde.toDouble(),
+                devise = uiState.value.selectedDevise,
+                seuilAlerte = uiState.value.seuilAlert?.toDouble(),
+                dernierMiseAJour = System.currentTimeMillis(),
+                misAJourPar = storageManager.getUserID()!!
 
+            )
             repository.insertOrUpdate(solde).collect { result ->
 
                 when (result) {
@@ -121,6 +125,7 @@ class CaisseViewModel(private val repository: SoldeRepository) : ViewModel() {
                             it.copy(isLoading = false)
                         }
                         _uiEvent.emit(CaisseUiEvent.CaisseSaved)
+                        getSoldes()
                     }
 
                     is Result.Error<*> -> {
@@ -169,9 +174,10 @@ class CaisseViewModel(private val repository: SoldeRepository) : ViewModel() {
 
 
 data class CaisseUiState(
+
     val solde: String = "",
-    val selectedoperateur: Operateur? = null,
-    val selectDevise: Constants.Devise = Constants.Devise.USD,
+    val selectedoperateur: Operateur = operateurs.first(),
+    val selectedDevise: Constants.Devise = Constants.Devise.USD,
     val seuilAlert: String? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,

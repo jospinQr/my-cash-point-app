@@ -301,7 +301,7 @@ fun CustomOutlinedTextField(
                 onValueChange(new)
             },
             modifier = Modifier.fillMaxWidth(),
-            label = label?.let { { Text(it, fontWeight = FontWeight.Bold) } },
+            label = label?.let { { Text(it, style = MaterialTheme.typography.bodySmall) } },
             placeholder = placeholder?.let { { Text(it) } },
             leadingIcon = leadingIcon,
             trailingIcon = {

@@ -1,10 +1,10 @@
 package org.megamind.mycashpoint.ui.screen.transaction
 
+import android.content.Context
+import android.print.PrintManager
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -21,9 +21,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AttachMoney
+import androidx.compose.material.icons.rounded.Note
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -31,20 +36,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButtonDefaults
 
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.ui.navigation.Destination
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurUiState
@@ -57,10 +58,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.data.data_source.local.entity.TypTransct
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
+import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -84,6 +87,31 @@ fun TransactionScreen(
 
                 TransactionUiEvent.TransactionSaved -> {
                     Toast.makeText(context, "Enregistrement reussit", Toast.LENGTH_LONG).show()
+                }
+
+                is TransactionUiEvent.TransactionPrint -> {
+                    val transaction = it.transaction
+                    val printManager =
+                        context.getSystemService(Context.PRINT_SERVICE) as PrintManager
+                    val jobName = "${context.getString(R.string.app_name)} Doc"
+                    printManager.print(
+                        jobName,
+                        MyPrintDocumentAdapter(
+                            context,
+                            "Fiche de stock",
+
+                            mapOf(
+                                "numero" to transaction.id,
+                                "date" to transaction.horodatage.toString(),
+                                "motif" to transaction.type.name,
+                                "montant" to "${transaction.montantSigne()}",
+                                "nom" to transaction.nomClient.toString(),
+                                "agent" to transaction.creePar.toString(),
+
+                                )
+                        ),
+                        null
+                    )
                 }
             }
         }
@@ -141,6 +169,7 @@ fun TransactionScreenContent(
 ) {
 
     val selectedOperateur = operateurUiState.selectedOperateur
+    val context = LocalContext.current
 
 
     with(sharedTransitionScope) {
@@ -182,20 +211,32 @@ fun TransactionScreenContent(
 
             Box(modifier = Modifier.padding(innerPadding)) {
 
-                Column {
+
+                Column(modifier = Modifier.padding(horizontal = 12.dp)) {
                     SingleChoiceSegmentedButtonRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 22.dp)
-                    ) {
+
+                    )
+                    {
 
                         Constants.Devise.entries.forEachIndexed { index, devise ->
 
                             SegmentedButton(
-                                colors = SegmentedButtonDefaults.colors(),
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primary,
+                                    activeBorderColor = MaterialTheme.colorScheme.primary,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimary
+
+
+                                ),
 
                                 label = {
-                                    Text(devise.name)
+                                    Text(
+                                        devise.name,
+                                        color = if (uiState.selectedDevise == devise) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
+                                    )
                                 },
                                 onClick = {
 
@@ -214,17 +255,17 @@ fun TransactionScreenContent(
 
 
                     }
+                    Spacer(Modifier.height(16.dp))
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
+
+                        ) {
 
                         Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp),
+                                .fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             TypTransct.entries.forEachIndexed { index, typTransct ->
@@ -236,19 +277,21 @@ fun TransactionScreenContent(
                                         onFormVisble()
                                     },
                                     contenairColor = if (index % 2 == 0) MaterialTheme.colorScheme.primary.copy(
-                                        0.07f
+
                                     )
                                     else MaterialTheme.colorScheme.background,
-                                    shape = RoundedCornerShape(16.dp),
+                                    shape = RoundedCornerShape(12.dp),
 
 
                                     ) {
 
-                                    Text(
-                                        typTransct.name,
-                                        color = if (index % 2 == 0) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.primary
-                                    )
+                                    Row {
+                                        Text(
+                                            typTransct.name,
+                                            color = if (index % 2 == 0) MaterialTheme.colorScheme.onPrimary
+                                            else MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -272,10 +315,10 @@ fun TransactionScreenContent(
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Text(
-                    " ${uiState.selectedType.name} ${selectedOperateur?.name} en ${uiState.selectedDevise.name}",
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    " ${uiState.selectedType.name} ${selectedOperateur?.name} en ${uiState.selectedDevise.name}".uppercase(),
+                    style = MaterialTheme.typography.bodySmall.copy(
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 )
             }
@@ -296,7 +339,14 @@ fun TransactionScreenContent(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Next,
                     isError = uiState.isMontantError,
-                    errorMessage = "Montant doit être superieur à 0"
+                    errorMessage = "Montant doit être superieur à 0",
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.AttachMoney,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 )
 
 
@@ -309,18 +359,32 @@ fun TransactionScreenContent(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next,
                     isError = uiState.isNomError,
-                    errorMessage = "Champs obligatoire"
+                    errorMessage = "Champs obligatoire",
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 )
                 CustomOutlinedTextField(
                     value = uiState.telephClient,
                     onValueChange = {
-                        onNomClientChange(it)
+                        onTelephClientChange(it)
                     },
                     label = "Telephone client",
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next,
                     isError = uiState.isTelephClientError,
-                    errorMessage = "Champs obligatoire"
+                    errorMessage = "Champs obligatoire",
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Phone,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 )
                 if (uiState.selectedType == TypTransct.DEPOT) {
                     CustomOutlinedTextField(
@@ -331,7 +395,14 @@ fun TransactionScreenContent(
                         label = "Beneficiaire",
                         imeAction = ImeAction.Next,
                         isError = uiState.isNomBenefError,
-                        errorMessage = "Champs obligatoire"
+                        errorMessage = "Champs obligatoire",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Person,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     )
                     CustomOutlinedTextField(
 
@@ -343,7 +414,14 @@ fun TransactionScreenContent(
                         keyboardType = KeyboardType.Phone,
                         imeAction = ImeAction.Next,
                         isError = uiState.isTelephBenefError,
-                        errorMessage = "Champs obligatoire"
+                        errorMessage = "Champs obligatoire",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Phone,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     )
                 }
                 CustomOutlinedTextField(
@@ -352,12 +430,20 @@ fun TransactionScreenContent(
                         onNoteChange(it)
                     },
                     label = "Note",
-                    imeAction = ImeAction.Done
+                    imeAction = ImeAction.Done,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Note,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
                 )
                 CustomerButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-                        onSave(selectedOperateur!!.id)
+                        onSave(selectedOperateur?.id ?: 0)
                     }
                 ) {
                     Text("Enregister")

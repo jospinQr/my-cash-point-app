@@ -1,6 +1,7 @@
 package org.megamind.mycashpoint.data.data_source.local.entity
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Index
 import org.megamind.mycashpoint.utils.Constants
@@ -20,6 +21,14 @@ import java.time.LocalDate
 @Entity(
     tableName = "soldes",
     primaryKeys = ["idOperateur", "devise"],
+    foreignKeys = [
+        ForeignKey(
+            entity = User::class,
+            parentColumns = ["id"],
+            childColumns = ["misAJourPar"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
     indices = [
         Index(value = ["idOperateur"])
     ]
@@ -31,5 +40,5 @@ data class SoldeEntity(
     val devise: Constants.Devise,      // Devise
     val dernierMiseAJour: Long = System.currentTimeMillis(),      // Timestamp
     val seuilAlerte: Double? = null,   // Optionnel : seuil d'alerte
-    val misAJourPar: String? = null  // ex: "user_123"
+    val misAJourPar: Int // ex: "user_123"
 )

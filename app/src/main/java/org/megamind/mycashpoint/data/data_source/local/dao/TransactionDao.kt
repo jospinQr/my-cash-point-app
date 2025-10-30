@@ -54,12 +54,13 @@ interface TransactionDao {
         val devise = transaction.device
 
         // 1️⃣ Récupération du solde existant
-        val soldeActuel = soldeDao.getSoldeByOperateurEtDevise(transaction.idOperateur, devise)
+        val soldeActuel = soldeDao.getSoldeByOperateurEtDevise(transaction.idOperateur, devise.name)
             ?: SoldeEntity(
                 idOperateur = transaction.idOperateur,
                 montant = 0.0,
                 devise = devise,
-                dernierMiseAJour = System.currentTimeMillis()
+                dernierMiseAJour = System.currentTimeMillis(),
+                misAJourPar = transaction.creePar!!
             )
 
         // 2️⃣ Calcul du nouveau solde

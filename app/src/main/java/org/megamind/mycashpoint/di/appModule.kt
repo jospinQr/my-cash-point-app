@@ -1,5 +1,7 @@
 package org.megamind.mycashpoint.di
 
+import android.app.Activity
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import org.megamind.mycashpoint.data.data_source.repositoryImpl.AgenceRepositoryImpl
@@ -17,8 +19,12 @@ import org.megamind.mycashpoint.ui.screen.caisse.CaisseViewModel
 import org.megamind.mycashpoint.ui.screen.main.MainViewModel
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.ui.screen.transaction.TransationViewModel
+import org.megamind.mycashpoint.utils.DataStorageManager
 
 val appModule = module {
+
+
+    single { DataStorageManager(androidContext()) }
 
 
     single<UserRepository> {
@@ -39,7 +45,7 @@ val appModule = module {
 
 
     viewModel {
-        SignInViewModel(get())
+        SignInViewModel(get(),get())
     }
 
     viewModel {
@@ -54,11 +60,11 @@ val appModule = module {
         OperateurViewModel()
     }
     viewModel {
-        TransationViewModel(get())
+        TransationViewModel(get(),get()   )
     }
 
     viewModel {
-        CaisseViewModel(get())
+        CaisseViewModel(get(),get())
     }
 
 

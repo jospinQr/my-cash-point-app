@@ -92,9 +92,7 @@ private fun OperateurScreenContent(
 
 
                     OperateurItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
+                        modifier = Modifier,
                         operateur = operateur,
                         onOperateurSelected = {
                             onOperateurSelected(it)
@@ -129,6 +127,7 @@ fun OperateurItem(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
                 .width(180.dp)
+                .height(24.dp)
                 .background(operateur.color.copy(.08f))
                 .clickable {
                     onOperateurSelected(operateur)

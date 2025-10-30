@@ -12,9 +12,15 @@ import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.TypTransct
 import org.megamind.mycashpoint.domain.repository.TransactionRepository
 import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.DataStorageManager
+
 import org.megamind.mycashpoint.utils.Result
 
-class TransationViewModel(private val repository: TransactionRepository) : ViewModel() {
+class TransationViewModel(
+    private val repository: TransactionRepository,
+    private val storageManager: DataStorageManager,
+
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TransactionUiState())
     val uiSate = _uiState.asStateFlow()
@@ -98,14 +104,16 @@ class TransationViewModel(private val repository: TransactionRepository) : ViewM
 
     fun onSaveClick(operateurId: Int) {
 
-       val montant = _montant.toDouble()
+        val montant = _montant.toDoubleOrNull()
 
-        if (montant <=0) {
-            _uiState.update {
-                it.copy(isMontantError = true)
+        if (montant != null) {
+            if (montant <= 0) {
+                _uiState.update {
+                    it.copy(isMontantError = true)
+                }
+
+                return
             }
-
-            return
         }
 
         if (_nomClient.isEmpty()) {
@@ -137,19 +145,21 @@ class TransationViewModel(private val repository: TransactionRepository) : ViewM
         }
 
 
-        val transaction = TransactionEntity(
-            idOperateur = operateurId,
-            type = _typeTransact,
-            device = _devise,
-            montant = _montant.toDouble(),
-            nomClient = _nomClient,
-            numClient = _telephClient,
-            nomBeneficaire = _nomBenef,
-            numBeneficaire = _telephBenef,
-            note = _note,
-        )
-
         viewModelScope.launch {
+
+
+            val transaction = TransactionEntity(
+                idOperateur = operateurId,
+                type = _typeTransact,
+                device = _devise,
+                montant = _montant.toDouble(),
+                nomClient = _nomClient,
+                numClient = _telephClient,
+                nomBeneficaire = _nomBenef,
+                numBeneficaire = _telephBenef,
+                note = _note,
+                creePar = storageManager.getUserID(),
+            )
 
             repository.ajouterTransactionEtMettreAJourSolde(transaction).collect { result ->
 
@@ -162,6 +172,10 @@ class TransationViewModel(private val repository: TransactionRepository) : ViewM
                     is Result.Succes<*> -> {
                         _uiState.update { it.copy(isLoading = false) }
                         _uiEvent.emit(TransactionUiEvent.TransactionSaved)
+                        _uiEvent.emit(TransactionUiEvent.TransactionPrint(transaction))
+
+
+
                     }
 
                     is Result.Error<*> -> {
@@ -180,7 +194,6 @@ class TransationViewModel(private val repository: TransactionRepository) : ViewM
 
 
     private fun validateInput() {
-
 
 
     }
@@ -218,5 +231,7 @@ sealed class TransactionUiEvent() {
 
     object TransactionSaved : TransactionUiEvent()
     data class TransactionError(val errorMessage: String) : TransactionUiEvent()
+
+    data class  TransactionPrint(val transaction: TransactionEntity) : TransactionUiEvent()
 
 }

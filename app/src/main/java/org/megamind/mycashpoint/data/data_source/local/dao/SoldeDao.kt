@@ -19,7 +19,7 @@ interface SoldeDao {
     )
     suspend fun getSoldeByOperateurEtDevise(
         idOperateur: Int,
-        devise: Constants.Devise
+        devise: String
     ): SoldeEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

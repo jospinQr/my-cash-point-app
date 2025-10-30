@@ -9,7 +9,7 @@ interface SoldeRepository {
 
     suspend fun getSoldeByOperateurEtDevise(
         idOperateur: Int,
-        devise: Constants.Devise
+        devise: String,
     ): Flow<Result<SoldeEntity?>>
 
     suspend fun getAll(): Flow<Result<List<SoldeEntity>>>

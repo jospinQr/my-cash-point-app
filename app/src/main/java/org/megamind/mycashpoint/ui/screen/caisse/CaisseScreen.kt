@@ -1,9 +1,12 @@
 package org.megamind.mycashpoint.ui.screen.caisse
 
 
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -27,11 +32,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -94,6 +105,7 @@ fun CaisseScreen(modifier: Modifier = Modifier, viewModel: CaisseViewModel = koi
 
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CaisseScreenContent(
@@ -114,7 +126,15 @@ fun CaisseScreenContent(
     ) {
 
 
-    Scaffold(floatingActionButton = {
+    Scaffold(topBar = {
+
+        TopAppBar(title = {
+            Text(
+                "Soldes ${uiState.selectedDevise.name}",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        })
+    }, floatingActionButton = {
 
         FloatingActionButton(onClick = { onBottomSheetShown() }) {
 
@@ -124,26 +144,102 @@ fun CaisseScreenContent(
     }) { innerPadding ->
 
 
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
 
 
             if (soldes.isEmpty()) {
-                Text("Aucune donnée")
+                Text("Aucune donnée", modifier = Modifier.align(Alignment.Center))
                 return@Scaffold
             }
 
             LazyColumn {
+                item {
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
 
-                items(soldes) {
+                    )
+                    {
 
-                    Column {
-                        Text(it.devise.name)
-                        Text(it.idOperateur.toString())
+                        Constants.Devise.entries.forEachIndexed { index, devise ->
+
+                            SegmentedButton(
+                                colors = SegmentedButtonDefaults.colors(),
+
+                                label = {
+                                    Text(devise.name)
+                                },
+                                onClick = {
+
+                                    onSelectedDeviseChange(devise)
+                                },
+                                selected = uiState.selectedDevise == devise,
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = Constants.Devise.entries.size
+                                ),
+
+                                )
+
+
+                        }
+
+
                     }
                 }
+
+                itemsIndexed(soldes) { index, solde ->
+
+                    val operateur = operateurs.find { operateur ->
+                        operateur.id == solde.idOperateur &&
+                                uiState.selectedDevise == solde.devise
+
+
+                    }
+                    if (operateur != null) {
+                        val isLast = index == soldes.lastIndex
+                        val isFirst = index == 0
+                        ListItem(
+                            modifier = Modifier.border(
+                                width = .08.dp,
+                                Color.Gray,
+                                shape = RoundedCornerShape(
+                                    topStart = if (isFirst) 42.dp else 0.dp,
+                                    topEnd = if (isFirst) 42.dp else 0.dp,
+                                    bottomEnd = if (isLast) 42.dp else 0.dp,
+                                    bottomStart = if (isLast) 42.dp else 0.dp,
+                                )
+                            ),
+                            leadingContent = {
+                                Image(
+                                    modifier = Modifier
+                                        .size(52.dp)
+                                        .clip(
+                                            RoundedCornerShape(
+                                                14.dp
+                                            ),
+                                        ),
+                                    painter = painterResource(
+                                        operateur.logo
+                                    ),
+                                    contentDescription = null
+
+                                )
+                            },
+                            headlineContent = { Text(operateur.name) },
+                            supportingContent = { Text("${solde.montant} ${solde.devise.name} ") },
+                            trailingContent = {
+                                Text(Constants.formatTimestamp(solde.dernierMiseAJour))
+                            }
+                        )
+                    }
+                }
+
             }
-
-
         }
 
 
@@ -162,7 +258,7 @@ fun CaisseScreenContent(
                     AnimatedContent(uiState.selectedoperateur) {
                         Text(it?.name ?: "")
                     }
-                    AnimatedContent(uiState.selectDevise) {
+                    AnimatedContent(uiState.selectedDevise) {
                         Text(it.name)
                     }
                 }
@@ -180,7 +276,7 @@ fun CaisseScreenContent(
                             Constants.Devise.entries.forEachIndexed { index, devise ->
 
                                 RadioButton(
-                                    selected = uiState.selectDevise == devise,
+                                    selected = uiState.selectedDevise == devise,
                                     onClick = {
                                         onSelectedDeviseChange(devise)
                                     }
