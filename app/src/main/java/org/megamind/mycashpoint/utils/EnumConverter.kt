@@ -1,17 +1,26 @@
 package org.megamind.mycashpoint.utils
 
 import androidx.room.TypeConverter
-import org.megamind.mycashpoint.data.data_source.local.entity.StatutSync
-import org.megamind.mycashpoint.data.data_source.local.entity.TypTransct
+import org.megamind.mycashpoint.domain.model.SoldeType
+import org.megamind.mycashpoint.domain.model.StatutSync
+import org.megamind.mycashpoint.domain.model.TransactionType
+import java.math.BigDecimal
 
 class EnumConverters {
 
     // ---- TypeFlux ----
-    @TypeConverter
-    fun fromTypeFlux(value: TypTransct): String = value.name
 
     @TypeConverter
-    fun toTypeFlux(value: String): TypTransct = TypTransct.valueOf(value)
+    fun fromTypSolde(value: SoldeType): String = value.name
+
+    @TypeConverter
+    fun toTypSolde(value: String): SoldeType = SoldeType.valueOf(value)
+
+    @TypeConverter
+    fun fromTypeFlux(value: TransactionType): String = value.name
+
+    @TypeConverter
+    fun toTypeFlux(value: String): TransactionType = TransactionType.valueOf(value)
 
     // ---- StatutSync ----
     @TypeConverter
@@ -22,4 +31,15 @@ class EnumConverters {
 
     @TypeConverter
     fun toDevise(value: String): Constants.Devise = Constants.Devise.valueOf(value)
+
+
+    @TypeConverter
+    fun fromBigDecimal(value: BigDecimal?): String? {
+        return value?.toPlainString()
+    }
+
+    @TypeConverter
+    fun toBigDecimal(value: String?): BigDecimal? {
+        return value?.let { BigDecimal(it) }
+    }
 }

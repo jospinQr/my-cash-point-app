@@ -4,40 +4,45 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Index
+import org.megamind.mycashpoint.domain.model.StatutSync
+import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.utils.Constants
-import java.util.UUID
-
-enum class TypTransct {
-    DEPOT, RETRAIT, TRANSFERT_ENTRANT, TRANSFERT_SORTANT, COMMISSION
-}
-
-enum class StatutSync {
-    EN_ATTENTE, SYNC, CONFLIT
-}
+import java.math.BigDecimal
 
 
 @Entity(
     tableName = "flux_caisse",
     indices = [
+        Index("transactionCode", unique = true),
         Index("idOperateur"),
         Index("horodatage")
     ],
     foreignKeys = [
         ForeignKey(
-            entity = User::class,
+            entity = UserEntity::class,
             parentColumns = ["id"],
             childColumns = ["creePar"],
             onDelete = ForeignKey.CASCADE
-        )
+        ),
+        ForeignKey(
+            entity = AgenceEntity::class,
+            parentColumns = ["codeAgence"],
+            childColumns = ["codeAgence"],
+            onDelete = ForeignKey.CASCADE
+        ),
+
     ],
-)
+
+
+    )
 data class TransactionEntity(
 
-    @PrimaryKey
-    val id: String = UUID.randomUUID().toString(),
+    @PrimaryKey(autoGenerate = true)
+    val id: Long,
+    val transactionCode:String,
     val idOperateur: Int,             // ex: "AIRTEL"
-    val type: TypTransct,                  // Type de mouvement
-    val montant: Double,
+    val type: TransactionType,                  // Type de mouvement
+    val montant: BigDecimal,
 
     val nomClient: String? = null,// Montant en centimes
     val numClient: String? = null,
@@ -45,19 +50,15 @@ data class TransactionEntity(
     val nomBeneficaire: String? = null,
     val numBeneficaire: String? = null,
 
-    val soldeAvant: Double? = null,
-    val soldeApres: Double? = null,
+    val soldeAvant: BigDecimal? = null,
+    val soldeApres: BigDecimal? = null,
 
     val device: Constants.Devise,
     val reference: String? = null,       // Ex: reçu opérateur
     val note: String? = null,
     val horodatage: Long = System.currentTimeMillis(),
-    val creePar: Int?,         // Utilisateur local
+    val creePar: Int,
+    val codeAgence: String,
     val statutSync: StatutSync = StatutSync.EN_ATTENTE,
 
-    ) {
-    fun montantSigne(): Double = when (type) {
-        TypTransct.DEPOT, TypTransct.TRANSFERT_ENTRANT -> montant
-        TypTransct.RETRAIT, TypTransct.TRANSFERT_SORTANT, TypTransct.COMMISSION -> -montant
-    }
-}
+    )

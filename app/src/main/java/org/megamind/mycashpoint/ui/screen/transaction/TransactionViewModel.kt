@@ -8,19 +8,21 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
-import org.megamind.mycashpoint.data.data_source.local.entity.TypTransct
-import org.megamind.mycashpoint.domain.repository.TransactionRepository
+import org.megamind.mycashpoint.domain.model.Transaction
+import org.megamind.mycashpoint.domain.model.TransactionType
+import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.TransactionField
+import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidationException
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.DataStorageManager
-
 import org.megamind.mycashpoint.utils.Result
+import java.math.BigDecimal
 
-class TransationViewModel(
-    private val repository: TransactionRepository,
+class TransactionViewModel(
+    private val insertTransactionAndUpdateSoldes: InsertTransactionAndUpdateSoldesUseCase,
     private val storageManager: DataStorageManager,
 
-) : ViewModel() {
+    ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TransactionUiState())
     val uiSate = _uiState.asStateFlow()
@@ -43,7 +45,7 @@ class TransationViewModel(
         }
     }
 
-    fun onNomClentChange(nom: String) {
+    fun onNomClientChange(nom: String) {
         _uiState.update {
             it.copy(nomClient = nom, isNomError = false)
         }
@@ -68,7 +70,7 @@ class TransationViewModel(
         }
     }
 
-    fun _onNoteChange(note: String) {
+    fun onNoteChange(note: String) {
         _uiState.update {
             it.copy(note = note)
         }
@@ -95,7 +97,7 @@ class TransationViewModel(
         }
     }
 
-    fun onTypeSelected(type: TypTransct) {
+    fun onTypeSelected(type: TransactionType) {
         _uiState.update {
             it.copy(selectedType = type)
         }
@@ -104,64 +106,25 @@ class TransationViewModel(
 
     fun onSaveClick(operateurId: Int) {
 
-        val montant = _montant.toDoubleOrNull()
-
-        if (montant != null) {
-            if (montant <= 0) {
-                _uiState.update {
-                    it.copy(isMontantError = true)
-                }
-
-                return
-            }
-        }
-
-        if (_nomClient.isEmpty()) {
-            _uiState.update {
-                it.copy(isNomError = true)
-            }
-            return
-        }
-
-        if (_telephClient.isEmpty()) {
-            _uiState.update {
-                it.copy(isTelephClientError = true)
-            }
-        }
-
-        if (_nomBenef.isEmpty() && _typeTransact == TypTransct.DEPOT) {
-            _uiState.update {
-                it.copy(isNomBenefError = true)
-            }
-            return
-        }
-
-        if (_telephBenef.isEmpty()) {
-
-            _uiState.update {
-                it.copy(isTelephBenefError = true)
-            }
-            return
-        }
-
 
         viewModelScope.launch {
 
 
-            val transaction = TransactionEntity(
+            val transaction = Transaction(
                 idOperateur = operateurId,
                 type = _typeTransact,
                 device = _devise,
-                montant = _montant.toDouble(),
+                montant = _montant.toBigDecimalOrNull() ?: BigDecimal(0),
                 nomClient = _nomClient,
                 numClient = _telephClient,
                 nomBeneficaire = _nomBenef,
                 numBeneficaire = _telephBenef,
                 note = _note,
-                creePar = storageManager.getUserID(),
+                creePar = storageManager.getUserID()!!,
+                codeAgence = storageManager.codeAgence()!!
             )
 
-            repository.ajouterTransactionEtMettreAJourSolde(transaction).collect { result ->
+            insertTransactionAndUpdateSoldes(transaction).collect { result ->
 
                 when (result) {
 
@@ -169,22 +132,51 @@ class TransationViewModel(
                         _uiState.update { it.copy(isLoading = true) }
                     }
 
-                    is Result.Succes<*> -> {
-                        _uiState.update { it.copy(isLoading = false) }
+                    is Result.Success<*> -> {
+
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                montant = "",
+                                nomClient = "",
+                                telephClient = "",
+                                nomBenef = "",
+                                telephBenef = ""
+                            )
+                        }
                         _uiEvent.emit(TransactionUiEvent.TransactionSaved)
-                        _uiEvent.emit(TransactionUiEvent.TransactionPrint(transaction))
-
-
-
+                        _uiEvent.emit(TransactionUiEvent.TransactionPrint(result.data!!))
                     }
 
                     is Result.Error<*> -> {
                         _uiState.update { it.copy(isLoading = false) }
-                        _uiEvent.emit(
-                            TransactionUiEvent.TransactionError(
-                                result.e?.message ?: "Erreur inconnue"
-                            )
-                        )
+                        when (val ex = result.e) {
+                            is TransactionValidationException.FieldRequired -> {
+                                _uiState.update {
+                                    when (ex.field) {
+                                        TransactionField.OPERATEUR -> it
+                                        TransactionField.TYPE -> it
+                                        TransactionField.DEVISE -> it
+                                        TransactionField.NOM_CLIENT -> it.copy(isNomError = true)
+                                        TransactionField.TEL_CLIENT -> it.copy(isTelephClientError = true)
+                                        TransactionField.NOM_BENEF -> it.copy(isNomBenefError = true)
+                                        TransactionField.TEL_BENEF -> it.copy(isTelephBenefError = true)
+                                    }
+                                }
+                            }
+
+                            is TransactionValidationException.InvalidAmount -> {
+                                _uiState.update { it.copy(isMontantError = true) }
+                            }
+
+                            else -> {
+                                _uiEvent.emit(
+                                    TransactionUiEvent.TransactionError(
+                                        ex?.message ?: "Erreur inconnue"
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -193,10 +185,20 @@ class TransationViewModel(
     }
 
 
-    private fun validateInput() {
+    fun onConfirmDialogShown() {
 
+        _uiState.update {
+            it.copy(isConfirmDialogShown = true)
+        }
 
     }
+
+    fun onConfirmDialogDismiss() {
+        _uiState.update {
+            it.copy(isConfirmDialogShown = false)
+        }
+    }
+
 
 }
 
@@ -204,8 +206,8 @@ data class TransactionUiState(
 
     val isLoading: Boolean = false,
 
-    val selectedDevise: Constants.Devise = Constants.Devise.CDF,
-    val selectedType: TypTransct = TypTransct.DEPOT,
+    val selectedDevise: Constants.Devise = Constants.Devise.USD,
+    val selectedType: TransactionType = TransactionType.DEPOT,
     val isFormVisble: Boolean = false,
 
     val montant: String = "",
@@ -221,9 +223,11 @@ data class TransactionUiState(
     val isTelephClientError: Boolean = false,
     val isNomBenefError: Boolean = false,
     val isTelephBenefError: Boolean = false,
+    val solde: BigDecimal = BigDecimal(0),
+    val isConfirmDialogShown: Boolean = false
 
 
-    )
+)
 
 
 sealed class TransactionUiEvent() {
@@ -232,6 +236,6 @@ sealed class TransactionUiEvent() {
     object TransactionSaved : TransactionUiEvent()
     data class TransactionError(val errorMessage: String) : TransactionUiEvent()
 
-    data class  TransactionPrint(val transaction: TransactionEntity) : TransactionUiEvent()
+    data class TransactionPrint(val transaction: Transaction) : TransactionUiEvent()
 
 }

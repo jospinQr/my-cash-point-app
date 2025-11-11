@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -42,8 +43,9 @@ fun MyCashPointApp() {
         it.route in listOf(
             Destination.OPERATEUR.name,
             Destination.CAISSE.name,
-            Destination.RAPPORT.name
-        )
+            Destination.RAPPORT.name,
+
+            )
     } == true
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -70,9 +72,11 @@ fun MyCashPointApp() {
                         }
                         NavigationBarItem(
                             colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .2f),
+                                indicatorColor = MaterialTheme.colorScheme.primary.copy(),
+                                selectedIconColor = MaterialTheme.colorScheme.background,
+                                selectedTextColor = MaterialTheme.colorScheme.background
 
-                                ),
+                            ),
                             selected = selected == true,
                             onClick = {
                                 navController.navigate(item.route) {
@@ -94,14 +98,14 @@ fun MyCashPointApp() {
 
                                 if (selected == true) {
                                     Crossfade(
-                                        targetState = index,
+                                        targetState = item,
                                         animationSpec = spring(
                                             dampingRatio = Spring.DampingRatioHighBouncy,
                                             stiffness = Spring.StiffnessMedium
                                         )
-                                    ) { index ->
+                                    ) { it ->
                                         Icon(
-                                            imageVector = item.selectedIcon,
+                                            painter = painterResource(it.selectedIcon),
                                             contentDescription = null,
 
                                             )
@@ -109,7 +113,7 @@ fun MyCashPointApp() {
                                 } else {
                                     Crossfade(targetState = item) {
                                         Icon(
-                                            imageVector = it.unSelectedIcon,
+                                            painter = painterResource(it.unSelectedIcon),
                                             contentDescription = null
                                         )
                                     }

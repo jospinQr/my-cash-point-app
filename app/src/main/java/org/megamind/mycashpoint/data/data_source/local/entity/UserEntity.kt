@@ -7,14 +7,14 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "users", foreignKeys = [
         ForeignKey(
-            entity = Agence::class,
-            parentColumns = ["id"],
-            childColumns = ["idAgence"],
+            entity = AgenceEntity::class,
+            parentColumns = ["codeAgence"],
+            childColumns = ["codeAgence"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class User(
+data class UserEntity(
 
     @PrimaryKey(autoGenerate = true)
     val id: Int,
@@ -22,6 +22,6 @@ data class User(
     val email: String,
     val password: String,
     val salt: String,
-    val idAgence: String,
+    val codeAgence: String,
 
     )

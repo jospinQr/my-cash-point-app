@@ -7,9 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -18,6 +16,8 @@ class DataStorageManager(private val context: Context) {
     companion object {
         private val USERNAME_KEY = stringPreferencesKey("username")
         private val USERID_KEY = intPreferencesKey("userId")
+
+        private val CODE_AGENCE = stringPreferencesKey("codeAgence")
     }
 
     suspend fun getUsername(): String? {
@@ -34,6 +34,17 @@ class DataStorageManager(private val context: Context) {
 
     suspend fun saveUserId(userId: Int) {
         context.dataStore.edit { it[USERID_KEY] = userId }
+    }
+
+    suspend fun saveCodeAgence(codeAgence: String) {
+
+        context.dataStore.edit { it[CODE_AGENCE] = codeAgence }
+
+    }
+
+    suspend fun codeAgence(): String? {
+
+        return context.dataStore.data.firstOrNull()?.get(CODE_AGENCE)
     }
 
 

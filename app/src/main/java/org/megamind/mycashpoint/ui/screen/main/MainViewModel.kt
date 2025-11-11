@@ -5,13 +5,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
-class MainViewModel () : ViewModel() {
+class MainViewModel() : ViewModel() {
 
 
     private val _uiState = MutableStateFlow(MainUiState())
-    val uiState : StateFlow<MainUiState> = _uiState
+    val uiState: StateFlow<MainUiState> = _uiState
 
-    fun onIndexChange (index : Int){
+    fun onIndexChange(index: Int) {
 
         _uiState.update {
             it.copy(
@@ -22,13 +22,10 @@ class MainViewModel () : ViewModel() {
     }
 
 
-
-
 }
 
 
+data class MainUiState(
 
-data class MainUiState (
-
-    val itemIndex : Int = 0
+    val itemIndex: Int = 0
 )

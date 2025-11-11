@@ -1,20 +1,24 @@
-package org.megamind.mycashpoint.ui.Agence
+package org.megamind.mycashpoint.ui.screen.Agence
 
-import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.megamind.mycashpoint.data.data_source.local.entity.Agence
-import org.megamind.mycashpoint.domain.repository.AgenceRepository
+import org.megamind.mycashpoint.domain.model.Agence
+import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
+import org.megamind.mycashpoint.domain.usecase.agence.SaveOrUpdateAgenceUseCase
+import org.megamind.mycashpoint.domain.usecase.agence.AgenceValidationException
+import org.megamind.mycashpoint.domain.usecase.agence.AgenceField
 import org.megamind.mycashpoint.utils.Result
 
-class AgenceViewModel(private val repository: AgenceRepository) : ViewModel() {
+class AgenceViewModel(
+    private val getAgences: GetAgencesUseCase,
+    private val saveOrUpdateAgence: SaveOrUpdateAgenceUseCase
+) : ViewModel() {
 
 
     private val _uiState = MutableStateFlow(AgenceUiState())
@@ -32,7 +36,7 @@ class AgenceViewModel(private val repository: AgenceRepository) : ViewModel() {
     private val _designation get() = _uiState.value.designation
 
     init {
-        getAgences()
+        getAgence()
     }
 
     fun onIdChange(value: String) {
@@ -49,10 +53,10 @@ class AgenceViewModel(private val repository: AgenceRepository) : ViewModel() {
     }
 
 
-    fun getAgences() {
+    fun getAgence() {
         viewModelScope.launch {
-            repository.getAll().collect { result ->
-                when (result) {
+            getAgences().collect { result ->
+                when (val result = result) {
                     Result.Loading -> {
                         _uiState.update {
                             it.copy(isLoadind = true)
@@ -60,7 +64,7 @@ class AgenceViewModel(private val repository: AgenceRepository) : ViewModel() {
 
                     }
 
-                    is Result.Succes<*> -> {
+                    is Result.Success<*> -> {
                         _uiState.update {
                             it.copy(isLoadind = false)
                         }
@@ -82,27 +86,10 @@ class AgenceViewModel(private val repository: AgenceRepository) : ViewModel() {
     }
 
     fun onSaveOrUpdate() {
-
-
-        if (_id.isEmpty()) {
-            _uiState.update {
-                it.copy(isIdError = true)
-            }
-            return
-        }
-
-        if (_designation.isEmpty()) {
-            _uiState.update {
-                it.copy(isDesignationError = true)
-            }
-            return
-        }
-
-        val agence = Agence(id = _id, designation = _designation)
+        val agence = Agence(codeAgence = _id, designation = _designation)
 
         viewModelScope.launch {
-
-            repository.saveOrUpdate(agence).collect { result ->
+            saveOrUpdateAgence(agence).collect { result ->
 
                 when (result) {
                     Result.Loading -> {
@@ -111,20 +98,33 @@ class AgenceViewModel(private val repository: AgenceRepository) : ViewModel() {
                         }
                     }
 
-                    is Result.Succes<*> -> {
+                    is Result.Success<*> -> {
 
                         _uiState.update {
                             it.copy(isLoadind = false)
                         }
                         _uiEvent.emit(AgenceUiEvent.OnSaveOrUpdate)
-                        getAgences()
+                        getAgence()
 
 
                     }
 
                     is Result.Error<*> -> {
-                        _uiState.update {
-                            it.copy(isLoadind = false, error = result.e?.message)
+                        val ex = result.e
+                        when (ex) {
+                            is AgenceValidationException.FieldRequired -> {
+                                _uiState.update {
+                                    when (ex.field) {
+                                        AgenceField.ID -> it.copy(isLoadind = false, isIdError = true)
+                                        AgenceField.DESIGNATION -> it.copy(isLoadind = false, isDesignationError = true)
+                                    }
+                                }
+                            }
+                            else -> {
+                                _uiState.update {
+                                    it.copy(isLoadind = false, error = ex?.message)
+                                }
+                            }
                         }
                     }
 

@@ -9,11 +9,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.window.core.layout.WindowSizeClass
-import org.megamind.mycashpoint.ui.Agence.AgenceScreen
+import org.megamind.mycashpoint.ui.screen.Agence.AgenceScreen
 import org.megamind.mycashpoint.ui.screen.SplashScreen
 import org.megamind.mycashpoint.ui.screen.auth.LoginInScreen
 import org.megamind.mycashpoint.ui.screen.auth.RegisterScreen
-import org.megamind.mycashpoint.ui.screen.caisse.CaisseScreen
+import org.megamind.mycashpoint.ui.screen.caisse.SoldeScreen
 
 import org.megamind.mycashpoint.ui.screen.rapport.RapportScreen
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurScreen
@@ -92,7 +92,7 @@ fun MyNavHost(
 
             composable(route = Destination.CAISSE.name) {
 
-                CaisseScreen()
+                SoldeScreen()
             }
 
             composable(route = Destination.RAPPORT.name) {

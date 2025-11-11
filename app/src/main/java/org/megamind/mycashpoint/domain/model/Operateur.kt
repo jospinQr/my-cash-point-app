@@ -7,10 +7,10 @@ import org.megamind.mycashpoint.R
 
 data class Operateur(
 
-    val id: Int,
-    val name: String,
+    val id: Int = 0,
+    val name: String = "",
     @DrawableRes
-    val logo: Int,
+    val logo: Int = 0,
     val color: Color
 )
 
@@ -37,8 +37,8 @@ val operateurs = listOf(
     ),
     Operateur(
         id = 4,
-        name = "Africell Money",
-        logo = R.drawable.aficell_logo,
+        name = "Equity BCBC",
+        logo = R.drawable.bcdc,
         color = Color(0xFF5B009C) // Violet Africell
     )
 

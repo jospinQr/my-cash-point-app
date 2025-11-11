@@ -53,8 +53,8 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
-import org.megamind.mycashpoint.data.data_source.local.entity.Agence
-import org.megamind.mycashpoint.ui.Agence.AgenceViewModel
+import org.megamind.mycashpoint.domain.model.Agence
+import org.megamind.mycashpoint.ui.screen.Agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.component.AuthTextField
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.CustomerTextButton
@@ -316,7 +316,7 @@ private fun SignInContent(
 
     Column {
         AuthTextField(
-            label = uiState.selectedAgence?.id?:"0",
+            label = uiState.selectedAgence?.codeAgence?:"0",
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {

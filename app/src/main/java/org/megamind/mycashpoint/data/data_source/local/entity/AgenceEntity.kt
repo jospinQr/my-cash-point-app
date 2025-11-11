@@ -4,11 +4,11 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
-@Entity()
-data class Agence(
+@Entity(tableName = "agence")
+data class AgenceEntity(
 
     @PrimaryKey
-    val id: String,
+    val codeAgence: String,
     val designation: String,
 
-)
+    )

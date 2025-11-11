@@ -132,46 +132,46 @@ class MyPrintDocumentAdapter(
             val scaledBitmap = bitmap.scale(100, 100)
             drawBitmap(scaledBitmap, 72f, 4f, null) // Dessiner l'image sur le canvas
 
-//            titleBaseLine = drawTextWithSpacing(
-//                this,
-//                "Republique democratique \n du congo".uppercase(Locale.getDefault()),
-//                leftMargin,
-//                titleBaseLine,
-//                titlePaint,
-//                pageWidth
-//            )
             titleBaseLine = drawTextWithSpacing(
                 this,
-                "ACDC-BUTEMBO",
+                "Republique democratique \n du congo".uppercase(),
                 leftMargin,
                 titleBaseLine,
                 titlePaint,
                 pageWidth
             )
-//            titleBaseLine = drawTextWithSpacing(
-//                this,
-//                "Email : acdcagence25@gmail.com",
-//                leftMargin,
-//                titleBaseLine,
-//                bodyPainter,
-//                pageWidth
-//            )
-//            titleBaseLine = drawTextWithSpacing(
-//                this,
-//                "Adresse : Butembo, Rue Kinshasa",
-//                leftMargin,
-//                titleBaseLine,
-//                bodyPainter,
-//                pageWidth
-//            )
-//            titleBaseLine = drawTextWithSpacing(
-//                this,
-//                "Contact : +243 991 102 195",
-//                leftMargin,
-//                titleBaseLine,
-//                bodyPainter,
-//                pageWidth
-//            )
+            titleBaseLine = drawTextWithSpacing(
+                this,
+                "MY CASH POINT",
+                leftMargin,
+                titleBaseLine,
+                titlePaint,
+                pageWidth
+            )
+            titleBaseLine = drawTextWithSpacing(
+                this,
+                "Email : mycashpoint@gmail.com",
+                leftMargin,
+                titleBaseLine,
+                bodyPainter,
+                pageWidth
+            )
+            titleBaseLine = drawTextWithSpacing(
+                this,
+                "Adresse : Butembo, Rue Kinshasa",
+                leftMargin,
+                titleBaseLine,
+                bodyPainter,
+                pageWidth
+            )
+            titleBaseLine = drawTextWithSpacing(
+                this,
+                "Contact : +243 991 102 195",
+                leftMargin,
+                titleBaseLine,
+                bodyPainter,
+                pageWidth
+            )
             drawLine(
                 leftMargin,
                 titleBaseLine + 20,
@@ -187,14 +187,7 @@ class MyPrintDocumentAdapter(
                 titlePaint,
                 pageWidth
             )
-            titleBaseLine = drawTextWithSpacing(
-                this,
-                "-  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  ",
-                60F,
-                titleBaseLine + 10,
-                linePainter,
-                pageWidth
-            )
+
 
             titleBaseLine = drawTextWithSpacing(
                 this, "${data.get("date")} ",
@@ -205,7 +198,16 @@ class MyPrintDocumentAdapter(
             )
 
             titleBaseLine = drawTextWithSpacing(
-                this, "${data.get("motif")} / ${data.get("nom")}",
+                this,
+                "-  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  ",
+                60F,
+                titleBaseLine + 10,
+                linePainter,
+                pageWidth
+            )
+
+            titleBaseLine = drawTextWithSpacing(
+                this, "${data.get("motif")} par / ${data.get("nom")}",
                 60F,
                 titleBaseLine,
                 bodyPainter,
@@ -221,7 +223,7 @@ class MyPrintDocumentAdapter(
                 pageWidth
             )
             titleBaseLine = drawTextWithSpacing(
-                this, " Montant  : ${data.get("montant")}",
+                this, " Montant  : ${data.get("montant")} ${data.get("devise")}",
                 60F,
                 titleBaseLine + 10,
                 titlePaint,

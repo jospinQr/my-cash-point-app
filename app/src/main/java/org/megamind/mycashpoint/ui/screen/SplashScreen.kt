@@ -47,7 +47,7 @@ fun SplashScreen(modifier: Modifier = Modifier, navigateToLoginScreen: () -> Uni
 
 
             Image(
-                modifier = Modifier.size(142.dp),
+                modifier = Modifier.size(202.dp),
                 painter = painterResource(R.drawable.logo),
                 contentDescription = null
             )

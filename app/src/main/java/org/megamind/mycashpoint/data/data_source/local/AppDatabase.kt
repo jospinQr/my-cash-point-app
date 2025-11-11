@@ -7,16 +7,16 @@ import org.megamind.mycashpoint.data.data_source.local.dao.AgenceDao
 import org.megamind.mycashpoint.data.data_source.local.dao.SoldeDao
 import org.megamind.mycashpoint.data.data_source.local.dao.TransactionDao
 import org.megamind.mycashpoint.data.data_source.local.dao.UserDao
-import org.megamind.mycashpoint.data.data_source.local.entity.Agence
+import org.megamind.mycashpoint.data.data_source.local.entity.AgenceEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
-import org.megamind.mycashpoint.data.data_source.local.entity.User
+import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
 import org.megamind.mycashpoint.utils.EnumConverters
 
 
 @Database(
-    entities = [User::class, SoldeEntity::class, TransactionEntity::class, Agence::class],
-    version = 6,
+    entities = [UserEntity::class, SoldeEntity::class, TransactionEntity::class, AgenceEntity::class],
+    version = 8,
     exportSchema = false
 )
 @TypeConverters(EnumConverters::class)

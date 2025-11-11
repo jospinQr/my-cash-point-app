@@ -1,30 +1,35 @@
 package org.megamind.mycashpoint.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
+import org.megamind.mycashpoint.domain.model.Solde
+import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
+import java.math.BigDecimal
 
 interface SoldeRepository {
 
-    suspend fun getSoldeByOperateurEtDevise(
+    fun getSoldeByOperateurEtTypeEtDevise(
         idOperateur: Int,
         devise: String,
-    ): Flow<Result<SoldeEntity?>>
+        soldeType: SoldeType
+    ): Flow<Result<Solde?>>
 
-    suspend fun getAll(): Flow<Result<List<SoldeEntity>>>
+    fun getAll(): Flow<Result<List<Solde>>>
 
-    suspend fun insertOrUpdate(solde: SoldeEntity): Flow<Result<Unit>>
+    fun insertOrUpdate(solde: Solde): Flow<Result<Unit>>
 
-    suspend fun updateMontant(
+    fun updateMontant(
         idOperateur: Int,
         devise: Constants.Devise,
-        montant: Double
+        montant: BigDecimal,
+        soldeType: SoldeType
     ): Flow<Result<Unit>>
 
-    suspend fun deleteByOperateurEtDevise(
+    fun deleteByOperateurEtDevise(
         idOperateur: Int,
         devise: Constants.Devise
     ): Flow<Result<Unit>>
 }
+
 

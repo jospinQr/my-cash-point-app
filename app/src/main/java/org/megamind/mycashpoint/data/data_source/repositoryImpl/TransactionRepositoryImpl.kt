@@ -4,8 +4,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.data.data_source.local.dao.SoldeDao
 import org.megamind.mycashpoint.data.data_source.local.dao.TransactionDao
-import org.megamind.mycashpoint.data.data_source.local.entity.StatutSync
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
+import org.megamind.mycashpoint.data.data_source.local.mapper.toTransaction
+import org.megamind.mycashpoint.data.data_source.local.mapper.toTransactionEntity
+import org.megamind.mycashpoint.domain.model.StatutSync
+import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.repository.TransactionRepository
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
@@ -15,70 +18,78 @@ class TransactionRepositoryImpl(
     private val soldeDao: SoldeDao
 ) : TransactionRepository {
 
-    override suspend fun insert(transaction: TransactionEntity): Flow<Result<Unit>> = flow {
+    override fun insert(transaction: Transaction): Flow<Result<Unit>> = flow {
         try {
             emit(Result.Loading)
-            transactionDao.insert(transaction)
-            emit(Result.Succes(Unit))
+            val transactionEntity = transaction.toTransactionEntity()
+            transactionDao.insertAndReturnId(transactionEntity)
+            emit(Result.Success(Unit))
         } catch (e: Exception) {
             emit(Result.Error(e))
         }
     }
 
-    override suspend fun getAll(): Flow<Result<List<TransactionEntity>>> = flow {
+    override fun allTransactions(): Flow<Result<List<Transaction>>> = flow {
         try {
             emit(Result.Loading)
-            val transactions = transactionDao.getAll()
-            emit(Result.Succes(transactions))
+            val transactions = transactionDao.getAll().map { it.toTransaction() }
+            emit(Result.Success(transactions))
         } catch (e: Exception) {
             emit(Result.Error(e))
         }
     }
 
-    override suspend fun getByOperateurEtDevice(
-        idOperateur: String,
+    override fun getTransactionsByOperatorAndDevice(
+        idOperateur: Int,
         device: Constants.Devise
     ): Flow<Result<List<TransactionEntity>>> = flow {
         try {
             emit(Result.Loading)
-            val transactions = transactionDao.getByOperateurEtDevice(idOperateur, device)
-            emit(Result.Succes(transactions))
+            val transactions =
+                transactionDao.getTransactionsByOperatorAndDevice(idOperateur, device)
+            emit(Result.Success(transactions))
         } catch (e: Exception) {
             emit(Result.Error(e))
         }
     }
 
-    override suspend fun getBySyncStatus(statut: StatutSync): Flow<Result<List<TransactionEntity>>> =
+    override fun getTransactionsBySyncStatus(statut: StatutSync): Flow<Result<List<Transaction>>> =
         flow {
             try {
                 emit(Result.Loading)
-                val transactions = transactionDao.getBySyncStatus(statut)
-                emit(Result.Succes(transactions))
+                val transactions = transactionDao.getBySyncStatus(statut).map { it.toTransaction() }
+                emit(Result.Success(transactions))
             } catch (e: Exception) {
                 emit(Result.Error(e))
             }
         }
 
-    override suspend fun deleteById(id: String): Flow<Result<Unit>> = flow {
+    override fun deleteTransactionById(id: Long): Flow<Result<Unit>> = flow {
         try {
             emit(Result.Loading)
             transactionDao.deleteById(id)
-            emit(Result.Succes(Unit))
+            emit(Result.Success(Unit))
         } catch (e: Exception) {
             emit(Result.Error(e))
         }
     }
 
-    override suspend fun ajouterTransactionEtMettreAJourSolde(
-        transaction: TransactionEntity
-    ): Flow<Result<Unit>> = flow {
+    override fun insertTransactionAndUpdateSoldes(
+        transaction: Transaction,
+    ): Flow<Result<Transaction>> = flow {
         try {
+
             emit(Result.Loading)
-            transactionDao.ajouterTransactionEtMettreAJourSolde(transaction, soldeDao)
-            emit(Result.Succes(Unit))
+            val transactionEntity = transaction.toTransactionEntity()
+            val id = transactionDao.insertTransactionAndUpdateSoldes(transactionEntity, soldeDao)
+            val reloaded = transactionDao.getById(id)?.toTransaction()
+            emit(Result.Success(reloaded))
+
         } catch (e: Exception) {
             emit(Result.Error(e))
         }
     }
+
+
 }
 

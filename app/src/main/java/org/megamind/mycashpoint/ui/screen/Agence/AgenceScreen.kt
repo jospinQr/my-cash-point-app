@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.ui.Agence
+package org.megamind.mycashpoint.ui.screen.Agence
 
 import android.widget.Toast
 import androidx.compose.foundation.border
@@ -37,7 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
-import org.megamind.mycashpoint.data.data_source.local.entity.Agence
+import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
 import org.megamind.mycashpoint.ui.component.LoadinDialog
 
@@ -119,7 +119,7 @@ fun AgenceScreenContent(
 
                     ListItem(
 
-                        headlineContent = { Text(agence.id) },
+                        headlineContent = { Text(agence.codeAgence) },
                         supportingContent = { Text(agence.designation) },
                         modifier = Modifier
                             .border(

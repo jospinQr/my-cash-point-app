@@ -5,7 +5,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
+import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.utils.Constants
+import java.math.BigDecimal
 
 @Dao
 interface SoldeDao {
@@ -13,13 +15,16 @@ interface SoldeDao {
     @Query(
         """
         SELECT * FROM soldes 
-        WHERE idOperateur = :idOperateur AND devise = :devise 
+        WHERE idOperateur = :idOperateur 
+          AND soldeType = :type 
+          AND devise = :devise
         LIMIT 1
-        """
+    """
     )
-    suspend fun getSoldeByOperateurEtDevise(
+    suspend fun getSoldeByOperateurEtTypeEtDevise(
         idOperateur: Int,
-        devise: String
+        type: SoldeType,
+        devise: Constants.Devise
     ): SoldeEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -29,15 +34,19 @@ interface SoldeDao {
     @Query(
         """
         UPDATE soldes 
-        SET montant = :montant, dernierMiseAJour = :timestamp 
-        WHERE idOperateur = :idOperateur AND devise = :devise
-        """
+        SET montant = :nouveauMontant, 
+            dernierMiseAJour = :dernierMiseAJour 
+        WHERE idOperateur = :idOp 
+          AND soldeType = :type 
+          AND devise = :devise
+    """
     )
     suspend fun updateMontant(
-        idOperateur: Int,
+        idOp: Int,
+        type: SoldeType,
         devise: Constants.Devise,
-        montant: Double,
-        timestamp: Long = System.currentTimeMillis()
+        nouveauMontant: BigDecimal,
+        dernierMiseAJour: Long = System.currentTimeMillis()
     )
 
     @Query("SELECT * FROM soldes ORDER BY idOperateur")

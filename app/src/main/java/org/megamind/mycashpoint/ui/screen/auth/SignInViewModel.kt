@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.megamind.mycashpoint.data.data_source.local.entity.Agence
+import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.repository.UserRepository
 import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
@@ -36,7 +36,7 @@ class SignInViewModel(
         get() = _uiState.value.password
 
     private val _agenceId: String
-        get() = _uiState.value.selectedAgence?.id ?: ""
+        get() = _uiState.value.selectedAgence?.codeAgence ?: ""
 
 
     fun onEmailChange(email: String) {
@@ -94,13 +94,15 @@ class SignInViewModel(
                             }
                         }
 
-                        is Result.Succes -> {
+                        is Result.Success -> {
                             _uiState.update {
                                 it.copy(isLoading = false)
                             }
                             _uiEvent.emit(SignInUiEvent.NavigateToHome)
 
                             storageManager.saveUserId(result.data?.id!!)
+                            storageManager.saveCodeAgence(result.data.idAgence)
+
 
                         }
 

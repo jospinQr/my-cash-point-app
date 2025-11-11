@@ -1,21 +1,22 @@
 package org.megamind.mycashpoint.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import org.megamind.mycashpoint.data.data_source.local.entity.User
+import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
+import org.megamind.mycashpoint.domain.model.User
 import org.megamind.mycashpoint.utils.Result
 
 interface UserRepository {
 
-    suspend fun login(userName: String, password: String, agenceId: String): Flow<Result<User>>
+    fun login(userName: String, password: String, agenceId: String): Flow<Result<User>>
 
-    suspend fun register(
+    fun register(
         name: String,
         email: String,
         password: String,
         agenceId: String
     ): Flow<Result<User>>
 
-    suspend fun getUserByEmail(email: String): Flow<Result<User?>>
+    fun getUserByEmail(email: String): Flow<Result<User?>>
 
 
 }

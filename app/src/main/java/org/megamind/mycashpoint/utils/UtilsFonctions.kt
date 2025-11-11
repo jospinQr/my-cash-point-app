@@ -1,5 +1,8 @@
 package org.megamind.mycashpoint.utils
 
+import java.math.BigDecimal
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.util.regex.Pattern
 import kotlin.text.isNullOrBlank
 
@@ -20,5 +23,36 @@ class UtilsFonctions {
         }
 
 
+    }
+}
+
+fun String.toBigDecimalOrNull(): BigDecimal? {
+
+    return try {
+        BigDecimal(this)
+    } catch (e: Exception) {
+        null
+    }
+}
+
+
+
+fun BigDecimal.toMontant(
+    avecDecimales: Boolean = true,
+    symboleDevise: String = "",
+
+): String {
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+    }
+
+    val pattern = if (avecDecimales) "#,##0.00" else "#,##0"
+    val formatter = DecimalFormat(pattern, symbols)
+    val montantFormate = formatter.format(this)
+
+    return if (symboleDevise.isNotEmpty()) {
+        "$montantFormate $symboleDevise"
+    } else {
+        montantFormate
     }
 }

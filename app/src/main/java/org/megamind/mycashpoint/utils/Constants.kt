@@ -10,9 +10,9 @@ import java.time.format.DateTimeFormatter
 
 object Constants {
 
-    enum class Devise {
-        USD,
-        CDF
+    enum class Devise(val symbole: String) {
+        USD("$"),
+        CDF("Fc")
     }
 
 

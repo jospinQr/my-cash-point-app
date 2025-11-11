@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.megamind.mycashpoint.data.data_source.local.entity.Agence
+import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.repository.UserRepository
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.utils.UtilsFonctions
@@ -106,7 +106,7 @@ class RegisterViewModel(private val userRepository: UserRepository) : ViewModel(
                     name = _uiState.value.userName,
                     email = _uiState.value.email,
                     password = _uiState.value.password,
-                    agenceId = _uiState.value.selectedAgence?.id!!
+                    agenceId = _uiState.value.selectedAgence?.codeAgence!!
                 ).collect { result ->
 
                     when (val result = result) {
@@ -117,7 +117,7 @@ class RegisterViewModel(private val userRepository: UserRepository) : ViewModel(
                             }
                         }
 
-                        is Result.Succes -> {
+                        is Result.Success -> {
                             _uiState.update {
                                 it.copy(isLoading = false)
                             }

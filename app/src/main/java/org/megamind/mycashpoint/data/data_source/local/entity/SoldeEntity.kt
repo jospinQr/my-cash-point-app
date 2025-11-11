@@ -2,10 +2,11 @@ package org.megamind.mycashpoint.data.data_source.local.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
 import androidx.room.Index
+import org.megamind.mycashpoint.domain.model.Agence
+import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.utils.Constants
-import java.time.LocalDate
+import java.math.BigDecimal
 
 /**
  * Représente le solde pour un opérateur de mobile money spécifique dans la base de données locale.
@@ -20,14 +21,20 @@ import java.time.LocalDate
  */
 @Entity(
     tableName = "soldes",
-    primaryKeys = ["idOperateur", "devise"],
+    primaryKeys = ["idOperateur", "devise", "soldeType"],
     foreignKeys = [
         ForeignKey(
-            entity = User::class,
+            entity = UserEntity::class,
             parentColumns = ["id"],
             childColumns = ["misAJourPar"],
             onDelete = ForeignKey.CASCADE
-        )
+        ),
+        ForeignKey(
+            entity = AgenceEntity::class,
+            parentColumns = ["codeAgence"],
+            childColumns = ["codeAgence"],
+            onDelete = ForeignKey.CASCADE
+        ),
     ],
     indices = [
         Index(value = ["idOperateur"])
@@ -36,9 +43,16 @@ import java.time.LocalDate
 data class SoldeEntity(
 
     val idOperateur: Int,         // ex : "AIRTEL", "ORANGE"
-    val montant: Double,               // Solde actuel en centimes
+    val montant: BigDecimal,               // Solde actuel en centimes
+    val soldeType: SoldeType,
     val devise: Constants.Devise,      // Devise
     val dernierMiseAJour: Long = System.currentTimeMillis(),      // Timestamp
     val seuilAlerte: Double? = null,   // Optionnel : seuil d'alerte
-    val misAJourPar: Int // ex: "user_123"
+    val misAJourPar: Int, // ex: 1
+    val codeAgence: String
+
 )
+
+
+
+
