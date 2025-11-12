@@ -340,7 +340,7 @@ fun SoldeScreenContent(
                                     )
                                 ) {
                                     Text(
-                                        "${soldes.montant.toMontant()} ${soldes.devise.symbole}",
+                                        "${soldes.montant.toMontant()} ${uiState.selectedDevise.symbole}",
                                         modifier = Modifier.padding(6.dp),
                                         style = MaterialTheme.typography.bodyLarge.copy(
                                             fontWeight = FontWeight.Bold,
