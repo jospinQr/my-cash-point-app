@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
 
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
@@ -33,6 +34,42 @@ interface TransactionDao {
     @Query("DELETE FROM flux_caisse WHERE id = :id")
     suspend fun deleteById(id: Long)
 
+    @Update
+    suspend fun update(transaction: TransactionEntity)
+
+    @Transaction
+    suspend fun deleteTransactionAndUpdateSoldes(
+        transaction: TransactionEntity,
+        soldeDao: SoldeDao
+    ) {
+        adjustSoldesForTransaction(transaction, soldeDao, undo = true)
+        deleteById(transaction.id)
+    }
+
+    @Transaction
+    suspend fun updateTransactionAndUpdateSoldes(
+        updatedTransaction: TransactionEntity,
+        soldeDao: SoldeDao
+    ) {
+        val existing = getById(updatedTransaction.id)
+            ?: throw IllegalArgumentException("TRANSACTION_NOT_FOUND")
+
+        adjustSoldesForTransaction(existing, soldeDao, undo = true)
+        val (soldeAvant, soldeApres) = adjustSoldesForTransaction(
+            updatedTransaction,
+            soldeDao,
+            undo = false
+        )
+
+        update(
+            updatedTransaction.copy(
+                soldeAvant = soldeAvant,
+                soldeApres = soldeApres,
+                horodatage = System.currentTimeMillis()
+            )
+        )
+    }
+
     @Query(""" SELECT * FROM flux_caisse WHERE idOperateur = :idOperateur AND device = :device ORDER BY horodatage DESC """)
     suspend fun getTransactionsByOperatorAndDevice(
         idOperateur: Int,
@@ -49,88 +86,12 @@ interface TransactionDao {
         transaction: TransactionEntity,
         soldeDao: SoldeDao
     ): Long {
-        val idOp = transaction.idOperateur
-        val devise = transaction.device
-        val montant = transaction.montant
-        val userId = transaction.creePar
+        val (soldeAvant, soldeApres) = adjustSoldesForTransaction(
+            transaction,
+            soldeDao,
+            undo = false
+        )
 
-        suspend fun getOrCreateSolde(type: SoldeType): SoldeEntity {
-            return soldeDao.getSoldeByOperateurEtTypeEtDevise(idOp, type, devise)
-                ?: SoldeEntity(
-                    idOperateur = idOp,
-                    soldeType = type,
-                    montant = BigDecimal.ZERO,
-                    devise = devise,
-                    misAJourPar = userId,
-                    codeAgence = transaction.codeAgence
-                )
-        }
-
-        // 🔹 Étape 1 : Vérification préalable AVANT TOUTE MODIFICATION
-        when (transaction.type) {
-            TransactionType.DEPOT -> {
-                val soldeVirtuel = getOrCreateSolde(SoldeType.VIRTUEL)
-                if (soldeVirtuel.montant < montant)
-                    throw IllegalStateException("Solde virtuel insuffisant pour effectuer un dépôt.")
-            }
-
-            TransactionType.RETRAIT -> {
-                val soldePhysique = getOrCreateSolde(SoldeType.PHYSIQUE)
-                if (soldePhysique.montant < montant)
-                    throw IllegalStateException("Solde physique insuffisant pour effectuer un retrait.")
-            }
-
-            TransactionType.TRANSFERT_SORTANT -> {
-                val soldeVirtuel = getOrCreateSolde(SoldeType.VIRTUEL)
-                if (soldeVirtuel.montant < montant)
-                    throw IllegalStateException("Solde virtuel insuffisant pour le transfert sortant.")
-            }
-
-            else -> {}
-        }
-
-        // 🔹 Étape 2 : Mise à jour des soldes seulement si la vérif est passée
-        suspend fun updateSolde(type: SoldeType, delta: BigDecimal): Pair<BigDecimal, BigDecimal> {
-            val soldeActuel = getOrCreateSolde(type)
-            val soldeAvant = soldeActuel.montant
-            val nouveauMontant = soldeAvant + delta
-            soldeDao.updateMontant(idOp, type, devise, nouveauMontant)
-            return soldeAvant to nouveauMontant
-        }
-
-        var soldeAvant: BigDecimal? = null
-        var soldeApres: BigDecimal? = null
-
-        when (transaction.type) {
-            TransactionType.DEPOT -> {
-                updateSolde(SoldeType.VIRTUEL, -montant)
-                val (avant, apres) = updateSolde(SoldeType.PHYSIQUE, montant)
-                soldeAvant = avant; soldeApres = apres
-            }
-
-            TransactionType.RETRAIT -> {
-                updateSolde(SoldeType.VIRTUEL, montant)
-                val (avant, apres) = updateSolde(SoldeType.PHYSIQUE, -montant)
-                soldeAvant = avant; soldeApres = apres
-            }
-
-            TransactionType.TRANSFERT_ENTRANT -> {
-                val (avant, apres) = updateSolde(SoldeType.VIRTUEL, montant)
-                soldeAvant = avant; soldeApres = apres
-            }
-
-            TransactionType.TRANSFERT_SORTANT -> {
-                val (avant, apres) = updateSolde(SoldeType.VIRTUEL, -montant)
-                soldeAvant = avant; soldeApres = apres
-            }
-
-            TransactionType.COMMISSION -> {
-                val (avant, apres) = updateSolde(SoldeType.PHYSIQUE, montant)
-                soldeAvant = avant; soldeApres = apres
-            }
-        }
-
-        // 🔹 Étape 3 : Insérer la transaction uniquement si les vérifications sont passées
         val generatedId = insertAndReturnId(
             transaction.copy(
                 transactionCode = "",
@@ -143,5 +104,134 @@ interface TransactionDao {
         val codeTransaction = String.format("%07d", generatedId) + transaction.codeAgence
         updateCodeTransaction(generatedId, codeTransaction)
         return generatedId
+    }
+}
+
+private suspend fun adjustSoldesForTransaction(
+    transaction: TransactionEntity,
+    soldeDao: SoldeDao,
+    undo: Boolean
+): Pair<BigDecimal?, BigDecimal?> {
+    val idOp = transaction.idOperateur
+    val devise = transaction.device
+    val montant = transaction.montant
+    val userId = transaction.creePar
+
+    suspend fun getOrCreateSolde(type: SoldeType): SoldeEntity {
+        return soldeDao.getSoldeByOperateurEtTypeEtDevise(idOp, type, devise)
+            ?: SoldeEntity(
+                idOperateur = idOp,
+                soldeType = type,
+                montant = BigDecimal.ZERO,
+                devise = devise,
+                misAJourPar = userId,
+                codeAgence = transaction.codeAgence
+            )
+    }
+
+    suspend fun updateSoldeOrThrow(
+        type: SoldeType,
+        delta: BigDecimal,
+        errorMessage: String
+    ): Pair<BigDecimal, BigDecimal> {
+        val soldeActuel = getOrCreateSolde(type)
+        val soldeAvant = soldeActuel.montant
+        val nouveauMontant = soldeAvant + delta
+        if (nouveauMontant < BigDecimal.ZERO) {
+            throw IllegalStateException(errorMessage)
+        }
+        soldeDao.updateMontant(idOp, type, devise, nouveauMontant)
+        return soldeAvant to nouveauMontant
+    }
+
+    return when (transaction.type) {
+        TransactionType.DEPOT -> {
+            if (!undo) {
+                updateSoldeOrThrow(
+                    SoldeType.VIRTUEL,
+                    -montant,
+                    "Solde virtuel insuffisant pour effectuer un dépôt."
+                )
+                val (avant, apres) = updateSoldeOrThrow(
+                    SoldeType.PHYSIQUE,
+                    montant,
+                    "Solde physique insuffisant pour effectuer un dépôt."
+                )
+                avant to apres
+            } else {
+                val (avant, apres) = updateSoldeOrThrow(
+                    SoldeType.PHYSIQUE,
+                    -montant,
+                    "Solde physique insuffisant pour annuler ce dépôt."
+                )
+                updateSoldeOrThrow(
+                    SoldeType.VIRTUEL,
+                    montant,
+                    "Solde virtuel insuffisant pour annuler ce dépôt."
+                )
+                avant to apres
+            }
+        }
+
+        TransactionType.RETRAIT -> {
+            if (!undo) {
+                updateSoldeOrThrow(
+                    SoldeType.VIRTUEL,
+                    montant,
+                    "Solde virtuel insuffisant pour effectuer un retrait."
+                )
+                val (avant, apres) = updateSoldeOrThrow(
+                    SoldeType.PHYSIQUE,
+                    -montant,
+                    "Solde physique insuffisant pour effectuer un retrait."
+                )
+                avant to apres
+            } else {
+                val (avant, apres) = updateSoldeOrThrow(
+                    SoldeType.PHYSIQUE,
+                    montant,
+                    "Solde physique insuffisant pour annuler ce retrait."
+                )
+                updateSoldeOrThrow(
+                    SoldeType.VIRTUEL,
+                    -montant,
+                    "Solde virtuel insuffisant pour annuler ce retrait."
+                )
+                avant to apres
+            }
+        }
+
+        TransactionType.TRANSFERT_ENTRANT -> {
+            val delta = if (undo) -montant else montant
+            val message = if (undo) {
+                "Solde virtuel insuffisant pour annuler ce transfert entrant."
+            } else {
+                "Solde virtuel insuffisant pour effectuer un transfert entrant."
+            }
+            val (avant, apres) = updateSoldeOrThrow(SoldeType.VIRTUEL, delta, message)
+            avant to apres
+        }
+
+        TransactionType.TRANSFERT_SORTANT -> {
+            val delta = if (undo) montant else -montant
+            val message = if (undo) {
+                "Solde virtuel insuffisant pour annuler ce transfert sortant."
+            } else {
+                "Solde virtuel insuffisant pour le transfert sortant."
+            }
+            val (avant, apres) = updateSoldeOrThrow(SoldeType.VIRTUEL, delta, message)
+            avant to apres
+        }
+
+        TransactionType.COMMISSION -> {
+            val delta = if (undo) -montant else montant
+            val message = if (undo) {
+                "Solde physique insuffisant pour annuler cette commission."
+            } else {
+                "Solde physique insuffisant pour enregistrer cette commission."
+            }
+            val (avant, apres) = updateSoldeOrThrow(SoldeType.PHYSIQUE, delta, message)
+            avant to apres
+        }
     }
 }

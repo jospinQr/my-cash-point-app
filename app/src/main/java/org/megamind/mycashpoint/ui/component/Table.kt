@@ -32,6 +32,7 @@ fun <T> Table(
     items: List<T>,
     columnCount: Int,
     headers: List<String>,
+    onRowClick: ((T) -> Unit)? = null,
 
     headerStyle: TextStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
     headerBackgroundColor: Color = MaterialTheme.colorScheme.primary,
@@ -65,7 +66,12 @@ fun <T> Table(
             // DATA ROWS
             LazyColumn(state = verticalLazyListState) {
                 itemsIndexed(items) { rowIndex, item ->
-                    Row {
+                    val rowModifier = if (onRowClick != null) {
+                        Modifier.clickable { onRowClick(item) }
+                    } else {
+                        Modifier
+                    }
+                    Row(modifier = rowModifier) {
                         (0 until columnCount).forEach { columnIndex ->
                             TableCellDynamicWidth(
                                 columnIndex = columnIndex,

@@ -27,6 +27,7 @@ import org.megamind.mycashpoint.domain.usecase.commission.SearchCommissionsUseCa
 import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeByOperateurEtTypeEtDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SaveOrUpdateSoldeUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
 import org.megamind.mycashpoint.ui.screen.Agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
@@ -80,6 +81,7 @@ val appModule = module {
     single { SearchCommissionsUseCase(get()) }
     single { GetCommissionStatsParOperateurUseCase(get()) }
     single { GetCommissionStatsParDeviseUseCase(get()) }
+    single { DeleteTransactionUseCase(get()) }
 
 //view models
 
@@ -112,7 +114,7 @@ val appModule = module {
     }
 
     viewModel {
-        RapportViewModel(get())
+        RapportViewModel(get(), get())
     }
 
 

@@ -10,11 +10,13 @@ import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
 
 class RapportViewModel(
     private val getTransactionByOperateurAndDeviseUseCase: GetTransactionsByOperatorAndDeviceUseCase,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase,
 
     ) : ViewModel() {
 
@@ -58,6 +60,80 @@ class RapportViewModel(
         gettransactionByOperateurAndDevise()
     }
 
+    fun onTransactionClick(transaction: TransactionEntity) {
+        _uiState.update {
+            it.copy(
+                selectedTransaction = transaction,
+                isTransactionDialogVisible = true
+            )
+        }
+    }
+
+    fun onTransactionDialogDismiss() {
+        _uiState.update {
+            it.copy(
+                selectedTransaction = null,
+                isTransactionDialogVisible = false,
+                isDeleteConfirmationVisible = false
+            )
+        }
+    }
+
+    fun onDeleteTransactionRequest(transaction: TransactionEntity) {
+        _uiState.update {
+            it.copy(
+                selectedTransaction = transaction,
+                isDeleteConfirmationVisible = true
+            )
+        }
+    }
+
+    fun onDeleteTransactionCancel() {
+        _uiState.update {
+            it.copy(
+                isDeleteConfirmationVisible = false
+            )
+        }
+    }
+
+    fun onDeleteTransactionConfirm() {
+        val transaction = uiState.value.selectedTransaction ?: return
+
+        viewModelScope.launch {
+            deleteTransactionUseCase(transaction.id).collect { result ->
+                when (result) {
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true, errorMessage = "")
+                        }
+                    }
+
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                isDeleteConfirmationVisible = false,
+                                isTransactionDialogVisible = false,
+                                selectedTransaction = null
+                            )
+                        }
+                        gettransactionByOperateurAndDevise()
+                    }
+
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                isDeleteConfirmationVisible = false,
+                                errorMessage = result.e?.message ?: "Erreur lors de la suppression"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     init {
         gettransactionByOperateurAndDevise()
@@ -83,12 +159,20 @@ class RapportViewModel(
                     }
 
                     is Result.Success -> {
-                        _uiState.update {
-                            it.copy(isLoading = false)
-                        }
-
                         _cachedTransactions.value = result.data ?: emptyList()
                         filterTransactions()
+
+                        _uiState.update {
+                            val currentSelection = it.selectedTransaction
+                            val isSelectionStillPresent = currentSelection?.let { selected ->
+                                _cachedTransactions.value.any { cached -> cached.id == selected.id }
+                            } ?: false
+                            it.copy(
+                                isLoading = false,
+                                selectedTransaction = if (isSelectionStillPresent) currentSelection else null,
+                                isTransactionDialogVisible = isSelectionStillPresent && it.isTransactionDialogVisible
+                            )
+                        }
 
                     }
 
@@ -144,6 +228,17 @@ class RapportViewModel(
         }
 
         _transactionByOperateurAndDevise.value = filtered
+
+        val currentSelection = uiState.value.selectedTransaction
+        if (currentSelection != null && filtered.none { it.id == currentSelection.id }) {
+            _uiState.update {
+                it.copy(
+                    selectedTransaction = null,
+                    isTransactionDialogVisible = false,
+                    isDeleteConfirmationVisible = false
+                )
+            }
+        }
     }
 
     fun onSearchBarDismiss() {
@@ -164,6 +259,9 @@ data class RapportUiState(
     val errorMessage: String = "",
     val selectedOperateur: Operateur = operateurs.first(),
     val selectedDevise: Constants.Devise = Constants.Devise.USD,
-    val isSearchBarShown: Boolean = false
+    val isSearchBarShown: Boolean = false,
+    val selectedTransaction: TransactionEntity? = null,
+    val isTransactionDialogVisible: Boolean = false,
+    val isDeleteConfirmationVisible: Boolean = false
 
 )

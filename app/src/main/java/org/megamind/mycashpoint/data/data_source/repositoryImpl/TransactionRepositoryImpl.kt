@@ -67,7 +67,20 @@ class TransactionRepositoryImpl(
     override fun deleteTransactionById(id: Long): Flow<Result<Unit>> = flow {
         try {
             emit(Result.Loading)
-            transactionDao.deleteById(id)
+            val transaction = transactionDao.getById(id)
+                ?: throw IllegalArgumentException("TRANSACTION_NOT_FOUND")
+            transactionDao.deleteTransactionAndUpdateSoldes(transaction, soldeDao)
+            emit(Result.Success(Unit))
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
+    }
+
+    override fun updateTransaction(transaction: Transaction): Flow<Result<Unit>> = flow {
+        try {
+            emit(Result.Loading)
+            val entity = transaction.toTransactionEntity()
+            transactionDao.updateTransactionAndUpdateSoldes(entity, soldeDao)
             emit(Result.Success(Unit))
         } catch (e: Exception) {
             emit(Result.Error(e))

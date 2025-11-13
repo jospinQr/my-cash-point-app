@@ -25,5 +25,7 @@ interface TransactionRepository {
     fun insertTransactionAndUpdateSoldes(
         transaction: Transaction,
     ): Flow<Result<Transaction>>
+
+    fun updateTransaction(transaction: Transaction): Flow<Result<Unit>>
 }
 
