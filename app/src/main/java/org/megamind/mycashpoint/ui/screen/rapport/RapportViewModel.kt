@@ -7,16 +7,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
+import org.megamind.mycashpoint.data.data_source.local.mapper.toTransaction
 import org.megamind.mycashpoint.domain.model.Operateur
+import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.TransactionField
+import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidationException
+import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
+import java.math.BigDecimal
 
 class RapportViewModel(
     private val getTransactionByOperateurAndDeviseUseCase: GetTransactionsByOperatorAndDeviceUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
+    private val updateTransactionUseCase: UpdateTransactionUseCase,
 
     ) : ViewModel() {
 
@@ -64,7 +71,9 @@ class RapportViewModel(
         _uiState.update {
             it.copy(
                 selectedTransaction = transaction,
-                isTransactionDialogVisible = true
+                isTransactionDialogVisible = true,
+                isEditSheetVisible = false,
+                isDeleteConfirmationVisible = false
             )
         }
     }
@@ -74,7 +83,9 @@ class RapportViewModel(
             it.copy(
                 selectedTransaction = null,
                 isTransactionDialogVisible = false,
-                isDeleteConfirmationVisible = false
+                isDeleteConfirmationVisible = false,
+                isEditSheetVisible = false,
+                editErrorMessage = ""
             )
         }
     }
@@ -127,6 +138,210 @@ class RapportViewModel(
                                 isDeleteConfirmationVisible = false,
                                 errorMessage = result.e?.message ?: "Erreur lors de la suppression"
                             )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun onEditTransactionRequest(transaction: TransactionEntity) {
+        _uiState.update {
+            it.copy(
+                selectedTransaction = transaction,
+                isTransactionDialogVisible = false,
+                isDeleteConfirmationVisible = false,
+                isEditSheetVisible = true,
+                editSelectedType = transaction.type,
+                editSelectedDevise = transaction.device,
+                editMontant = transaction.montant.stripTrailingZeros().toPlainString(),
+                editNomClient = transaction.nomClient.orEmpty(),
+                editTelephoneClient = transaction.numClient.orEmpty(),
+                editNomBeneficiaire = transaction.nomBeneficaire.orEmpty(),
+                editTelephoneBeneficiaire = transaction.numBeneficaire.orEmpty(),
+                editNote = transaction.note.orEmpty(),
+                isEditMontantError = false,
+                isEditNomClientError = false,
+                isEditTelephoneClientError = false,
+                isEditNomBeneficiaireError = false,
+                isEditTelephoneBeneficiaireError = false,
+                editErrorMessage = ""
+            )
+        }
+    }
+
+    fun onEditSheetDismiss() {
+        _uiState.update {
+            it.copy(
+                isEditSheetVisible = false,
+                editErrorMessage = "",
+                isEditMontantError = false,
+                isEditNomClientError = false,
+                isEditTelephoneClientError = false,
+                isEditNomBeneficiaireError = false,
+                isEditTelephoneBeneficiaireError = false
+            )
+        }
+    }
+
+    fun onEditMontantChange(value: String) {
+        _uiState.update {
+            it.copy(editMontant = value, isEditMontantError = false, editErrorMessage = "")
+        }
+    }
+
+    fun onEditNomClientChange(value: String) {
+        _uiState.update {
+            it.copy(editNomClient = value, isEditNomClientError = false, editErrorMessage = "")
+        }
+    }
+
+    fun onEditTelephoneClientChange(value: String) {
+        _uiState.update {
+            it.copy(
+                editTelephoneClient = value,
+                isEditTelephoneClientError = false,
+                editErrorMessage = ""
+            )
+        }
+    }
+
+    fun onEditNomBeneficiaireChange(value: String) {
+        _uiState.update {
+            it.copy(
+                editNomBeneficiaire = value,
+                isEditNomBeneficiaireError = false,
+                editErrorMessage = ""
+            )
+        }
+    }
+
+    fun onEditTelephoneBeneficiaireChange(value: String) {
+        _uiState.update {
+            it.copy(
+                editTelephoneBeneficiaire = value,
+                isEditTelephoneBeneficiaireError = false,
+                editErrorMessage = ""
+            )
+        }
+    }
+
+    fun onEditNoteChange(value: String) {
+        _uiState.update { it.copy(editNote = value) }
+    }
+
+    fun onEditDeviseChange(devise: Constants.Devise) {
+        _uiState.update { it.copy(editSelectedDevise = devise) }
+    }
+
+    fun onEditTypeChange(type: TransactionType) {
+        _uiState.update {
+            it.copy(
+                editSelectedType = type,
+                isEditNomBeneficiaireError = false,
+                isEditTelephoneBeneficiaireError = false
+            )
+        }
+    }
+
+    fun onEditTransactionSubmit() {
+        val currentState = uiState.value
+        val transaction = currentState.selectedTransaction ?: return
+
+        val montant = currentState.editMontant.trim().replace(',', '.').toBigDecimalOrNull()
+        if (montant == null || montant <= BigDecimal.ZERO) {
+            _uiState.update {
+                it.copy(isEditMontantError = true, editErrorMessage = "")
+            }
+            return
+        }
+
+        val updatedTransaction = transaction.toTransaction().copy(
+            type = currentState.editSelectedType,
+            device = currentState.editSelectedDevise,
+            montant = montant,
+            nomClient = currentState.editNomClient,
+            numClient = currentState.editTelephoneClient,
+            nomBeneficaire = if (currentState.editSelectedType == TransactionType.DEPOT)
+                currentState.editNomBeneficiaire else currentState.editNomBeneficiaire.takeIf { it.isNotBlank() },
+            numBeneficaire = if (currentState.editSelectedType == TransactionType.DEPOT)
+                currentState.editTelephoneBeneficiaire else currentState.editTelephoneBeneficiaire.takeIf { it.isNotBlank() },
+            note = currentState.editNote
+        )
+
+        viewModelScope.launch {
+            updateTransactionUseCase(updatedTransaction).collect { result ->
+                when (result) {
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true, editErrorMessage = "", errorMessage = "")
+                        }
+                    }
+
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                isEditSheetVisible = false,
+                                selectedTransaction = null,
+                                editErrorMessage = "",
+                                isEditMontantError = false,
+                                isEditNomClientError = false,
+                                isEditTelephoneClientError = false,
+                                isEditNomBeneficiaireError = false,
+                                isEditTelephoneBeneficiaireError = false
+                            )
+                        }
+                        gettransactionByOperateurAndDevise()
+                    }
+
+                    is Result.Error -> {
+                        when (val error = result.e) {
+                            is TransactionValidationException.FieldRequired -> {
+                                _uiState.update {
+                                    when (error.field) {
+                                        TransactionField.NOM_CLIENT -> it.copy(
+                                            isEditNomClientError = true,
+                                            isLoading = false
+                                        )
+
+                                        TransactionField.TEL_CLIENT -> it.copy(
+                                            isEditTelephoneClientError = true,
+                                            isLoading = false
+                                        )
+
+                                        TransactionField.NOM_BENEF -> it.copy(
+                                            isEditNomBeneficiaireError = true,
+                                            isLoading = false
+                                        )
+
+                                        TransactionField.TEL_BENEF -> it.copy(
+                                            isEditTelephoneBeneficiaireError = true,
+                                            isLoading = false
+                                        )
+
+                                        else -> it.copy(isLoading = false)
+                                    }
+                                }
+                            }
+
+                            is TransactionValidationException.InvalidAmount -> {
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        isEditMontantError = true
+                                    )
+                                }
+                            }
+
+                            else -> {
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        editErrorMessage = error?.message ?: "Erreur lors de la mise à jour"
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -262,6 +477,21 @@ data class RapportUiState(
     val isSearchBarShown: Boolean = false,
     val selectedTransaction: TransactionEntity? = null,
     val isTransactionDialogVisible: Boolean = false,
-    val isDeleteConfirmationVisible: Boolean = false
+    val isDeleteConfirmationVisible: Boolean = false,
+    val isEditSheetVisible: Boolean = false,
+    val editSelectedType: TransactionType = TransactionType.DEPOT,
+    val editSelectedDevise: Constants.Devise = Constants.Devise.USD,
+    val editMontant: String = "",
+    val editNomClient: String = "",
+    val editTelephoneClient: String = "",
+    val editNomBeneficiaire: String = "",
+    val editTelephoneBeneficiaire: String = "",
+    val editNote: String = "",
+    val isEditMontantError: Boolean = false,
+    val isEditNomClientError: Boolean = false,
+    val isEditTelephoneClientError: Boolean = false,
+    val isEditNomBeneficiaireError: Boolean = false,
+    val isEditTelephoneBeneficiaireError: Boolean = false,
+    val editErrorMessage: String = ""
 
 )

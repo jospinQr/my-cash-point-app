@@ -3,7 +3,6 @@ package org.megamind.mycashpoint.ui.screen.rapport
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInVertically
@@ -22,22 +21,32 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AttachMoney
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material.icons.rounded.Print
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -45,20 +54,29 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.Operateur
+import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.AuthTextField
+import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
+import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.Table
 import org.megamind.mycashpoint.utils.Constants
 
@@ -81,7 +99,18 @@ fun RapportScreen(modifier: Modifier = Modifier, viewModel: RapportViewModel = k
         onTransactionDialogDismiss = viewModel::onTransactionDialogDismiss,
         onTransactionDelete = viewModel::onDeleteTransactionRequest,
         onDeleteConfirmationConfirm = viewModel::onDeleteTransactionConfirm,
-        onDeleteConfirmationDismiss = viewModel::onDeleteTransactionCancel
+        onDeleteConfirmationDismiss = viewModel::onDeleteTransactionCancel,
+        onTransactionEdit = viewModel::onEditTransactionRequest,
+        onEditSheetDismiss = viewModel::onEditSheetDismiss,
+        onEditMontantChange = viewModel::onEditMontantChange,
+        onEditNomClientChange = viewModel::onEditNomClientChange,
+        onEditTelephoneClientChange = viewModel::onEditTelephoneClientChange,
+        onEditNomBeneficiaireChange = viewModel::onEditNomBeneficiaireChange,
+        onEditTelephoneBeneficiaireChange = viewModel::onEditTelephoneBeneficiaireChange,
+        onEditNoteChange = viewModel::onEditNoteChange,
+        onEditDeviseChange = viewModel::onEditDeviseChange,
+        onEditTypeChange = viewModel::onEditTypeChange,
+        onEditSubmit = viewModel::onEditTransactionSubmit
     )
 
 
@@ -104,6 +133,16 @@ fun RapportScreenContent(
     onDeleteConfirmationConfirm: () -> Unit = {},
     onDeleteConfirmationDismiss: () -> Unit = {},
     onTransactionEdit: (TransactionEntity) -> Unit = {},
+    onEditSheetDismiss: () -> Unit = {},
+    onEditMontantChange: (String) -> Unit = {},
+    onEditNomClientChange: (String) -> Unit = {},
+    onEditTelephoneClientChange: (String) -> Unit = {},
+    onEditNomBeneficiaireChange: (String) -> Unit = {},
+    onEditTelephoneBeneficiaireChange: (String) -> Unit = {},
+    onEditNoteChange: (String) -> Unit = {},
+    onEditDeviseChange: (Constants.Devise) -> Unit = {},
+    onEditTypeChange: (TransactionType) -> Unit = {},
+    onEditSubmit: () -> Unit = {},
     onTransactionSync: (TransactionEntity) -> Unit = {}
 ) {
 
@@ -298,6 +337,24 @@ fun RapportScreenContent(
     }
 
 
+
+
+    if (uiState.isEditSheetVisible) {
+        TransactionEditBottomSheet(
+            uiState = uiState,
+            onDismiss = onEditSheetDismiss,
+            onTypeChange = onEditTypeChange,
+            onDeviseChange = onEditDeviseChange,
+            onMontantChange = onEditMontantChange,
+            onNomClientChange = onEditNomClientChange,
+            onTelephoneClientChange = onEditTelephoneClientChange,
+            onNomBeneficiaireChange = onEditNomBeneficiaireChange,
+            onTelephoneBeneficiaireChange = onEditTelephoneBeneficiaireChange,
+            onNoteChange = onEditNoteChange,
+            onSubmit = onEditSubmit
+        )
+    }
+
 }
 
 
@@ -448,9 +505,11 @@ private fun DeleteTransactionConfirmationDialog(
             )
         },
         confirmButton = {
-            TextButton(onClick = onConfirm, colors = ButtonDefaults.textButtonColors(
-                contentColor = MaterialTheme.colorScheme.error
-            )) {
+            TextButton(
+                onClick = onConfirm, colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
                 Text("Supprimer")
             }
         },
@@ -460,4 +519,223 @@ private fun DeleteTransactionConfirmationDialog(
             }
         }
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+private fun TransactionEditBottomSheet(
+    uiState: RapportUiState,
+    onDismiss: () -> Unit,
+    onTypeChange: (TransactionType) -> Unit,
+    onDeviseChange: (Constants.Devise) -> Unit,
+    onMontantChange: (String) -> Unit,
+    onNomClientChange: (String) -> Unit,
+    onTelephoneClientChange: (String) -> Unit,
+    onNomBeneficiaireChange: (String) -> Unit,
+    onTelephoneBeneficiaireChange: (String) -> Unit,
+    onNoteChange: (String) -> Unit,
+    onSubmit: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Modifier la transaction ${uiState.selectedTransaction?.transactionCode.orEmpty()}",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            val transactionTypes = remember { TransactionType.entries.toList() }
+            var isTypeMenuExpanded by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(
+                expanded = isTypeMenuExpanded,
+                onExpandedChange = { isTypeMenuExpanded = !isTypeMenuExpanded }
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
+                    value = uiState.editSelectedType.name,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Type de transaction") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isTypeMenuExpanded)
+                    },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                )
+                ExposedDropdownMenu(
+                    expanded = isTypeMenuExpanded,
+                    onDismissRequest = { isTypeMenuExpanded = false }
+                ) {
+                    transactionTypes.forEach { type ->
+                        DropdownMenuItem(
+                            text = { Text(type.name) },
+                            onClick = {
+                                onTypeChange(type)
+                                isTypeMenuExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                Constants.Devise.entries.forEachIndexed { index, devise ->
+                    SegmentedButton(
+                        label = { Text(devise.name) },
+                        onClick = { onDeviseChange(devise) },
+                        selected = uiState.editSelectedDevise == devise,
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index,
+                            Constants.Devise.entries.size
+                        ),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = MaterialTheme.colorScheme.primary,
+                            activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                            activeBorderColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                }
+            }
+
+            CustomOutlinedTextField(
+                value = uiState.editMontant,
+                onValueChange = onMontantChange,
+                label = "Montant",
+                keyboardType = KeyboardType.Decimal,
+                imeAction = ImeAction.Next,
+                isError = uiState.isEditMontantError,
+                errorMessage = "Montant invalide",
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Rounded.AttachMoney,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
+
+            CustomOutlinedTextField(
+                value = uiState.editNomClient,
+                onValueChange = onNomClientChange,
+                label = "Nom client",
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next,
+                isError = uiState.isEditNomClientError,
+                errorMessage = "Champs obligatoire",
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Rounded.Person,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
+
+            CustomOutlinedTextField(
+                value = uiState.editTelephoneClient,
+                onValueChange = onTelephoneClientChange,
+                label = "Téléphone client",
+                keyboardType = KeyboardType.Phone,
+                imeAction = ImeAction.Next,
+                isError = uiState.isEditTelephoneClientError,
+                errorMessage = "Champs obligatoire",
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Rounded.Phone,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
+
+            if (uiState.editSelectedType == TransactionType.DEPOT) {
+                CustomOutlinedTextField(
+                    value = uiState.editNomBeneficiaire,
+                    onValueChange = onNomBeneficiaireChange,
+                    label = "Bénéficiaire",
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next,
+                    isError = uiState.isEditNomBeneficiaireError,
+                    errorMessage = "Champs obligatoire",
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                )
+
+                CustomOutlinedTextField(
+                    value = uiState.editTelephoneBeneficiaire,
+                    onValueChange = onTelephoneBeneficiaireChange,
+                    label = "Téléphone bénéficiaire",
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Next,
+                    isError = uiState.isEditTelephoneBeneficiaireError,
+                    errorMessage = "Champs obligatoire",
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Phone,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                )
+            }
+
+            CustomOutlinedTextField(
+                value = uiState.editNote,
+                onValueChange = onNoteChange,
+                label = "Note",
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Done,
+                singleLine = false,
+                maxLines = 3,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Rounded.Edit,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
+
+            if (uiState.editErrorMessage.isNotBlank()) {
+                Text(
+                    text = uiState.editErrorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            CustomerButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onSubmit,
+                enable = !uiState.isLoading
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Enregistrer les modifications")
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
 }
