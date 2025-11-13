@@ -1,6 +1,8 @@
 package org.megamind.mycashpoint.ui.screen.rapport
 
+import android.content.Context
 import android.os.Build
+import android.print.PrintManager
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -67,9 +69,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
+import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.TransactionType
@@ -79,6 +83,7 @@ import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.Table
 import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -86,6 +91,7 @@ fun RapportScreen(modifier: Modifier = Modifier, viewModel: RapportViewModel = k
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val transactions by viewModel.transaction.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     RapportScreenContent(
         uiState = uiState,
@@ -101,6 +107,25 @@ fun RapportScreen(modifier: Modifier = Modifier, viewModel: RapportViewModel = k
         onDeleteConfirmationConfirm = viewModel::onDeleteTransactionConfirm,
         onDeleteConfirmationDismiss = viewModel::onDeleteTransactionCancel,
         onTransactionEdit = viewModel::onEditTransactionRequest,
+        onTransactionPrint = { transaction ->
+            val printManager =
+                context.getSystemService(Context.PRINT_SERVICE) as PrintManager
+            val jobName = "${context.getString(R.string.app_name)} Reçu"
+            val data = mapOf(
+                "numero" to transaction.transactionCode,
+                "date" to Constants.formatTimestamp(transaction.horodatage),
+                "motif" to transaction.type.name,
+                "montant" to transaction.montant.toString(),
+                "devise" to transaction.device.symbole,
+                "nom" to transaction.nomClient.orEmpty(),
+                "agent" to transaction.creePar.toString()
+            )
+            printManager.print(
+                jobName,
+                MyPrintDocumentAdapter(context, jobName, data),
+                null
+            )
+        },
         onEditSheetDismiss = viewModel::onEditSheetDismiss,
         onEditMontantChange = viewModel::onEditMontantChange,
         onEditNomClientChange = viewModel::onEditNomClientChange,
@@ -133,6 +158,7 @@ fun RapportScreenContent(
     onDeleteConfirmationConfirm: () -> Unit = {},
     onDeleteConfirmationDismiss: () -> Unit = {},
     onTransactionEdit: (TransactionEntity) -> Unit = {},
+    onTransactionPrint: (TransactionEntity) -> Unit = {},
     onEditSheetDismiss: () -> Unit = {},
     onEditMontantChange: (String) -> Unit = {},
     onEditNomClientChange: (String) -> Unit = {},
@@ -315,7 +341,8 @@ fun RapportScreenContent(
                         onDismissRequest = onTransactionDialogDismiss,
                         onDeleteClick = onTransactionDelete,
                         onEditClick = onTransactionEdit,
-                        onSyncClick = onTransactionSync
+                        onSyncClick = onTransactionSync,
+                        onPrintClick = onTransactionPrint
                     )
                 }
 
@@ -397,7 +424,8 @@ private fun TransactionDetailDialog(
     onDismissRequest: () -> Unit,
     onDeleteClick: (TransactionEntity) -> Unit,
     onEditClick: (TransactionEntity) -> Unit,
-    onSyncClick: (TransactionEntity) -> Unit
+    onSyncClick: (TransactionEntity) -> Unit,
+    onPrintClick: (TransactionEntity) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -441,7 +469,7 @@ private fun TransactionDetailDialog(
                     Text("Supprimer")
                 }
                 TextButton(
-                    onClick = { onDeleteClick(transaction) },
+                    onClick = { onPrintClick(transaction) },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = Color.DarkGray,
                         containerColor = Color.Green.copy(.09f)
