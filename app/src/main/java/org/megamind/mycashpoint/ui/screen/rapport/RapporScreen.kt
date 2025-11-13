@@ -2,7 +2,11 @@ package org.megamind.mycashpoint.ui.screen.rapport
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -17,9 +21,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -29,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
@@ -38,6 +49,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.operateurs
+import org.megamind.mycashpoint.ui.component.AuthTextField
 import org.megamind.mycashpoint.ui.component.Table
 import org.megamind.mycashpoint.utils.Constants
 
@@ -52,7 +64,10 @@ fun RapportScreen(modifier: Modifier = Modifier, viewModel: RapportViewModel = k
         uiState = uiState,
         transactions = transactions,
         onSelectedDeviseChange = viewModel::onSelectedDeviseChange,
-        onSelectedOperateurChange = viewModel::onSelectedOperateurChange
+        onSelectedOperateurChange = viewModel::onSelectedOperateurChange,
+        onSearchClick = viewModel::onSearchClick,
+        onSearchBarDismiss = viewModel::onSearchBarDismiss,
+        onSearchValueChange = viewModel::onSearchValueChange
     )
 
 
@@ -66,6 +81,9 @@ fun RapportScreenContent(
     transactions: List<TransactionEntity>,
     onSelectedDeviseChange: (Constants.Devise) -> Unit,
     onSelectedOperateurChange: (Operateur) -> Unit,
+    onSearchClick: () -> Unit,
+    onSearchBarDismiss: () -> Unit = {},
+    onSearchValueChange: (String) -> Unit = {}
 ) {
 
 
@@ -84,6 +102,23 @@ fun RapportScreenContent(
                         painter = painterResource(uiState.selectedOperateur.logo),
                         contentDescription = null
                     )
+                },
+                actions = {
+
+                    IconButton(onClick = { onSearchClick() }) {
+
+                        Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
+
+                    }
+
+
+                    IconButton(onClick = {}) {
+
+                        Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null)
+
+                    }
+
+
                 }
             )
         }) { innerPadding ->
@@ -93,12 +128,43 @@ fun RapportScreenContent(
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
         ) {
 
 
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
+                AnimatedVisibility(
+                    visible = uiState.isSearchBarShown,
+                    enter = slideInVertically(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioHighBouncy,
+                            stiffness = Spring.StiffnessHigh
+                        )
+                    )
+                ) {
+
+                    AuthTextField(
+                        value = uiState.searchValue,
+                        onValueChange = { onSearchValueChange(it) },
+                        leadingIcon = {
+                            Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            IconButton(onClick = { onSearchBarDismiss() }) {
+
+                                Icon(
+                                    imageVector = Icons.Rounded.Close,
+                                    contentDescription = null
+                                )
+
+
+                            }
+                        }
+
+                    )
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -178,8 +244,8 @@ fun RapportScreenContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
 
-                    TransactionTable(transactions = transactions)
-               
+                TransactionTable(transactions = transactions)
+
 
             }
 
@@ -198,7 +264,7 @@ fun RapportScreenContent(
 fun TransactionTable(transactions: List<TransactionEntity>) {
 
 
-    val headers = listOf("Type", "Montant", "Avant","Apres", "Client", "Telephone", "date")
+    val headers = listOf("Type", "Montant", "Avant", "Apres", "Client", "Telephone", "date")
 
     Table(
 
@@ -212,7 +278,7 @@ fun TransactionTable(transactions: List<TransactionEntity>) {
             0 -> Text(item.type.name)
             1 -> Text(item.montant.toString())
             2 -> Text(item.soldeAvant.toString())
-            3-> Text(item.soldeApres.toString())
+            3 -> Text(item.soldeApres.toString())
             4 -> Text(item.nomClient ?: "")
             5 -> Text(item.numClient ?: "")
             6 -> Text(Constants.formatTimestamp(item.horodatage))

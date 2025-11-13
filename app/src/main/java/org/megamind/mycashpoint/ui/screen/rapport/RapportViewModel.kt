@@ -19,12 +19,11 @@ class RapportViewModel(
     ) : ViewModel() {
 
 
-
-
     private val _uiState = MutableStateFlow(RapportUiState())
     val uiState = _uiState.asStateFlow()
 
 
+    private val _cachedTransactions = MutableStateFlow<List<TransactionEntity>>(emptyList())
     private val _transactionByOperateurAndDevise =
         MutableStateFlow<List<TransactionEntity>>(emptyList())
     val transaction = _transactionByOperateurAndDevise.asStateFlow()
@@ -32,11 +31,20 @@ class RapportViewModel(
     private val _selectedDevise get() = uiState.value.selectedDevise
     private val _selectedOperateur get() = uiState.value.selectedOperateur
 
+
+    fun onSearchValueChange(value: String) {
+        _uiState.update {
+            it.copy(searchValue = value)
+        }
+        filterTransactions()
+    }
+
     fun onSelectedOperateurChange(operateur: Operateur) {
 
         _uiState.update {
             it.copy(selectedOperateur = operateur)
         }
+        filterTransactions()
         gettransactionByOperateurAndDevise()
 
     }
@@ -46,6 +54,7 @@ class RapportViewModel(
             it.copy(selectedDevise = devise)
         }
 
+        filterTransactions()
         gettransactionByOperateurAndDevise()
     }
 
@@ -78,7 +87,8 @@ class RapportViewModel(
                             it.copy(isLoading = false)
                         }
 
-                        _transactionByOperateurAndDevise.value = result.data ?: emptyList()
+                        _cachedTransactions.value = result.data ?: emptyList()
+                        filterTransactions()
 
                     }
 
@@ -89,7 +99,6 @@ class RapportViewModel(
                                 errorMessage = result.e?.message ?: "Errreur inconu"
                             )
                         }
-
 
 
                     }
@@ -104,15 +113,57 @@ class RapportViewModel(
 
     }
 
+    fun onSearchClick() {
+
+        _uiState.update {
+
+            it.copy(isSearchBarShown = true)
+        }
+
+    }
+
+    private fun filterTransactions() {
+        val query = uiState.value.searchValue.trim().lowercase()
+        val selectedOperateurId = _selectedOperateur.id
+        val selectedDevise = _selectedDevise
+
+        val filtered = _cachedTransactions.value.filter { transaction ->
+            val matchesOperateur = transaction.idOperateur == selectedOperateurId
+            val matchesDevise = transaction.device == selectedDevise
+            val matchesQuery = if (query.isEmpty()) {
+                true
+            } else {
+                transaction.transactionCode.contains(query, ignoreCase = true) ||
+                        transaction.nomClient.orEmpty().contains(query, ignoreCase = true) ||
+                        transaction.numClient.orEmpty().contains(query, ignoreCase = true) ||
+                        transaction.nomBeneficaire.orEmpty().contains(query, ignoreCase = true) ||
+                        transaction.numBeneficaire.orEmpty().contains(query, ignoreCase = true)
+            }
+
+            matchesOperateur && matchesDevise && matchesQuery
+        }
+
+        _transactionByOperateurAndDevise.value = filtered
+    }
+
+    fun onSearchBarDismiss() {
+        _uiState.update {
+
+            it.copy(isSearchBarShown = false)
+        }
+    }
+
 
 }
 
 
 data class RapportUiState(
 
+    val searchValue: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String = "",
     val selectedOperateur: Operateur = operateurs.first(),
     val selectedDevise: Constants.Devise = Constants.Devise.USD,
+    val isSearchBarShown: Boolean = false
 
-    )
+)
