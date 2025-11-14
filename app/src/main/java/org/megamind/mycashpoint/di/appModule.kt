@@ -3,11 +3,11 @@ package org.megamind.mycashpoint.di
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
-import org.megamind.mycashpoint.data.data_source.repositoryImpl.AgenceRepositoryImpl
-import org.megamind.mycashpoint.data.data_source.repositoryImpl.CommissionRepositoryImpl
-import org.megamind.mycashpoint.data.data_source.repositoryImpl.SoldeRepositoryImpl
-import org.megamind.mycashpoint.data.data_source.repositoryImpl.TransactionRepositoryImpl
-import org.megamind.mycashpoint.data.data_source.repositoryImpl.UserRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.AgenceRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.CommissionRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.SoldeRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.TransactionRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.UserRepositoryImpl
 import org.megamind.mycashpoint.domain.repository.AgenceRepository
 import org.megamind.mycashpoint.domain.repository.CommissionRepository
 import org.megamind.mycashpoint.domain.repository.SoldeRepository
@@ -15,13 +15,14 @@ import org.megamind.mycashpoint.domain.repository.TransactionRepository
 import org.megamind.mycashpoint.domain.repository.UserRepository
 import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
 import org.megamind.mycashpoint.domain.usecase.agence.SaveOrUpdateAgenceUseCase
+import org.megamind.mycashpoint.domain.usecase.auth.LoginUseCase
+import org.megamind.mycashpoint.domain.usecase.auth.RegisterUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.DeleteCommissionUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.GetAllCommissionsUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionStatsParDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionStatsParOperateurUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionsByOperateurUseCase
-import org.megamind.mycashpoint.domain.usecase.commission.InsertAllCommissionsUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.SaveOrUpdateCommissionUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.SearchCommissionsUseCase
 import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
@@ -48,7 +49,7 @@ val appModule = module {
 
     //repo
     single<UserRepository> {
-        UserRepositoryImpl(get())
+        UserRepositoryImpl(get(), get(), get())
     }
 
     single<SoldeRepository> {
@@ -84,11 +85,14 @@ val appModule = module {
     single { GetCommissionStatsParDeviseUseCase(get()) }
     single { DeleteTransactionUseCase(get()) }
     single { UpdateTransactionUseCase(get()) }
+    single { LoginUseCase(get()) }
+    single { RegisterUseCase(get()) }
+
 
 //view models
 
     viewModel {
-        SignInViewModel(get(), get())
+        SignInViewModel(get())
     }
 
     viewModel {

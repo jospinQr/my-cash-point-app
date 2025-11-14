@@ -11,12 +11,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.megamind.mycashpoint.data.data_source.remote.dto.Role
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.repository.UserRepository
+import org.megamind.mycashpoint.domain.usecase.auth.RegisterUseCase
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.utils.UtilsFonctions
 
-class RegisterViewModel(private val userRepository: UserRepository) : ViewModel() {
+class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewModel() {
 
 
     private val _uiState = MutableStateFlow(RegisterUiState())
@@ -101,46 +103,45 @@ class RegisterViewModel(private val userRepository: UserRepository) : ViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
 
-            userRepository
-                .register(
-                    name = _uiState.value.userName,
-                    email = _uiState.value.email,
-                    password = _uiState.value.password,
-                    agenceId = _uiState.value.selectedAgence?.codeAgence!!
-                ).collect { result ->
+            registerUseCase(
+                _uiState.value.userName,
+                _uiState.value.password,
+                _uiState.value.selectedAgence?.codeAgence ?: "",
+                _uiState.value.selecteRole.name
+            ).collect { result ->
 
-                    when (val result = result) {
+                when (val result = result) {
 
-                        is Result.Loading -> {
-                            _uiState.update {
-                                it.copy(isLoading = true)
-                            }
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true)
                         }
+                    }
 
-                        is Result.Success -> {
-                            _uiState.update {
-                                it.copy(isLoading = false)
-                            }
-                            _uiEvent.emit(RegisterUiEvent.NavigateToHome)
-
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(isLoading = false)
                         }
-
-                        is Result.Error -> {
-                            _uiState.update {
-                                it.copy(isLoading = false)
-                            }
-                            _uiEvent.emit(
-                                RegisterUiEvent.ShowError(
-                                    result.e?.message ?: "Unknown error"
-                                )
-                            )
-
-                        }
+                        _uiEvent.emit(RegisterUiEvent.NavigateToHome)
 
                     }
 
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(isLoading = false)
+                        }
+                        _uiEvent.emit(
+                            RegisterUiEvent.ShowError(
+                                result.e?.message ?: "Unknown error"
+                            )
+                        )
+
+                    }
 
                 }
+
+
+            }
 
         }
 
@@ -183,6 +184,7 @@ data class RegisterUiState(
     val isRegisting: Boolean = false,
     val selectedAgence: Agence? = null,
     val isAgenceExpanded: Boolean = false,
+    val selecteRole: Role = Role.ADMIN
 ) {
 
 

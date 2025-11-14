@@ -27,7 +27,7 @@ data class Transaction(
     val reference: String? = null,       // Ex: reçu opérateur
     val note: String? = null,
     val horodatage: Long = System.currentTimeMillis(),
-    val creePar: Int = 0,
+    val creePar: Long = 0,
     val codeAgence: String = "",
     val statutSync: StatutSync = StatutSync.EN_ATTENTE,
 

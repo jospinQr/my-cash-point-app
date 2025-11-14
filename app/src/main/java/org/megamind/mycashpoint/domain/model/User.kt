@@ -2,10 +2,8 @@ package org.megamind.mycashpoint.domain.model
 
 
 data class User(
-    val id: Int,
+    val id: Long,
     val name: String,
-    val email: String,
-    val password: String,
-    val salt: String,
     val idAgence: String,
+    val role: String,
 )

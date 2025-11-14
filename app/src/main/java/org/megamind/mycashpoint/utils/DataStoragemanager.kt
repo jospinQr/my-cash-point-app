@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.firstOrNull
+import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -16,8 +17,18 @@ class DataStorageManager(private val context: Context) {
     companion object {
         private val USERNAME_KEY = stringPreferencesKey("username")
         private val USERID_KEY = intPreferencesKey("userId")
-
         private val CODE_AGENCE = stringPreferencesKey("codeAgence")
+
+        private val TOKEN_KEY = stringPreferencesKey("token")
+    }
+
+
+    suspend fun getToken(): String? {
+        return context.dataStore.data.firstOrNull()?.get(TOKEN_KEY)
+    }
+
+    suspend fun saveToken(token: String) {
+        context.dataStore.edit { it[TOKEN_KEY] = token }
     }
 
     suspend fun getUsername(): String? {
@@ -29,6 +40,7 @@ class DataStorageManager(private val context: Context) {
     }
 
     suspend fun getUserID(): Int? {
+
         return context.dataStore.data.firstOrNull()?.get(USERID_KEY)
     }
 

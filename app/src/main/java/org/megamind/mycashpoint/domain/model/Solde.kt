@@ -11,7 +11,7 @@ data class Solde(
     val devise: Constants.Devise = Constants.Devise.USD,
     val dernierMiseAJour: Long = System.currentTimeMillis(),
     val seuilAlerte: Double? = null,
-    val misAJourPar: Int = 0,
+    val misAJourPar: Long = 0,
     val codeAgence: String = ""
 
 )

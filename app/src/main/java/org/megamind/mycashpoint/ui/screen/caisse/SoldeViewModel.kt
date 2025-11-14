@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
 
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.Solde
@@ -19,6 +20,7 @@ import org.megamind.mycashpoint.domain.usecase.solde.SoldeValidationException
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.utils.decodeJwtPayload
 import org.megamind.mycashpoint.utils.toBigDecimalOrNull
 import java.math.BigDecimal
 
@@ -125,15 +127,17 @@ class SoldeViewModel(
 
 
         viewModelScope.launch {
+            val claims = decodeJwtPayload(storageManager.getToken()!!)
+
             val solde = Solde(
                 idOperateur = uiState.value.selectedOperateur.id,
                 montant = uiState.value.solde.toBigDecimalOrNull() ?: BigDecimal(0),
                 devise = uiState.value.selectedDevise,
                 seuilAlerte = uiState.value.seuilAlert?.toDouble(),
                 dernierMiseAJour = System.currentTimeMillis(),
-                misAJourPar = storageManager.getUserID()!!,
+                misAJourPar = claims.optString("sub").toLong(),
                 soldeType = uiState.value.selecteSoldeType,
-                codeAgence = storageManager.codeAgence()!!
+                codeAgence = claims.optString("agence_code")
 
             )
             saveOrUpdateSolde(solde).collect { result ->

@@ -17,21 +17,6 @@ import java.math.BigDecimal
         Index("idOperateur"),
         Index("horodatage")
     ],
-    foreignKeys = [
-        ForeignKey(
-            entity = UserEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["creePar"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = AgenceEntity::class,
-            parentColumns = ["codeAgence"],
-            childColumns = ["codeAgence"],
-            onDelete = ForeignKey.CASCADE
-        ),
-
-    ],
 
 
     )
@@ -39,7 +24,7 @@ data class TransactionEntity(
 
     @PrimaryKey(autoGenerate = true)
     val id: Long,
-    val transactionCode:String,
+    val transactionCode: String,
     val idOperateur: Int,             // ex: "AIRTEL"
     val type: TransactionType,                  // Type de mouvement
     val montant: BigDecimal,
@@ -57,7 +42,7 @@ data class TransactionEntity(
     val reference: String? = null,       // Ex: reçu opérateur
     val note: String? = null,
     val horodatage: Long = System.currentTimeMillis(),
-    val creePar: Int,
+    val creePar: Long,
     val codeAgence: String,
     val statutSync: StatutSync = StatutSync.EN_ATTENTE,
 

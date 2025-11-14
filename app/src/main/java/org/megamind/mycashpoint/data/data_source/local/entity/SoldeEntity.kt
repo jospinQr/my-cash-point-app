@@ -22,20 +22,7 @@ import java.math.BigDecimal
 @Entity(
     tableName = "soldes",
     primaryKeys = ["idOperateur", "devise", "soldeType"],
-    foreignKeys = [
-        ForeignKey(
-            entity = UserEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["misAJourPar"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = AgenceEntity::class,
-            parentColumns = ["codeAgence"],
-            childColumns = ["codeAgence"],
-            onDelete = ForeignKey.CASCADE
-        ),
-    ],
+
     indices = [
         Index(value = ["idOperateur"])
     ]
@@ -48,7 +35,7 @@ data class SoldeEntity(
     val devise: Constants.Devise,      // Devise
     val dernierMiseAJour: Long = System.currentTimeMillis(),      // Timestamp
     val seuilAlerte: Double? = null,   // Optionnel : seuil d'alerte
-    val misAJourPar: Int, // ex: 1
+    val misAJourPar: Long,      // Optionnel : Utilisateur qui a effectué la dernière mise à jour, // ex: 1
     val codeAgence: String
 
 )

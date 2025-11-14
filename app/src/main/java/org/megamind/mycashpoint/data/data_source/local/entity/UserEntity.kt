@@ -5,23 +5,14 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "users", foreignKeys = [
-        ForeignKey(
-            entity = AgenceEntity::class,
-            parentColumns = ["codeAgence"],
-            childColumns = ["codeAgence"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
+    tableName = "users",
 )
 data class UserEntity(
 
-    @PrimaryKey(autoGenerate = true)
-    val id: Int,
+    @PrimaryKey()
+    val id: Long,
     val name: String,
-    val email: String,
-    val password: String,
-    val salt: String,
     val codeAgence: String,
+    val role: String,
 
     )

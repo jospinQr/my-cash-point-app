@@ -12,13 +12,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.repository.UserRepository
+import org.megamind.mycashpoint.domain.usecase.auth.LoginUseCase
 import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.utils.UtilsFonctions
 
 class SignInViewModel(
-    private val userRepository: UserRepository,
-    private val storageManager: DataStorageManager
+    private val loginUseCase: LoginUseCase,
 ) : ViewModel() {
 
 
@@ -79,49 +79,45 @@ class SignInViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
 
-            userRepository
-                .login(
-                    _email,
-                    _password,
-                    _agenceId
+            loginUseCase(
+                _email,
+                _password,
+
                 ).collect { result ->
 
-                    when (val result = result) {
+                when (val result = result) {
 
-                        is Result.Loading -> {
-                            _uiState.update {
-                                it.copy(isLoading = true)
-                            }
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true)
                         }
+                    }
 
-                        is Result.Success -> {
-                            _uiState.update {
-                                it.copy(isLoading = false)
-                            }
-                            _uiEvent.emit(SignInUiEvent.NavigateToHome)
-
-                            storageManager.saveUserId(result.data?.id!!)
-                            storageManager.saveCodeAgence(result.data.idAgence)
-
-
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(isLoading = false)
                         }
+                        _uiEvent.emit(SignInUiEvent.NavigateToHome)
 
-                        is Result.Error -> {
-                            _uiState.update {
-                                it.copy(isLoading = false)
-                            }
-                            _uiEvent.emit(
-                                SignInUiEvent.ShowError(
-                                    result.e?.message ?: "Unknown error"
-                                )
-                            )
-
-                        }
 
                     }
 
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(isLoading = false)
+                        }
+                        _uiEvent.emit(
+                            SignInUiEvent.ShowError(
+                                result.e?.message ?: "Unknown error"
+                            )
+                        )
+
+                    }
 
                 }
+
+
+            }
 
 
         }

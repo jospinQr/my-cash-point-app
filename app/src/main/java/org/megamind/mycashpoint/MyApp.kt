@@ -5,6 +5,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.megamind.mycashpoint.di.appModule
+import org.megamind.mycashpoint.di.ktorModule
 import org.megamind.mycashpoint.di.roomModule
 
 class MyApp : Application() {
@@ -16,7 +17,7 @@ class MyApp : Application() {
 
             androidLogger()
             androidContext(this@MyApp)
-            modules(appModule, roomModule)
+            modules(appModule, roomModule, ktorModule)
 
         }
 

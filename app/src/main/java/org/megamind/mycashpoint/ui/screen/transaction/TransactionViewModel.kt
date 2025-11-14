@@ -16,6 +16,7 @@ import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidation
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.utils.decodeJwtPayload
 import java.math.BigDecimal
 
 class TransactionViewModel(
@@ -108,6 +109,7 @@ class TransactionViewModel(
 
 
         viewModelScope.launch {
+            val claims = decodeJwtPayload(storageManager.getToken()!!)
 
 
             val transaction = Transaction(
@@ -120,8 +122,8 @@ class TransactionViewModel(
                 nomBeneficaire = _nomBenef,
                 numBeneficaire = _telephBenef,
                 note = _note,
-                creePar = storageManager.getUserID()!!,
-                codeAgence = storageManager.codeAgence()!!
+                creePar = claims.optString("sub").toLong(),
+                codeAgence = claims.optString("agence_code")
             )
 
             insertTransactionAndUpdateSoldes(transaction).collect { result ->

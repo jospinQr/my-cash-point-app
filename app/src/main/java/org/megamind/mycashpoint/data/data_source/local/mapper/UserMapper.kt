@@ -8,10 +8,8 @@ fun User.toUserEntity(): UserEntity {
     return UserEntity(
         id = id,
         name = name,
-        email = email,
-        password = password,
-        salt = salt,
-        codeAgence = idAgence
+        codeAgence = idAgence,
+        role = role
     )
 
 }
@@ -21,9 +19,7 @@ fun UserEntity.toUser(): User {
     return User(
         id = id,
         name = name,
-        email = email,
-        password = password,
-        salt = salt,
-        idAgence = codeAgence
+        idAgence = codeAgence,
+        role = role
     )
 }

@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.data.data_source.repositoryImpl
+package org.megamind.mycashpoint.data.repositoryImpl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

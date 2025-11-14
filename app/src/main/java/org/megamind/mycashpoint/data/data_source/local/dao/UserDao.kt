@@ -10,17 +10,12 @@ import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
 interface UserDao {
 
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUser(user: UserEntity)
-
-    @Query("SELECT * FROM users WHERE email = :email")
-    suspend fun getUserByEmail(email: String): UserEntity?
 
 
     @Query("SELECT * FROM users WHERE id = :id")
-    suspend fun getUserById(id: Int): UserEntity?
-
-
+    suspend fun getUserById(id: Long): UserEntity?
 
 
 }
