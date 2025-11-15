@@ -101,7 +101,8 @@ interface TransactionDao {
             )
         )
 
-        val codeTransaction = String.format("%07d", generatedId) + transaction.codeAgence
+        val codeTransaction =
+            " ${String.format("%07d", generatedId)}${transaction.creePar}${transaction.codeAgence}"
         updateCodeTransaction(generatedId, codeTransaction)
         return generatedId
     }

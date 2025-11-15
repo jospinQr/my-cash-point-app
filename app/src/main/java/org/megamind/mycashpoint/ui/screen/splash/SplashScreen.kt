@@ -21,20 +21,39 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import org.koin.compose.viewmodel.koinViewModel
 import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.ui.component.AnimatedTextByLetter
+import org.megamind.mycashpoint.ui.screen.splash.SplashUiEvent
+import org.megamind.mycashpoint.ui.screen.splash.SplashViewModel
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 
 
 @Composable
-fun SplashScreen(modifier: Modifier = Modifier, navigateToLoginScreen: () -> Unit) {
+fun SplashScreen(
+    modifier: Modifier = Modifier,
+    viewModel: SplashViewModel = koinViewModel(),
+    navigateToLoginScreen: () -> Unit = {},
+    navigateToHomeScreen: () -> Unit = {}
+) {
 
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel) {
 
-        delay(3500)
-        navigateToLoginScreen()
+        viewModel.uiEvent.collect {
+            when (it) {
+                SplashUiEvent.NavigateToHome -> {
+                    navigateToHomeScreen()
+                }
+
+                SplashUiEvent.NavigateToLogin -> {
+                    navigateToLoginScreen()
+                }
+            }
+        }
     }
+
+
 
     Scaffold { innerPadding ->
 

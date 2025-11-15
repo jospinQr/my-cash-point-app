@@ -1,5 +1,6 @@
 package org.megamind.mycashpoint.data.repositoryImpl
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.data.data_source.local.dao.UserDao
@@ -24,26 +25,39 @@ class UserRepositoryImpl(
     override fun login(loginRequest: LoginRequest): Flow<Result<AuthResponse>> = flow {
         emit(Result.Loading)
         try {
-            val result = authService.login(loginRequest)
+            when (val result = authService.login(loginRequest)) {
+                Result.Loading -> Unit
+                is Result.Success -> {
 
-            result.data?.token?.let {
-                dataStorageManager.saveToken(it)
+                    val token = result.data?.token
+                    if (!token.isNullOrBlank()) {
+                        dataStorageManager.saveToken(token)
+                        val claims = decodeJwtPayload(token)
+                        val userEntity = UserEntity(
+                            id = claims.optString("sub").toLong(),
+                            name = claims.optString("name"),
+                            codeAgence = claims.optString("agence_code"),
+                            role = claims.optString("role")
+                        )
+                        userDao.insertUser(userEntity)
+                        emit(Result.Success(result.data))
 
-                val claims = decodeJwtPayload(it)
-                val userEntity = UserEntity(
-                    id = claims.optString("sub").toLong(),
-                    name = claims.optString("name"),
-                    codeAgence = claims.optString("agence_code"),
-                    role = claims.optString("role")
-                )
+                    } else {
+                        emit(Result.Error(Exception("Token is null or blank")))
+                    }
+                }
 
-                userDao.insertUser(userEntity)
+                is Result.Error<*> -> {
+                    emit(Result.Error(Exception(result.e?.message)))
+                    Log.e("UserRepositoryImpl", "login: ${result.e}")
+
+                }
 
             }
 
-            emit(Result.Success(result.data))
         } catch (ex: Exception) {
             emit(Result.Error(ex))
+            Log.e("UserRepositoryImpl", "login: ${ex.message}")
         }
     }
 

@@ -147,7 +147,12 @@ class TransactionViewModel(
                             )
                         }
                         _uiEvent.emit(TransactionUiEvent.TransactionSaved)
-                        _uiEvent.emit(TransactionUiEvent.TransactionPrint(result.data!!))
+                        _uiEvent.emit(
+                            TransactionUiEvent.TransactionPrint(
+                                result.data!!,
+                                claims.optString("name")
+                            )
+                        )
                     }
 
                     is Result.Error<*> -> {
@@ -238,6 +243,7 @@ sealed class TransactionUiEvent() {
     object TransactionSaved : TransactionUiEvent()
     data class TransactionError(val errorMessage: String) : TransactionUiEvent()
 
-    data class TransactionPrint(val transaction: Transaction) : TransactionUiEvent()
+    data class TransactionPrint(val transaction: Transaction, val user: String) :
+        TransactionUiEvent()
 
 }

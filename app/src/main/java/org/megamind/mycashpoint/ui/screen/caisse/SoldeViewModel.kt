@@ -127,8 +127,8 @@ class SoldeViewModel(
 
 
         viewModelScope.launch {
-            val claims = decodeJwtPayload(storageManager.getToken()!!)
 
+            val claims = decodeJwtPayload(storageManager.getToken()!!)
             val solde = Solde(
                 idOperateur = uiState.value.selectedOperateur.id,
                 montant = uiState.value.solde.toBigDecimalOrNull() ?: BigDecimal(0),

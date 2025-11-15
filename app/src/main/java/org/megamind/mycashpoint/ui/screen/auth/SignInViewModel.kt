@@ -11,9 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.domain.model.Agence
-import org.megamind.mycashpoint.domain.repository.UserRepository
 import org.megamind.mycashpoint.domain.usecase.auth.LoginUseCase
-import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.utils.UtilsFonctions
 
@@ -35,8 +33,7 @@ class SignInViewModel(
     private val _password: String
         get() = _uiState.value.password
 
-    private val _agenceId: String
-        get() = _uiState.value.selectedAgence?.codeAgence ?: ""
+
 
 
     fun onEmailChange(email: String) {
@@ -98,7 +95,6 @@ class SignInViewModel(
                             it.copy(isLoading = false)
                         }
                         _uiEvent.emit(SignInUiEvent.NavigateToHome)
-
 
                     }
 

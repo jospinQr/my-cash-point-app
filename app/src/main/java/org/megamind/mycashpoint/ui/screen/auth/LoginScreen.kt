@@ -165,6 +165,9 @@ fun SignInScreenContent(
             )
     }
 
+    if (uiState.isLoading) {
+        LoadinDialog(text = "Connexion...")
+    }
 
     if (uiState.isSendingPasswordResetDialogShown) {
         QuestionDialog(
@@ -316,7 +319,7 @@ private fun SignInContent(
 
     Column {
         AuthTextField(
-            label = uiState.selectedAgence?.codeAgence?:"0",
+            label = uiState.selectedAgence?.codeAgence ?: "0",
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {

@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Note
 import androidx.compose.material.icons.rounded.AttachMoney
 import androidx.compose.material.icons.rounded.Note
 import androidx.compose.material.icons.rounded.Person
@@ -68,6 +69,7 @@ import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
 import org.megamind.mycashpoint.utils.UtilsFonctions
+import org.megamind.mycashpoint.utils.decodeJwtPayload
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -95,7 +97,9 @@ fun TransactionScreen(
                 }
 
                 is TransactionUiEvent.TransactionPrint -> {
+
                     val transaction = it.transaction
+                    val userName = it.user
                     val printManager =
                         context.getSystemService(Context.PRINT_SERVICE) as PrintManager
                     val jobName = "${context.getString(R.string.app_name)} Doc"
@@ -112,7 +116,7 @@ fun TransactionScreen(
                                 "montant" to "${transaction.montant}",
                                 "devise" to transaction.device.symbole,
                                 "nom" to transaction.nomClient.toString(),
-                                "agent" to transaction.creePar.toString(),
+                                "agent" to userName,
 
                                 )
                         ),
@@ -461,7 +465,7 @@ fun TransactionScreenContent(
                         imeAction = ImeAction.Done,
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Rounded.Note,
+                                imageVector = Icons.AutoMirrored.Rounded.Note,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )

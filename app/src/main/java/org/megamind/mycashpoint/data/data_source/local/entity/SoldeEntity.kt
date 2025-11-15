@@ -35,7 +35,7 @@ data class SoldeEntity(
     val devise: Constants.Devise,      // Devise
     val dernierMiseAJour: Long = System.currentTimeMillis(),      // Timestamp
     val seuilAlerte: Double? = null,   // Optionnel : seuil d'alerte
-    val misAJourPar: Long,      // Optionnel : Utilisateur qui a effectué la dernière mise à jour, // ex: 1
+    val misAJourPar: Long,
     val codeAgence: String
 
 )

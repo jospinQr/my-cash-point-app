@@ -1,5 +1,7 @@
 package org.megamind.mycashpoint.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -11,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.window.core.layout.WindowSizeClass
 import org.megamind.mycashpoint.ui.screen.Agence.AgenceScreen
 import org.megamind.mycashpoint.ui.screen.SplashScreen
+
 import org.megamind.mycashpoint.ui.screen.auth.LoginInScreen
 import org.megamind.mycashpoint.ui.screen.auth.RegisterScreen
 import org.megamind.mycashpoint.ui.screen.caisse.SoldeScreen
@@ -20,6 +23,7 @@ import org.megamind.mycashpoint.ui.screen.operateur.OperateurScreen
 import org.megamind.mycashpoint.ui.screen.transaction.TransactionScreen
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MyNavHost(
@@ -32,47 +36,42 @@ fun MyNavHost(
 
     SharedTransitionLayout {
         NavHost(
-            startDestination = startDestination,
-            navController = navController,
-            modifier = modifier
+            startDestination = startDestination, navController = navController, modifier = modifier
         ) {
             composable(route = Destination.SPLASH.name) {
-                SplashScreen(modifier = Modifier, navigateToLoginScreen = {
+                SplashScreen(modifier = Modifier, navigateToHomeScreen = {
+                    navController.navigate(Destination.OPERATEUR.name) {
+                        popUpTo(Destination.SPLASH.name) {
+                            inclusive = true
+                        }
+                    }
+                }, navigateToLoginScreen = {
                     navController.navigate(Destination.LOGIN.name) {
                         popUpTo(Destination.SPLASH.name) {
                             inclusive = true
                         }
                     }
-                }
-                )
+                })
 
             }
 
             composable(route = Destination.LOGIN.name) {
-                LoginInScreen(
-                    onNavigateToSignUp = {
-                        navController.navigate(Destination.REGISTER.name)
-                    },
-                    windowSizeClass = windowSizeClass,
-                    navigateToMainScreen = {
+                LoginInScreen(onNavigateToSignUp = {
+                    navController.navigate(Destination.REGISTER.name)
+                }, windowSizeClass = windowSizeClass, navigateToMainScreen = {
 
-                        navController.navigate(Destination.OPERATEUR.name) {
-                            popUpTo(Destination.LOGIN.name) {
-                                inclusive = true
-                            }
+                    navController.navigate(Destination.OPERATEUR.name) {
+                        popUpTo(Destination.LOGIN.name) {
+                            inclusive = true
                         }
                     }
-                )
+                })
             }
 
             composable(route = Destination.REGISTER.name) {
-                RegisterScreen(
-                    onNavigateToSignUp = {
-                        navController.navigate(Destination.AGENCE.name)
-                    },
-                    windowSizeClass = windowSizeClass,
-                    navigateToHome = {}
-                )
+                RegisterScreen(onNavigateToSignUp = {
+                    navController.navigate(Destination.AGENCE.name)
+                }, windowSizeClass = windowSizeClass, navigateToHome = {})
 
             }
 
@@ -86,8 +85,7 @@ fun MyNavHost(
                     animatedVisibilityScope = this,
                     navigateToTransactionScreen = {
                         navController.navigate(Destination.TRANSACTION.name)
-                    }
-                )
+                    })
             }
 
             composable(route = Destination.CAISSE.name) {

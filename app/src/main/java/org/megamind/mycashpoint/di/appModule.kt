@@ -15,6 +15,7 @@ import org.megamind.mycashpoint.domain.repository.TransactionRepository
 import org.megamind.mycashpoint.domain.repository.UserRepository
 import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
 import org.megamind.mycashpoint.domain.usecase.agence.SaveOrUpdateAgenceUseCase
+import org.megamind.mycashpoint.domain.usecase.auth.GetUserByIdUseCase
 import org.megamind.mycashpoint.domain.usecase.auth.LoginUseCase
 import org.megamind.mycashpoint.domain.usecase.auth.RegisterUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.DeleteCommissionUseCase
@@ -38,8 +39,10 @@ import org.megamind.mycashpoint.ui.screen.caisse.SoldeViewModel
 import org.megamind.mycashpoint.ui.screen.main.MainViewModel
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.ui.screen.rapport.RapportViewModel
+import org.megamind.mycashpoint.ui.screen.splash.SplashViewModel
 import org.megamind.mycashpoint.ui.screen.transaction.TransactionViewModel
 import org.megamind.mycashpoint.utils.DataStorageManager
+import kotlin.math.sin
 
 val appModule = module {
 
@@ -87,6 +90,7 @@ val appModule = module {
     single { UpdateTransactionUseCase(get()) }
     single { LoginUseCase(get()) }
     single { RegisterUseCase(get()) }
+    single { GetUserByIdUseCase(get()) }
 
 
 //view models
@@ -121,6 +125,10 @@ val appModule = module {
 
     viewModel {
         RapportViewModel(get(), get(), get())
+    }
+
+    viewModel {
+        SplashViewModel(get(), get())
     }
 
 

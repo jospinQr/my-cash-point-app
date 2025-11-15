@@ -15,7 +15,7 @@ val roomModule = module {
             klass = AppDatabase::class.java,
             name = "shop_database"
         )
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(false)
             .build()
     }
 

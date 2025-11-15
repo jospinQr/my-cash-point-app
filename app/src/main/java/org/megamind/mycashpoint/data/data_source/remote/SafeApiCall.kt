@@ -1,6 +1,7 @@
 package org.megamind.mycashpoint.data.data_source.remote
 
 
+import android.util.Log
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -31,7 +32,11 @@ suspend inline fun <reified T> safeApiCall(
             )
         }
     } catch (e: IOException) {
-        Result.Error(NetworkException("Vérifiez votre connexion Internet", e))
+
+
+        Log.e("safeApiCall", e.message.toString())
+        Result.Error(NetworkException("Vérifiez votre connexion au serveur", e))
+
     } catch (e: ApiException) {
         Result.Error(e)
     } catch (e: Exception) {
