@@ -1,6 +1,7 @@
 package org.megamind.mycashpoint.domain.model
 
 import androidx.room.PrimaryKey
+import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.utils.Constants
 import java.math.BigDecimal
 import java.util.UUID
@@ -36,10 +37,11 @@ data class Transaction(
     )
 
 
-enum class TransactionType {
-    DEPOT, RETRAIT, TRANSFERT_ENTRANT, TRANSFERT_SORTANT, COMMISSION
+enum class TransactionType(val icon: Int) {
+    DEPOT(R.drawable.depot), RETRAIT(R.drawable.retrait), TRANSFERT_ENTRANT(R.drawable.trans_entrant), TRANSFERT_SORTANT(
+        R.drawable.trans_sortie
+    ),
+    COMMISSION(R.drawable.transaction_out)
 }
 
-enum class StatutSync {
-    EN_ATTENTE, SYNC, CONFLIT
-}
+enum class StatutSync { EN_ATTENTE, SYNC, CONFLIT }

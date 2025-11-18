@@ -156,7 +156,11 @@ fun SoldeScreenContent(
 
         FloatingActionButton(onClick = { onBottomSheetShown() }) {
 
-            Icon(imageVector = Icons.Default.Add, contentDescription = null)
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
 
         }
     }) { innerPadding ->
@@ -295,7 +299,7 @@ fun SoldeScreenContent(
                             .fillMaxWidth()
                             .border(
                                 width = .8.dp,
-                                color = MaterialTheme.colorScheme.outline,
+                                color = MaterialTheme.colorScheme.primary,
                                 shape = RoundedCornerShape(16.dp)
                             )
                             .padding(14.dp)

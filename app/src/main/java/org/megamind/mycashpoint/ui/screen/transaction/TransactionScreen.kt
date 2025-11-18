@@ -5,9 +5,12 @@ import android.os.Build
 import android.print.PrintManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,16 +22,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Note
 import androidx.compose.material.icons.rounded.AttachMoney
-import androidx.compose.material.icons.rounded.Note
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -47,19 +54,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
+import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.ui.component.ConfirmDialog
-
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
@@ -68,8 +78,6 @@ import org.megamind.mycashpoint.ui.screen.operateur.OperateurUiState
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
-import org.megamind.mycashpoint.utils.UtilsFonctions
-import org.megamind.mycashpoint.utils.decodeJwtPayload
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -278,43 +286,28 @@ fun TransactionScreenContent(
 
                     ) {
 
-                        Column(
+                        LazyVerticalGrid(
+
                             modifier = Modifier
                                 .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            columns = GridCells.Fixed(2)
                         ) {
-                            TransactionType.entries.forEachIndexed { index, typTransct ->
 
-                                val isFirst = index == 0
-                                val isLast = index == 4
-                                CustomerButton(
-                                    modifier = Modifier.fillMaxWidth(),
+
+                            itemsIndexed(TransactionType.entries) { index, typTransct ->
+
+
+
+                                TransactionTypeButton(
                                     onClick = {
+
                                         onTypeSelected(typTransct)
                                         onFormVisble()
                                     },
-                                    contenairColor = if (index % 2 == 0) MaterialTheme.colorScheme.primary.copy(
+                                    label = typTransct.name,
+                                    icon = typTransct.icon
+                                )
 
-                                    )
-                                    else MaterialTheme.colorScheme.background,
-                                    shape = RoundedCornerShape(
-                                        topEnd = if (isFirst) 22.dp else 0.dp,
-                                        topStart = if (isFirst) 22.dp else 0.dp,
-                                        bottomStart = if (isLast) 22.dp else 0.dp,
-                                        bottomEnd = if (isLast) 22.dp else 0.dp,
-                                    ),
-
-
-                                    ) {
-
-                                    Row {
-                                        Text(
-                                            typTransct.name,
-                                            color = if (index % 2 == 0) MaterialTheme.colorScheme.onPrimary
-                                            else MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
                             }
                         }
 
@@ -504,4 +497,106 @@ fun TransactionScreenContent(
     )
 }
 
+@Composable
+fun TransactionTypeButton(
+    modifier: Modifier = Modifier,
+    label: String,
+    icon: Int,
+    onClick: () -> Unit
+) {
+
+
+    Card(
+        modifier = Modifier.padding(4.dp),
+        border = BorderStroke(width = 0.8f.dp, color = MaterialTheme.colorScheme.primary),
+        onClick = { onClick() },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 22.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+
+            Icon(
+
+                painter = painterResource(icon),
+                contentDescription = label,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+        }
+
+    }
+
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun TransactionScreenContentPreview() {
+    MaterialTheme {
+        SharedTransitionLayout {
+            AnimatedVisibility(visible = true) {
+                TransactionScreenContent(
+                    uiState = TransactionUiState(
+                        selectedDevise = Constants.Devise.USD,
+                        selectedType = TransactionType.DEPOT,
+                        montant = "100.00",
+                        nomClient = "Jean Dupont",
+                        telephClient = "+243 123 456 789",
+                        nomBenef = "Marie Dupont",
+                        telephBenef = "+243 987 654 321",
+                        note = "Transaction test",
+                        isFormVisble = false,
+                        isMontantError = false,
+                        isNomError = false,
+                        isTelephClientError = false,
+                        isNomBenefError = false,
+                        isTelephBenefError = false,
+                        isLoading = false,
+                        isConfirmDialogShown = false
+                    ),
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    operateurUiState = OperateurUiState(
+                        selectedOperateur = Operateur(
+                            id = 1,
+                            name = "Orange Money",
+                            logo = R.drawable.orange_logo,
+                            color = Color.Black// Remplacer par votre logo
+                        ),
+
+                        ),
+                    animatedVisibilityScope = this,
+                    onSelectedDevise = {},
+                    onFormVisble = {},
+                    onFormInvisble = {},
+                    onTypeSelected = {},
+                    onMontantChange = {},
+                    onNomClientChange = {},
+                    onTelephClientChange = {},
+                    onNomBeneFChange = {},
+                    onTelephBenefChange = {},
+                    onNoteChange = {},
+                    onSave = {},
+                    onConfirmDialogDismiss = {},
+                    onConfirmDialogShown = {}
+                )
+            }
+        }
+    }
+}
 
