@@ -96,7 +96,7 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override fun sendToServer(transaction: Transaction): Flow<Result<Unit>> = flow {
+    override fun sendOneTransactToServer(transaction: Transaction): Flow<Result<Unit>> = flow {
 
         try {
 

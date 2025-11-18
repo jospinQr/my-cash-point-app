@@ -29,6 +29,6 @@ interface TransactionRepository {
     fun updateTransaction(transaction: Transaction): Flow<Result<Unit>>
 
 
-    fun sendToServer(transaction: Transaction): Flow<Result<Unit>>
+    fun sendOneTransactToServer(transaction: Transaction): Flow<Result<Unit>>
 }
 

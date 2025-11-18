@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import org.megamind.mycashpoint.ui.screen.transaction.TransactionScreen
 fun MyNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
+    snackbarHostState: SnackbarHostState,
     startDestination: String = Destination.SPLASH.name,
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
 ) {
@@ -95,7 +97,9 @@ fun MyNavHost(
 
             composable(route = Destination.RAPPORT.name) {
 
-                RapportScreen()
+                RapportScreen(
+                    snackbarHostState = snackbarHostState
+                )
             }
 
             composable(route = Destination.TRANSACTION.name) {

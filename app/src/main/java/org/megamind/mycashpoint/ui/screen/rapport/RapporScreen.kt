@@ -3,7 +3,6 @@ package org.megamind.mycashpoint.ui.screen.rapport
 import android.content.Context
 import android.os.Build
 import android.print.PrintManager
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -54,6 +53,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -72,25 +72,34 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.Operateur
+import org.megamind.mycashpoint.domain.model.StatutSync
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.AuthTextField
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
+import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
+import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.component.Table
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
+import java.math.BigDecimal
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun RapportScreen(modifier: Modifier = Modifier, viewModel: RapportViewModel = koinViewModel()) {
+fun RapportScreen(
+    modifier: Modifier = Modifier,
+    viewModel: RapportViewModel = koinViewModel(),
+    snackbarHostState: SnackbarHostState
+) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val transactions by viewModel.transaction.collectAsStateWithLifecycle()
@@ -103,12 +112,25 @@ fun RapportScreen(modifier: Modifier = Modifier, viewModel: RapportViewModel = k
 
             when (it) {
                 is RapportUiEvent.ShowError -> {
-                    Toast.makeText(context, it.errorMessage, Toast.LENGTH_LONG).show()
+                    snackbarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            message = it.errorMessage,
+                            type = SnackbarType.ERROR
+                        )
+                    )
+
+
                 }
 
-                RapportUiEvent.ShowSuccesMessage -> {
-                    Toast.makeText(context, "reussit", Toast.LENGTH_LONG).show()
+                is RapportUiEvent.ShowSuccesMessage -> {
+                    snackbarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            message = it.succesMessage,
+                            type = SnackbarType.SUCCESS
+                        )
+                    )
                 }
+
             }
         }
     }
@@ -146,7 +168,7 @@ fun RapportScreen(modifier: Modifier = Modifier, viewModel: RapportViewModel = k
                 null
             )
         },
-        onTransactionSync = viewModel::onSendToBackendConfirm,
+        onSendOneTrasactToServer = viewModel::onSendOneTransactToServer,
         onEditSheetDismiss = viewModel::onEditSheetDismiss,
         onEditMontantChange = viewModel::onEditMontantChange,
         onEditNomClientChange = viewModel::onEditNomClientChange,
@@ -190,7 +212,7 @@ fun RapportScreenContent(
     onEditDeviseChange: (Constants.Devise) -> Unit = {},
     onEditTypeChange: (TransactionType) -> Unit = {},
     onEditSubmit: () -> Unit = {},
-    onTransactionSync: () -> Unit = {},
+    onSendOneTrasactToServer: () -> Unit = {},
 
     ) {
 
@@ -363,7 +385,7 @@ fun RapportScreenContent(
                         onDismissRequest = onTransactionDialogDismiss,
                         onDeleteClick = onTransactionDelete,
                         onEditClick = onTransactionEdit,
-                        onSyncClick = onTransactionSync,
+                        onSyncClick = onSendOneTrasactToServer,
                         onPrintClick = onTransactionPrint
                     )
                 }
@@ -459,9 +481,12 @@ private fun TransactionDetailDialog(
         confirmButton = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Start
+                horizontalAlignment = Alignment.CenterHorizontally,
+
             ) {
                 TextButton(
+
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = { onSyncClick() },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.secondary,
@@ -470,9 +495,11 @@ private fun TransactionDetailDialog(
                 ) {
                     Icon(imageVector = Icons.Rounded.Sync, contentDescription = null)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Synchroniser")
+
+                    Text("Envoyer au serveur")
                 }
                 TextButton(
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = { onEditClick(transaction) },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.tertiary,
@@ -484,6 +511,7 @@ private fun TransactionDetailDialog(
                     Text("Modifier")
                 }
                 TextButton(
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = { onDeleteClick(transaction) },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.primary,
@@ -496,6 +524,7 @@ private fun TransactionDetailDialog(
                     Text("Supprimer")
                 }
                 TextButton(
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = { onPrintClick(transaction) },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = Color.DarkGray,
@@ -508,7 +537,8 @@ private fun TransactionDetailDialog(
                 }
 
 
-                TextButton(onClick = onDismissRequest) {
+                TextButton(onClick = onDismissRequest, modifier = Modifier.fillMaxWidth()) {
+
                     Icon(imageVector = Icons.Rounded.Close, contentDescription = null)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Fermer")
@@ -792,5 +822,126 @@ private fun TransactionEditBottomSheet(
             }
             Spacer(modifier = Modifier.height(8.dp))
         }
+    }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun RapportScreenContentPreview() {
+    MaterialTheme {
+        RapportScreenContent(
+            uiState = RapportUiState(
+                selectedDevise = Constants.Devise.USD,
+                selectedOperateur = operateurs[0], // Orange Money
+                isSearchBarShown = false,
+                searchValue = "",
+                isTransactionDialogVisible = false,
+                isDeleteConfirmationVisible = false,
+                isEditSheetVisible = false,
+                selectedTransaction = null,
+                isLoading = false,
+                editSelectedType = TransactionType.DEPOT,
+                editSelectedDevise = Constants.Devise.USD,
+                editMontant = "",
+                editNomClient = "",
+                editTelephoneClient = "",
+                editNomBeneficiaire = "",
+                editTelephoneBeneficiaire = "",
+                editNote = "",
+                isEditMontantError = false,
+                isEditNomClientError = false,
+                isEditTelephoneClientError = false,
+                isEditNomBeneficiaireError = false,
+                isEditTelephoneBeneficiaireError = false,
+                editErrorMessage = ""
+            ),
+            transactions = listOf(
+                TransactionEntity(
+                    id = 1,
+                    transactionCode = "TXN001",
+                    type = TransactionType.DEPOT,
+                    montant = BigDecimal(5000.0),
+                    soldeAvant = BigDecimal(10000.0),
+                    soldeApres = BigDecimal(15000.0),
+                    device = Constants.Devise.USD,
+                    nomClient = "Jean Mukendi",
+                    numClient = "+243 812 345 678",
+                    nomBeneficaire = "Marie Kalala",
+                    numBeneficaire = "+243 998 765 432",
+                    note = "Transfert urgent",
+                    horodatage = System.currentTimeMillis() - 3600000,
+                    creePar = 1L,
+                    idOperateur = 1,
+                    statutSync = StatutSync.SYNC,
+                    reference = "",
+                    codeAgence = ""
+                ),
+                TransactionEntity(
+                    id = 2,
+                    transactionCode = "TXN002",
+                    type = TransactionType.RETRAIT,
+                    montant = BigDecimal(2000.0),
+                    soldeAvant = BigDecimal(15000.0),
+                    soldeApres = BigDecimal(13000.0),
+                    device = Constants.Devise.CDF,
+                    nomClient = "Pierre Kabila",
+                    numClient = "+243 823 456 789",
+                    nomBeneficaire = null,
+                    numBeneficaire = null,
+                    note = null,
+                    horodatage = System.currentTimeMillis() - 7200000,
+                    creePar = 1L,
+                    idOperateur = 1,
+                    statutSync = StatutSync.SYNC,
+                    reference = "",
+                    codeAgence = ""
+                ),
+                TransactionEntity(
+                    id = 3,
+                    transactionCode = "TXN003",
+                    type = TransactionType.DEPOT,
+                    montant = BigDecimal(10000.0),
+                    soldeAvant = BigDecimal(13000.0),
+                    soldeApres = BigDecimal(23000.0),
+                    device = Constants.Devise.USD,
+                    nomClient = "Alice Mbuyi",
+                    numClient = "+243 897 654 321",
+                    nomBeneficaire = "Bob Tshisekedi",
+                    numBeneficaire = "+243 876 543 210",
+                    note = "Paiement facture",
+                    horodatage = System.currentTimeMillis() - 10800000,
+                    creePar = 1,
+                    idOperateur = 1,
+                    statutSync = StatutSync.SYNC,
+                    reference = "",
+                    codeAgence = ""
+                )
+            ),
+            onSelectedDeviseChange = {},
+            onSelectedOperateurChange = {},
+            onSearchClick = {},
+            onSearchBarDismiss = {},
+            onSearchValueChange = {},
+            onTransactionClick = {},
+            onTransactionDialogDismiss = {},
+            onTransactionDelete = {},
+            onDeleteConfirmationConfirm = {},
+            onDeleteConfirmationDismiss = {},
+            onTransactionEdit = {},
+            onTransactionPrint = {},
+            onEditSheetDismiss = {},
+            onEditMontantChange = {},
+            onEditNomClientChange = {},
+            onEditTelephoneClientChange = {},
+            onEditNomBeneficiaireChange = {},
+            onEditTelephoneBeneficiaireChange = {},
+            onEditNoteChange = {},
+            onEditDeviseChange = {},
+            onEditTypeChange = {},
+            onEditSubmit = {},
+            onSendOneTrasactToServer = {}
+        )
     }
 }

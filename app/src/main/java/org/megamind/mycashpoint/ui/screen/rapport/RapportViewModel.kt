@@ -16,7 +16,7 @@ import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
-import org.megamind.mycashpoint.domain.usecase.transaction.SendOnTransactionToBackEndUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionField
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidationException
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
@@ -28,12 +28,11 @@ class RapportViewModel(
     private val getTransactionByOperateurAndDeviseUseCase: GetTransactionsByOperatorAndDeviceUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
-    private val sendOnTransactionToBackEnd: SendOnTransactionToBackEndUseCase
+    private val sendOneTransactToServerUseCase: SendOneTransactToServerUseCase
 
 ) : ViewModel() {
 
 
-    private val TAG = "RapportViewModel"
     private val _uiState = MutableStateFlow(RapportUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -137,6 +136,7 @@ class RapportViewModel(
                                 selectedTransaction = null
                             )
                         }
+                        _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Transaction supprimée"))
                         gettransactionByOperateurAndDevise()
                     }
 
@@ -301,6 +301,7 @@ class RapportViewModel(
                                 isEditTelephoneBeneficiaireError = false
                             )
                         }
+                        _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Mise à jour effectuée"))
                         gettransactionByOperateurAndDevise()
                     }
 
@@ -473,12 +474,12 @@ class RapportViewModel(
         }
     }
 
-    fun onSendToBackendConfirm() {
+    fun onSendOneTransactToServer() {
 
         val transaction = uiState.value.selectedTransaction ?: return
 
         viewModelScope.launch {
-            sendOnTransactionToBackEnd(transaction.toTransaction()).collect { result ->
+            sendOneTransactToServerUseCase(transaction.toTransaction()).collect { result ->
 
                 when (result) {
 
@@ -490,16 +491,14 @@ class RapportViewModel(
 
                     }
 
-
                     is Result.Success -> {
                         _uiState.update {
                             it.copy(isLoading = false, isTransactionDialogVisible = false)
                         }
 
-                        _uiEvent.emit(RapportUiEvent.ShowSuccesMessage)
+                        _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Transaction envoyé au serveur"))
 
                     }
-
                     is Result.Error -> {
                         _uiState.update {
                             it.copy(isLoading = false, isTransactionDialogVisible = false)
@@ -555,7 +554,7 @@ sealed class RapportUiEvent {
 
 
     data class ShowError(val errorMessage: String) : RapportUiEvent()
-    object ShowSuccesMessage : RapportUiEvent()
+    data class ShowSuccesMessage(val succesMessage: String) : RapportUiEvent()
 
 
 }

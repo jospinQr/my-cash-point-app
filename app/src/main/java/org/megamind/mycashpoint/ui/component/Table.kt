@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -36,7 +37,7 @@ fun <T> Table(
 
     headerStyle: TextStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
     headerBackgroundColor: Color = MaterialTheme.colorScheme.primary,
-    borderColor: Color = MaterialTheme.colorScheme.onBackground,
+    borderColor: Color = MaterialTheme.colorScheme.primary,
     verticalLazyListState: LazyListState = rememberLazyListState(),
     horizontalScrollState: ScrollState = rememberScrollState(),
     cellContent: @Composable (columnIndex: Int, rowIndex: Int, item: T) -> Unit,
@@ -46,7 +47,11 @@ fun <T> Table(
     Box(
         modifier = modifier
             .horizontalScroll(horizontalScrollState)
-            .border(1.dp, borderColor)
+            .border(
+                1.dp,
+                borderColor,
+
+            )
     ) {
         Column {
             // HEADER ROW

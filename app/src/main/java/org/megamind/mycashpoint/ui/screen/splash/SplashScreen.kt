@@ -1,12 +1,15 @@
 package org.megamind.mycashpoint.ui.screen
 
+import android.os.Build
 import android.window.SplashScreen
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -65,10 +68,11 @@ fun SplashScreen(
         ) {
 
 
-            Image(
+            Icon(
                 modifier = Modifier.size(202.dp),
                 painter = painterResource(R.drawable.logo),
-                contentDescription = null
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
             )
 
             Column(
@@ -101,6 +105,7 @@ fun SplashScreen(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 @Preview(showBackground = true)
 fun SplashScreenPrevie() {

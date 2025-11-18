@@ -31,7 +31,7 @@ import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeByOperateurEtTypeEt
 import org.megamind.mycashpoint.domain.usecase.solde.SaveOrUpdateSoldeUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
-import org.megamind.mycashpoint.domain.usecase.transaction.SendOnTransactionToBackEndUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
 import org.megamind.mycashpoint.ui.screen.Agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
@@ -91,7 +91,7 @@ val appModule = module {
     single { LoginUseCase(get()) }
     single { RegisterUseCase(get()) }
     single { GetUserByIdUseCase(get()) }
-    single { SendOnTransactionToBackEndUseCase(get()) }
+    single { SendOneTransactToServerUseCase(get()) }
 
 
 //view models

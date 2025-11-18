@@ -1,5 +1,7 @@
 package org.megamind.mycashpoint.ui.screen.main
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Spring
@@ -15,9 +17,12 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,17 +31,20 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import org.megamind.mycashpoint.ui.component.CustomSnackbar
 import org.megamind.mycashpoint.ui.navigation.Destination
 import org.megamind.mycashpoint.ui.navigation.MyNavHost
 import kotlin.collections.contains
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MyCashPointApp() {
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Déterminer si on doit afficher le BottomBar
     val showBottomBar = currentDestination?.hierarchy?.any {
@@ -49,6 +57,13 @@ fun MyCashPointApp() {
     } == true
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState
+            ) { data ->
+                CustomSnackbar(data) // ← ton composable custom
+            }
+        },
         bottomBar = {
 
             AnimatedVisibility(
@@ -136,7 +151,8 @@ fun MyCashPointApp() {
 
         MyNavHost(
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
-            navController = navController
+            navController = navController,
+            snackbarHostState = snackbarHostState
         )
 
     }
