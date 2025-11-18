@@ -3,9 +3,9 @@ package org.megamind.mycashpoint.data.data_source.remote.service
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import org.megamind.mycashpoint.data.data_source.remote.dto.AuthResponse
-import org.megamind.mycashpoint.data.data_source.remote.dto.LoginRequest
-import org.megamind.mycashpoint.data.data_source.remote.dto.RegisterRequest
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.AuthResponse
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.LoginRequest
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.RegisterRequest
 import org.megamind.mycashpoint.data.data_source.remote.safeApiCall
 import org.megamind.mycashpoint.utils.Result
 

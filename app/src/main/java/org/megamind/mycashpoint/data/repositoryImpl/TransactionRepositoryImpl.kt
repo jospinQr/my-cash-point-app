@@ -1,5 +1,6 @@
 package org.megamind.mycashpoint.data.repositoryImpl
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.data.data_source.local.dao.SoldeDao
@@ -7,6 +8,8 @@ import org.megamind.mycashpoint.data.data_source.local.dao.TransactionDao
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransaction
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransactionEntity
+import org.megamind.mycashpoint.data.data_source.remote.mapper.toTransactionRequest
+import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
 import org.megamind.mycashpoint.domain.model.StatutSync
 import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.repository.TransactionRepository
@@ -14,10 +17,13 @@ import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
 
 class TransactionRepositoryImpl(
+    private val transactionService: TransactionService,
     private val transactionDao: TransactionDao,
     private val soldeDao: SoldeDao
 ) : TransactionRepository {
 
+
+    val TAG = "TransactionRepo"
     override fun insert(transaction: Transaction): Flow<Result<Unit>> = flow {
         try {
             emit(Result.Loading)
@@ -78,12 +84,43 @@ class TransactionRepositoryImpl(
 
     override fun updateTransaction(transaction: Transaction): Flow<Result<Unit>> = flow {
         try {
+
             emit(Result.Loading)
             val entity = transaction.toTransactionEntity()
             transactionDao.updateTransactionAndUpdateSoldes(entity, soldeDao)
             emit(Result.Success(Unit))
+
+        } catch (e: Exception) {
+
+            emit(Result.Error(e))
+        }
+    }
+
+    override fun sendToServer(transaction: Transaction): Flow<Result<Unit>> = flow {
+
+        try {
+
+            Log.i(TAG, "begin Send")
+            emit(Result.Loading)
+            when (val result = transactionService.save(transaction.toTransactionRequest())) {
+                is Result.Success -> {
+                    emit(Result.Success(Unit))
+                    Log.i(TAG, "Sended")
+                }
+
+                is Result.Error -> {
+                    emit(Result.Error(result.e ?: Exception("Erreur inconnue lors de l'envoi")))
+                    Log.e(TAG, result.e?.message ?: "Erreur inconnue")
+                    Log.d(TAG,transaction.toTransactionRequest().toString())
+                }
+
+                else -> {
+                    emit(Result.Error(Exception("État inattendu lors de l'envoi")))
+                }
+            }
         } catch (e: Exception) {
             emit(Result.Error(e))
+            Log.e(TAG, e.message ?: "Erreur inconnue")
         }
     }
 

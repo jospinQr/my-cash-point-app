@@ -2,7 +2,10 @@ package org.megamind.mycashpoint.ui.screen.rapport
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -13,6 +16,7 @@ import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.SendOnTransactionToBackEndUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionField
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidationException
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
@@ -24,13 +28,17 @@ class RapportViewModel(
     private val getTransactionByOperateurAndDeviseUseCase: GetTransactionsByOperatorAndDeviceUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
+    private val sendOnTransactionToBackEnd: SendOnTransactionToBackEndUseCase
 
-    ) : ViewModel() {
+) : ViewModel() {
 
 
+    private val TAG = "RapportViewModel"
     private val _uiState = MutableStateFlow(RapportUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val _uiEvent = MutableSharedFlow<RapportUiEvent>()
+    val uiEvent: SharedFlow<RapportUiEvent> = _uiEvent.asSharedFlow()
 
     private val _cachedTransactions = MutableStateFlow<List<TransactionEntity>>(emptyList())
     private val _transactionByOperateurAndDevise =
@@ -106,6 +114,7 @@ class RapportViewModel(
             )
         }
     }
+
 
     fun onDeleteTransactionConfirm() {
         val transaction = uiState.value.selectedTransaction ?: return
@@ -338,7 +347,8 @@ class RapportViewModel(
                                 _uiState.update {
                                     it.copy(
                                         isLoading = false,
-                                        editErrorMessage = error?.message ?: "Erreur lors de la mise à jour"
+                                        editErrorMessage = error?.message
+                                            ?: "Erreur lors de la mise à jour"
                                     )
                                 }
                             }
@@ -463,6 +473,50 @@ class RapportViewModel(
         }
     }
 
+    fun onSendToBackendConfirm() {
+
+        val transaction = uiState.value.selectedTransaction ?: return
+
+        viewModelScope.launch {
+            sendOnTransactionToBackEnd(transaction.toTransaction()).collect { result ->
+
+                when (result) {
+
+
+                    Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true)
+                        }
+
+                    }
+
+
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(isLoading = false, isTransactionDialogVisible = false)
+                        }
+
+                        _uiEvent.emit(RapportUiEvent.ShowSuccesMessage)
+
+                    }
+
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(isLoading = false, isTransactionDialogVisible = false)
+                        }
+                        _uiEvent.emit(
+                            RapportUiEvent.ShowError(
+                                result.e?.message ?: "Erreur inconnu"
+                            )
+                        )
+                    }
+                }
+
+
+            }
+        }
+
+    }
 
 }
 
@@ -495,3 +549,13 @@ data class RapportUiState(
     val editErrorMessage: String = ""
 
 )
+
+
+sealed class RapportUiEvent {
+
+
+    data class ShowError(val errorMessage: String) : RapportUiEvent()
+    object ShowSuccesMessage : RapportUiEvent()
+
+
+}

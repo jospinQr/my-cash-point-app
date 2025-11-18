@@ -21,6 +21,7 @@ import java.math.BigDecimal
 
 class TransactionViewModel(
     private val insertTransactionAndUpdateSoldes: InsertTransactionAndUpdateSoldesUseCase,
+
     private val storageManager: DataStorageManager,
 
     ) : ViewModel() {

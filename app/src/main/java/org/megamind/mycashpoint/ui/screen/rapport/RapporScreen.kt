@@ -3,6 +3,7 @@ package org.megamind.mycashpoint.ui.screen.rapport
 import android.content.Context
 import android.os.Build
 import android.print.PrintManager
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -58,6 +59,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,6 +83,7 @@ import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.AuthTextField
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
 import org.megamind.mycashpoint.ui.component.CustomerButton
+import org.megamind.mycashpoint.ui.component.LoadinDialog
 import org.megamind.mycashpoint.ui.component.Table
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
@@ -92,6 +95,23 @@ fun RapportScreen(modifier: Modifier = Modifier, viewModel: RapportViewModel = k
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val transactions by viewModel.transaction.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+
+    LaunchedEffect(viewModel) {
+
+        viewModel.uiEvent.collect {
+
+            when (it) {
+                is RapportUiEvent.ShowError -> {
+                    Toast.makeText(context, it.errorMessage, Toast.LENGTH_LONG).show()
+                }
+
+                RapportUiEvent.ShowSuccesMessage -> {
+                    Toast.makeText(context, "reussit", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     RapportScreenContent(
         uiState = uiState,
@@ -126,6 +146,7 @@ fun RapportScreen(modifier: Modifier = Modifier, viewModel: RapportViewModel = k
                 null
             )
         },
+        onTransactionSync = viewModel::onSendToBackendConfirm,
         onEditSheetDismiss = viewModel::onEditSheetDismiss,
         onEditMontantChange = viewModel::onEditMontantChange,
         onEditNomClientChange = viewModel::onEditNomClientChange,
@@ -169,8 +190,9 @@ fun RapportScreenContent(
     onEditDeviseChange: (Constants.Devise) -> Unit = {},
     onEditTypeChange: (TransactionType) -> Unit = {},
     onEditSubmit: () -> Unit = {},
-    onTransactionSync: (TransactionEntity) -> Unit = {}
-) {
+    onTransactionSync: () -> Unit = {},
+
+    ) {
 
 
     Scaffold(
@@ -359,6 +381,9 @@ fun RapportScreenContent(
 
 
         }
+        if (uiState.isLoading) {
+            LoadinDialog()
+        }
 
 
     }
@@ -381,6 +406,7 @@ fun RapportScreenContent(
             onSubmit = onEditSubmit
         )
     }
+
 
 }
 
@@ -424,9 +450,10 @@ private fun TransactionDetailDialog(
     onDismissRequest: () -> Unit,
     onDeleteClick: (TransactionEntity) -> Unit,
     onEditClick: (TransactionEntity) -> Unit,
-    onSyncClick: (TransactionEntity) -> Unit,
-    onPrintClick: (TransactionEntity) -> Unit
-) {
+    onSyncClick: () -> Unit,
+    onPrintClick: (TransactionEntity) -> Unit,
+
+    ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
@@ -435,7 +462,7 @@ private fun TransactionDetailDialog(
                 horizontalAlignment = Alignment.Start
             ) {
                 TextButton(
-                    onClick = { onSyncClick(transaction) },
+                    onClick = { onSyncClick() },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.secondary,
                         containerColor = MaterialTheme.colorScheme.secondary.copy(.09f)

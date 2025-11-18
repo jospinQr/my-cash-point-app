@@ -17,6 +17,8 @@ data class Transaction(
     val nomClient: String? = null,// Montant en centimes
     val numClient: String? = null,
 
+    val commission: Float? = null,
+
     val nomBeneficaire: String? = null,
     val numBeneficaire: String? = null,
 

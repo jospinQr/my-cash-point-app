@@ -5,6 +5,7 @@ import android.util.Log
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.content
 import io.ktor.http.isSuccess
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
@@ -20,7 +21,9 @@ suspend inline fun <reified T> safeApiCall(
         val response = block()
 
         if (response.status.isSuccess()) {
+            Log.i("SafeApi", response.toString())
             Result.Success(response.body<T>())
+
         } else {
             val errorBody = response.bodyAsText()
             Result.Error(

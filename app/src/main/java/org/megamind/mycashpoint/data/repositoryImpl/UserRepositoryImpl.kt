@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.data.data_source.local.dao.UserDao
 import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
 import org.megamind.mycashpoint.data.data_source.local.mapper.toUser
-import org.megamind.mycashpoint.data.data_source.remote.dto.AuthResponse
-import org.megamind.mycashpoint.data.data_source.remote.dto.LoginRequest
-import org.megamind.mycashpoint.data.data_source.remote.dto.RegisterRequest
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.AuthResponse
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.LoginRequest
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.RegisterRequest
 import org.megamind.mycashpoint.data.data_source.remote.service.AuthService
 import org.megamind.mycashpoint.domain.model.User
 import org.megamind.mycashpoint.domain.repository.UserRepository
