@@ -72,7 +72,14 @@ private fun OperateurScreenContent(
 ) {
 
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Choisissez un opérateur") }) }) { innerPadding ->
+    Scaffold(topBar = {
+        TopAppBar(title = {
+            Text(
+                "Choisissez un opérateur",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        })
+    }) { innerPadding ->
 
         Box(
             Modifier

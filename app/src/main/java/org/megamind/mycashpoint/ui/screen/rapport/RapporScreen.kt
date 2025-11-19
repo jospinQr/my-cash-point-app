@@ -483,7 +483,7 @@ private fun TransactionDetailDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
 
-            ) {
+                ) {
                 TextButton(
 
                     modifier = Modifier.fillMaxWidth(),

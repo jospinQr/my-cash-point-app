@@ -34,10 +34,10 @@ import androidx.compose.material.icons.rounded.AttachMoney
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -45,6 +45,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -69,15 +70,19 @@ import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.TransactionType
+import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.ConfirmDialog
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
+import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
+import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.navigation.Destination
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurUiState
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
+import org.megamind.mycashpoint.utils.launchUSSD
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -87,7 +92,8 @@ fun TransactionScreen(
     navController: NavController,
     animatedVisibilityScope: AnimatedVisibilityScope,
     sharedTransitionScope: SharedTransitionScope,
-    viewModel: TransactionViewModel = koinViewModel()
+    viewModel: TransactionViewModel = koinViewModel(),
+    snackbarHostState: SnackbarHostState
 ) {
 
     val context = LocalContext.current
@@ -96,15 +102,26 @@ fun TransactionScreen(
         viewModel.uiEvent.collect {
 
             when (it) {
-                is TransactionUiEvent.TransactionError -> {
-                    Toast.makeText(context, it.errorMessage, Toast.LENGTH_LONG).show()
+                is TransactionUiEvent.ShowErrorMessage -> {
+                    snackbarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            message = it.errorMessage,
+                            type = SnackbarType.ERROR
+                        )
+                    )
+
                 }
 
-                TransactionUiEvent.TransactionSaved -> {
-                    Toast.makeText(context, "Enregistrement reussit", Toast.LENGTH_LONG).show()
+                is TransactionUiEvent.ShowSuccessMessage -> {
+                    snackbarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            message = it.successMessage,
+                            type = SnackbarType.SUCCESS
+                        )
+                    )
                 }
 
-                is TransactionUiEvent.TransactionPrint -> {
+                is TransactionUiEvent.ReprintReceipt -> {
 
                     val transaction = it.transaction
                     val userName = it.user
@@ -226,8 +243,28 @@ fun TransactionScreenContent(
                         contentDescription = selectedOperateur.name
 
                     )
+                },
+
+                )
+        }, floatingActionButton = {
+            FloatingActionButton(onClick = {
+                val code: String? = when {
+
+                    selectedOperateur?.id == 1 -> "501"
+
+                    selectedOperateur?.id == 2 -> "502"
+
+                    selectedOperateur?.id == 3 -> "1122"
+                    selectedOperateur?.id == 4 -> "2585"
+
+                    else -> null
                 }
-            )
+
+                if (code != null)
+                    launchUSSD(context, code)
+            }) {
+                Icon(imageVector = Icons.Rounded.Phone, contentDescription = "call")
+            }
         }) { innerPadding ->
 
 
@@ -295,7 +332,6 @@ fun TransactionScreenContent(
 
 
                             itemsIndexed(TransactionType.entries) { index, typTransct ->
-
 
 
                                 TransactionTypeButton(

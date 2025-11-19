@@ -144,12 +144,13 @@ class TransactionViewModel(
                                 nomClient = "",
                                 telephClient = "",
                                 nomBenef = "",
-                                telephBenef = ""
+                                telephBenef = "",
+                                isFormVisble = false
                             )
                         }
-                        _uiEvent.emit(TransactionUiEvent.TransactionSaved)
+                        _uiEvent.emit(TransactionUiEvent.ShowSuccessMessage("Transaction enregistrée"))
                         _uiEvent.emit(
-                            TransactionUiEvent.TransactionPrint(
+                            TransactionUiEvent.ReprintReceipt(
                                 result.data!!,
                                 claims.optString("name")
                             )
@@ -157,7 +158,7 @@ class TransactionViewModel(
                     }
 
                     is Result.Error<*> -> {
-                        _uiState.update { it.copy(isLoading = false) }
+                        _uiState.update { it.copy(isLoading = false, isFormVisble = false) }
                         when (val ex = result.e) {
                             is TransactionValidationException.FieldRequired -> {
                                 _uiState.update {
@@ -179,7 +180,7 @@ class TransactionViewModel(
 
                             else -> {
                                 _uiEvent.emit(
-                                    TransactionUiEvent.TransactionError(
+                                    TransactionUiEvent.ShowErrorMessage(
                                         ex?.message ?: "Erreur inconnue"
                                     )
                                 )
@@ -241,10 +242,10 @@ data class TransactionUiState(
 sealed class TransactionUiEvent() {
 
 
-    object TransactionSaved : TransactionUiEvent()
-    data class TransactionError(val errorMessage: String) : TransactionUiEvent()
+    data class ShowSuccessMessage(val successMessage: String) : TransactionUiEvent()
+    data class ShowErrorMessage(val errorMessage: String) : TransactionUiEvent()
 
-    data class TransactionPrint(val transaction: Transaction, val user: String) :
+    data class ReprintReceipt(val transaction: Transaction, val user: String) :
         TransactionUiEvent()
 
 }

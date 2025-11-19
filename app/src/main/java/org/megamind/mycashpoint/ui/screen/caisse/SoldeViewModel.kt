@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
 
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.Solde
@@ -154,7 +153,7 @@ class SoldeViewModel(
                         _uiState.update {
                             it.copy(isLoading = false)
                         }
-                        _uiEvent.emit(SoldeUiEvent.SoldeSaved)
+                        _uiEvent.emit(SoldeUiEvent.ShowSuccesMessage("Solde enregistré avec succès"))
                         getSoldes()
                     }
 
@@ -250,7 +249,7 @@ data class SoldeUiState(
 
 sealed class SoldeUiEvent {
 
-    object SoldeSaved : SoldeUiEvent()
+    data class ShowSuccesMessage(val successMessage: String) : SoldeUiEvent()
     data class SoldeError(val errorMessage: String) : SoldeUiEvent()
 
 }

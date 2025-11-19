@@ -92,7 +92,7 @@ fun MyNavHost(
 
             composable(route = Destination.CAISSE.name) {
 
-                SoldeScreen()
+                SoldeScreen(snackbarHostState = snackbarHostState)
             }
 
             composable(route = Destination.RAPPORT.name) {
@@ -106,6 +106,7 @@ fun MyNavHost(
 
                 TransactionScreen(
                     navController = navController,
+                    snackbarHostState = snackbarHostState,
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedVisibilityScope = this
                 )

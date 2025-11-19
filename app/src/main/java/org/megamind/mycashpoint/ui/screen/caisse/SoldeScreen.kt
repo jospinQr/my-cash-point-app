@@ -44,6 +44,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -69,8 +70,10 @@ import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.ConfirmDialog
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
+import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
+import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.toMontant
@@ -78,23 +81,36 @@ import java.math.BigDecimal
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SoldeScreen(modifier: Modifier = Modifier, viewModel: SoldeViewModel = koinViewModel()) {
+fun SoldeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: SoldeViewModel = koinViewModel(),
+    snackbarHostState: SnackbarHostState
+) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val soldes by viewModel.soldes.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     LaunchedEffect(viewModel) {
 
-        viewModel.uiEvent.collect { soldeUiEvent ->
+        viewModel.uiEvent.collect{
 
-            when (val uiEvent = soldeUiEvent) {
+            when (it) {
                 is SoldeUiEvent.SoldeError -> {
-                    Toast.makeText(context, uiEvent.errorMessage, Toast.LENGTH_LONG).show()
+                    snackbarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            message = it.errorMessage,
+                            type = SnackbarType.ERROR
+                        )
+                    )
                 }
 
-                SoldeUiEvent.SoldeSaved -> {
-                    Toast.makeText(context, "Enregistrement réussit", Toast.LENGTH_LONG).show()
+              is  SoldeUiEvent.ShowSuccesMessage -> {
+                    snackbarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            message = it.successMessage,
+                            type = SnackbarType.SUCCESS
+                        )
+                    )
                 }
             }
         }
