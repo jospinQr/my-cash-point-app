@@ -3,7 +3,6 @@ package org.megamind.mycashpoint.ui.screen.transaction
 import android.content.Context
 import android.os.Build
 import android.print.PrintManager
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -70,7 +69,6 @@ import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.TransactionType
-import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.ConfirmDialog
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
 import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
@@ -80,9 +78,9 @@ import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.navigation.Destination
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurUiState
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
-import org.megamind.mycashpoint.utils.Constants
-import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
-import org.megamind.mycashpoint.utils.launchUSSD
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.MyPrintDocumentAdapter
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -260,8 +258,8 @@ fun TransactionScreenContent(
                     else -> null
                 }
 
-                if (code != null)
-                    launchUSSD(context, code)
+
+
             }) {
                 Icon(imageVector = Icons.Rounded.Phone, contentDescription = "call")
             }

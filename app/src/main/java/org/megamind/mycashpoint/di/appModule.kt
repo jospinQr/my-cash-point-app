@@ -29,6 +29,8 @@ import org.megamind.mycashpoint.domain.usecase.commission.SearchCommissionsUseCa
 import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeByOperateurEtTypeEtDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SaveOrUpdateSoldeUseCase
+import org.megamind.mycashpoint.domain.usecase.solde.SyncSoldesUseCase
+
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
@@ -38,11 +40,11 @@ import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
 import org.megamind.mycashpoint.ui.screen.auth.SignInViewModel
 import org.megamind.mycashpoint.ui.screen.caisse.SoldeViewModel
 import org.megamind.mycashpoint.ui.screen.main.MainViewModel
+import org.megamind.mycashpoint.ui.screen.main.utils.DataStorageManager
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.ui.screen.rapport.RapportViewModel
 import org.megamind.mycashpoint.ui.screen.splash.SplashViewModel
 import org.megamind.mycashpoint.ui.screen.transaction.TransactionViewModel
-import org.megamind.mycashpoint.utils.DataStorageManager
 
 val appModule = module {
 
@@ -56,7 +58,7 @@ val appModule = module {
     }
 
     single<SoldeRepository> {
-        SoldeRepositoryImpl(get())
+        SoldeRepositoryImpl(get(), get())
     }
 
     single<TransactionRepository> {
@@ -92,6 +94,7 @@ val appModule = module {
     single { RegisterUseCase(get()) }
     single { GetUserByIdUseCase(get()) }
     single { SendOneTransactToServerUseCase(get()) }
+    single { SyncSoldesUseCase(get()) }
 
 
 //view models
@@ -116,7 +119,7 @@ val appModule = module {
     }
 
     viewModel {
-        SoldeViewModel(get(), get(), get())
+        SoldeViewModel(get(), get(), get(), get())
     }
 
 

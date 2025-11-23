@@ -18,7 +18,7 @@ fun SoldeEntity.toSolde(): Solde {
 }
 
 
-fun Solde.toSoldeEntity(): SoldeEntity {
+fun Solde.toSoldeEntity(isSynced: Boolean): SoldeEntity {
     return SoldeEntity(
         idOperateur = idOperateur,
         montant = montant,
@@ -27,6 +27,7 @@ fun Solde.toSoldeEntity(): SoldeEntity {
         dernierMiseAJour = dernierMiseAJour,
         seuilAlerte = seuilAlerte,
         misAJourPar = misAJourPar,
-        codeAgence = codeAgence
+        codeAgence = codeAgence,
+        isSynced = isSynced
     )
 }

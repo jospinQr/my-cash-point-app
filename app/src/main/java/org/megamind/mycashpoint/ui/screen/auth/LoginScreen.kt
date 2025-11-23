@@ -1,7 +1,9 @@
 package org.megamind.mycashpoint.ui.screen.auth
 
 import android.content.Context
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -31,12 +33,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,10 +61,12 @@ import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.ui.screen.Agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.component.AuthTextField
+import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.CustomerTextButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
 import org.megamind.mycashpoint.ui.component.QuestionDialog
+import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 
 
@@ -82,24 +89,20 @@ import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 fun LoginInScreen(
     modifier: Modifier = Modifier,
     viewModel: SignInViewModel = koinViewModel(),
-    agenceViewModel: AgenceViewModel = koinViewModel(),
     navigateToMainScreen: () -> Unit,
-    onNavigateToSignUp: () -> Unit,
     windowSizeClass: WindowSizeClass,
+    snackbarHostate: SnackbarHostState
 
-    ) {
+) {
 
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    val agences by agenceViewModel.agences.collectAsStateWithLifecycle()
-
-
-
     SignInEventHandler(
         viewModel = viewModel,
         context = context,
-        navigateToHome = navigateToMainScreen
+        navigateToHome = navigateToMainScreen,
+        snackbarHostState = snackbarHostate,
     )
 
 
@@ -110,18 +113,8 @@ fun LoginInScreen(
         onSignIn = { viewModel.onSignIn() },
         onPasswordVisibilityChange = { viewModel.onPasswordVisibilityChange() },
         windowSizeClass = windowSizeClass,
-        sendPasswordResetMail = { viewModel.sendPasswordResetEmail() },
-        onSendingPasswordResetClick = { viewModel.showPasswordResetDialog() },
-        onSendingPasswordResetDismiss = { viewModel.dismissPasswordResetDialog() },
-        onNavigateToSignUp = onNavigateToSignUp,
-        onAgenceMenuExpanded = { viewModel.onAgenceMenuExpanded() },
-        onAgenceMenuDismiss = { viewModel.onAgenceMenuDismiss() },
-        onSelectedAgenceChange = { viewModel.onAgenceChange(it) },
-        agences = agences
 
-
-    )
-
+        )
 }
 
 @Composable
@@ -132,15 +125,8 @@ fun SignInScreenContent(
     onSignIn: () -> Unit,
     onPasswordVisibilityChange: () -> Unit,
     windowSizeClass: WindowSizeClass,
-    sendPasswordResetMail: () -> Unit,
-    onSendingPasswordResetClick: () -> Unit,
-    onSendingPasswordResetDismiss: () -> Unit,
-    onNavigateToSignUp: () -> Unit,
-    onAgenceMenuExpanded: () -> Unit,
-    onAgenceMenuDismiss: () -> Unit,
-    onSelectedAgenceChange: (Agence) -> Unit,
-    agences: List<Agence>,
-) {
+
+    ) {
     val isCompact = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
 
     Scaffold { innerPadding ->
@@ -152,37 +138,14 @@ fun SignInScreenContent(
             onPasswordChange = onPasswordChange,
             onSignIn = onSignIn,
             onPasswordVisibilityChange = onPasswordVisibilityChange,
-            sendPasswordResetMail = sendPasswordResetMail,
-            onSendingPasswordResetClick = onSendingPasswordResetClick,
-            onSendingPasswordResetDismiss = onSendingPasswordResetDismiss,
-            onNavigateToSignUp = onNavigateToSignUp,
-            onAgenceMenuExpanded = onAgenceMenuExpanded,
-            onAgenceMenuDismiss = onAgenceMenuDismiss,
-            onSelectedAgenceChange = onSelectedAgenceChange,
-            agences = agences,
-
-
-            )
+        )
     }
 
     if (uiState.isLoading) {
         LoadinDialog(text = "Connexion...")
     }
 
-    if (uiState.isSendingPasswordResetDialogShown) {
-        QuestionDialog(
-            title = "Confirmatio",
-            message = "Voulez vous envoyer un email de réinitialisation de mot de passe à ${uiState.email}?",
-            onDismiss = { onSendingPasswordResetDismiss() },
-            onConfirm = {
-                onSendingPasswordResetDismiss()
-                sendPasswordResetMail()
-            },
-            confirmText = "Oui",
-            dismissText = "Non",
-            dismissOnClickOutside = false
-        )
-    }
+
 }
 
 @Composable
@@ -194,15 +157,9 @@ private fun AdaptiveSignInLayout(
     onPasswordChange: (String) -> Unit,
     onSignIn: () -> Unit,
     onPasswordVisibilityChange: () -> Unit,
-    sendPasswordResetMail: () -> Unit,
-    onSendingPasswordResetClick: () -> Unit,
-    onSendingPasswordResetDismiss: () -> Unit,
-    onNavigateToSignUp: () -> Unit,
-    onAgenceMenuExpanded: () -> Unit,
-    onAgenceMenuDismiss: () -> Unit,
-    onSelectedAgenceChange: (Agence) -> Unit,
-    agences: List<Agence>,
-) {
+
+
+    ) {
     if (isCompact) {
         Column(
             modifier = modifier
@@ -222,14 +179,8 @@ private fun AdaptiveSignInLayout(
                 onSignIn = onSignIn,
                 onPasswordVisibilityChange = onPasswordVisibilityChange,
                 showLogoAbove = true,
-                onSendingPasswordResetClick = onSendingPasswordResetClick,
-                onNavigateToSignUp = onNavigateToSignUp,
-                onAgenceMenuExpanded = onAgenceMenuExpanded,
-                onAgenceMenuDismiss = onAgenceMenuDismiss,
-                onSelectedAgenceChange = onSelectedAgenceChange,
-                agences = agences
 
-            )
+                )
         }
     } else {
         Row(
@@ -253,15 +204,11 @@ private fun AdaptiveSignInLayout(
                     onPasswordChange = onPasswordChange,
                     onSignIn = onSignIn,
                     onPasswordVisibilityChange = onPasswordVisibilityChange,
-                    onNavigateToSignUp = onNavigateToSignUp,
-                    showLogoAbove = false,
-                    onSendingPasswordResetClick = onSendingPasswordResetClick,
-                    onAgenceMenuExpanded = onAgenceMenuExpanded,
-                    onAgenceMenuDismiss = onAgenceMenuDismiss,
-                    onSelectedAgenceChange = onSelectedAgenceChange,
-                    agences = agences
 
-                )
+                    showLogoAbove = false,
+
+
+                    )
             }
         }
     }
@@ -274,16 +221,10 @@ private fun SignInContent(
     onPasswordChange: (String) -> Unit,
     onSignIn: () -> Unit,
     onPasswordVisibilityChange: () -> Unit,
-    onNavigateToSignUp: () -> Unit,
     showLogoAbove: Boolean,
-    onSendingPasswordResetClick: () -> Unit,
-    onAgenceMenuExpanded: () -> Unit,
-    onAgenceMenuDismiss: () -> Unit,
-    onSelectedAgenceChange: (Agence) -> Unit,
-    agences: List<Agence>
 
 
-) {
+    ) {
     if (showLogoAbove) {
         LogoSection()
     }
@@ -292,11 +233,12 @@ private fun SignInContent(
     AuthTextField(
         value = uiState.email,
         onValueChange = onEmailChange,
-        label = "Email",
+        label = "Nom",
         modifier = Modifier.fillMaxWidth(),
         isError = uiState.isEmailError,
         supportText = "Entrer une adresse email valide"
     )
+
     Spacer(modifier = Modifier.height(4.dp))
 
     AuthTextField(
@@ -316,66 +258,11 @@ private fun SignInContent(
         supportText = "Entrer un mot de passe valide"
     )
 
-
-    Column {
-        AuthTextField(
-            label = uiState.selectedAgence?.codeAgence ?: "0",
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    onAgenceMenuExpanded()
-                },
-            enabled = false,
-            value = uiState.agence,
-            onValueChange = {
-
-            },
-
-            trailingIcon = {
-
-                IconButton(onClick = { onAgenceMenuExpanded() }) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = null
-                    )
-                }
-            }
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        DropdownMenu(
-            expanded = uiState.isAgenceExpanded,
-            onDismissRequest = { onAgenceMenuDismiss() }
-
-        )
-        {
-
-            agences.forEach {
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-
-                            Text(it.designation)
-
-                        }
-
-                    }, onClick = {
-                        onSelectedAgenceChange(it)
-                        onAgenceMenuDismiss()
-                    }
-                )
-            }
-        }
-    }
-
-
-
-
-
     SignInButtonsSection(
         uiState = uiState,
         onSignIn = onSignIn,
-        onNavigateToSignUp = onNavigateToSignUp
-    )
+
+        )
 
     if (uiState.isSendingPasswordResetEmail) {
         LoadinDialog(text = "Envoi en cours...")
@@ -399,29 +286,11 @@ private fun PasswordVisibilityIcon(
     }
 }
 
-@Composable
-private fun ForgotPasswordSection(askForSendPasswordResetMail: () -> Unit) {
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-        CustomerTextButton(
-            onClick = {
-                askForSendPasswordResetMail()
-            },
-            containerColor = MaterialTheme.colorScheme.background
-        ) {
-            Text(
-                text = "Mot de passe oublié ?",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-    }
-}
 
 @Composable
 private fun SignInButtonsSection(
     uiState: SignInUiState,
     onSignIn: () -> Unit,
-    onNavigateToSignUp: () -> Unit
 ) {
     CustomerButton(
         modifier = Modifier.fillMaxWidth(),
@@ -436,36 +305,6 @@ private fun SignInButtonsSection(
         )
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
-
-
-    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-
-
-        Text(
-            modifier = Modifier,
-            text = "Mot de passe oublié ?",
-            style = MaterialTheme.typography.bodySmall
-        )
-        Spacer(modifier = Modifier.width(2.dp))
-        CustomerTextButton(
-            modifier = Modifier,
-            onClick = {
-
-                onNavigateToSignUp()
-
-            },
-            containerColor = MaterialTheme.colorScheme.background
-        ) {
-            Text(
-                text = "S'inscrire",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-
-    }
-
 
 }
 
@@ -473,10 +312,11 @@ private fun SignInButtonsSection(
 @Composable
 fun LogoSection(modifier: Modifier = Modifier) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(
+        Icon(
             modifier = Modifier.size(94.dp),
             painter = painterResource(R.drawable.logo),
-            contentDescription = null
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
@@ -533,7 +373,8 @@ private fun SignInButtonContent(
 private fun SignInEventHandler(
     viewModel: SignInViewModel,
     context: Context,
-    navigateToHome: () -> Unit
+    navigateToHome: () -> Unit,
+    snackbarHostState: SnackbarHostState
 ) {
     LaunchedEffect(viewModel) {
         viewModel.uiEvent.collect { event ->
@@ -543,7 +384,15 @@ private fun SignInEventHandler(
                 }
 
                 is SignInUiEvent.ShowError -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+
+                    snackbarHostState
+                        .showSnackbar(
+                            visuals = CustomSnackbarVisuals(
+                                message = event.message,
+                                type = SnackbarType.ERROR
+                            )
+                        )
+
                 }
 
             }
@@ -551,16 +400,18 @@ private fun SignInEventHandler(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Preview(showBackground = true)
 @Composable
 fun LoginScreePreview() {
 
+    val snackbarHostate = remember { SnackbarHostState() }
 
     MyCashPointTheme {
 
         LoginInScreen(
             navigateToMainScreen = {},
-            onNavigateToSignUp = {},
+            snackbarHostate = snackbarHostate,
             windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
         )
 

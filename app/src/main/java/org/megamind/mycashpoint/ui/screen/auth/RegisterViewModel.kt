@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.data.data_source.remote.dto.auth.Role
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.usecase.auth.RegisterUseCase
-import org.megamind.mycashpoint.utils.Result
-import org.megamind.mycashpoint.utils.UtilsFonctions
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.UtilsFonctions
 
 class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewModel() {
 

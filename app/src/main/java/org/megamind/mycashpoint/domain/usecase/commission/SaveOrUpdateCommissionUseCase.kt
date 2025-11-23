@@ -1,10 +1,9 @@
 package org.megamind.mycashpoint.domain.usecase.commission
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapConcat
 import org.megamind.mycashpoint.domain.model.Commission
 import org.megamind.mycashpoint.domain.repository.CommissionRepository
-import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
 
 class SaveOrUpdateCommissionUseCase(
     private val repository: CommissionRepository

@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.utils
+package org.megamind.mycashpoint.ui.screen.main.utils
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.firstOrNull
-import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 

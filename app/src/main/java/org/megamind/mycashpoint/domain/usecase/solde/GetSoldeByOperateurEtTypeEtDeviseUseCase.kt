@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.domain.model.Solde
 import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.domain.repository.SoldeRepository
-import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
 
 class GetSoldeByOperateurEtTypeEtDeviseUseCase(
     private val repository: SoldeRepository

@@ -11,12 +11,12 @@ import org.megamind.mycashpoint.data.data_source.local.entity.AgenceEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
-import org.megamind.mycashpoint.utils.EnumConverters
+import org.megamind.mycashpoint.ui.screen.main.utils.EnumConverters
 
 
 @Database(
     entities = [UserEntity::class, SoldeEntity::class, TransactionEntity::class, AgenceEntity::class],
-    version = 8,
+    version = 1,
     exportSchema = false
 )
 @TypeConverters(EnumConverters::class)

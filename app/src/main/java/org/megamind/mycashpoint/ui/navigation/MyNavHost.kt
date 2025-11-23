@@ -58,16 +58,18 @@ fun MyNavHost(
             }
 
             composable(route = Destination.LOGIN.name) {
-                LoginInScreen(onNavigateToSignUp = {
-                    navController.navigate(Destination.REGISTER.name)
-                }, windowSizeClass = windowSizeClass, navigateToMainScreen = {
+                LoginInScreen(
+                    snackbarHostate = snackbarHostState,
+                    windowSizeClass = windowSizeClass,
+                    navigateToMainScreen = {
 
-                    navController.navigate(Destination.OPERATEUR.name) {
-                        popUpTo(Destination.LOGIN.name) {
-                            inclusive = true
+                        navController.navigate(Destination.OPERATEUR.name) {
+                            popUpTo(Destination.LOGIN.name) {
+                                inclusive = true
+                            }
                         }
                     }
-                })
+                )
             }
 
             composable(route = Destination.REGISTER.name) {

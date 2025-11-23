@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.utils
+package org.megamind.mycashpoint.ui.screen.main.utils
 
 import androidx.room.TypeConverter
 import org.megamind.mycashpoint.domain.model.SoldeType

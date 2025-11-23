@@ -13,10 +13,10 @@ import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionField
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidationException
-import org.megamind.mycashpoint.utils.Constants
-import org.megamind.mycashpoint.utils.DataStorageManager
-import org.megamind.mycashpoint.utils.Result
-import org.megamind.mycashpoint.utils.decodeJwtPayload
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.DataStorageManager
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.decodeJwtPayload
 import java.math.BigDecimal
 
 class TransactionViewModel(

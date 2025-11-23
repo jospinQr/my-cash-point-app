@@ -6,7 +6,7 @@ import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import org.megamind.mycashpoint.data.data_source.local.entity.CommissionEntity
 import org.megamind.mycashpoint.domain.model.TransactionType
-import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
 
 @Dao
 interface CommissionDao {

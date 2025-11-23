@@ -16,17 +16,19 @@ import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeByOperateurEtTypeEtDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SaveOrUpdateSoldeUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SoldeValidationException
-import org.megamind.mycashpoint.utils.Constants
-import org.megamind.mycashpoint.utils.DataStorageManager
-import org.megamind.mycashpoint.utils.Result
-import org.megamind.mycashpoint.utils.decodeJwtPayload
-import org.megamind.mycashpoint.utils.toBigDecimalOrNull
+import org.megamind.mycashpoint.domain.usecase.solde.SyncSoldesUseCase
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.DataStorageManager
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.decodeJwtPayload
+import org.megamind.mycashpoint.ui.screen.main.utils.toBigDecimalOrNull
 import java.math.BigDecimal
 
 class SoldeViewModel(
     private val getSolde: GetSoldeByOperateurEtTypeEtDeviseUseCase,
     private val saveOrUpdateSolde: SaveOrUpdateSoldeUseCase,
-    val storageManager: DataStorageManager
+    private val syncSoldesUseCase: SyncSoldesUseCase,
+    val storageManager: DataStorageManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SoldeUiState())
@@ -228,6 +230,40 @@ class SoldeViewModel(
             it.copy(isConfirmDialogShown = false)
 
         }
+    }
+
+
+    fun onUpadateServerSolde() {
+        viewModelScope.launch {
+
+            syncSoldesUseCase().collect { result ->
+                when (result) {
+                    Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true)
+                        }
+                    }
+
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(isLoading = false)
+                        }
+
+                        _uiEvent.emit(SoldeUiEvent.ShowSuccesMessage("Solde mis à jour avec succès"))
+                    }
+
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(isLoading = false, errorMessage = result.e?.message)
+                        }
+                    }
+                }
+
+            }
+
+
+        }
+
     }
 }
 

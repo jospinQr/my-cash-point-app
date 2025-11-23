@@ -6,7 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
 import org.megamind.mycashpoint.domain.model.SoldeType
-import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
 import java.math.BigDecimal
 
 @Dao
@@ -35,10 +35,12 @@ interface SoldeDao {
         """
         UPDATE soldes 
         SET montant = :nouveauMontant, 
-            dernierMiseAJour = :dernierMiseAJour 
+            dernierMiseAJour = :dernierMiseAJour ,
+            isSynced = 0
         WHERE idOperateur = :idOp 
           AND soldeType = :type 
           AND devise = :devise
+          
     """
     )
     suspend fun updateMontant(
@@ -55,6 +57,24 @@ interface SoldeDao {
     @Query("DELETE FROM soldes WHERE idOperateur = :idOperateur AND devise = :devise")
     suspend fun deleteByOperateurEtDevise(
         idOperateur: Int,
+        devise: Constants.Devise
+    )
+
+    @Query("SELECT * FROM soldes WHERE isSynced = 0")
+    suspend fun getUnsyncedSoldes(): List<SoldeEntity>
+
+    @Query(
+        """
+        UPDATE soldes 
+        SET isSynced = 1 
+        WHERE idOperateur = :idOperateur 
+          AND soldeType = :type 
+          AND devise = :devise
+    """
+    )
+    suspend fun markAsSynced(
+        idOperateur: Int,
+        type: SoldeType,
         devise: Constants.Devise
     )
 }

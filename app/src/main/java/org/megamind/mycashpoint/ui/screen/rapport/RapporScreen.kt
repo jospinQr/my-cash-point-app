@@ -89,8 +89,8 @@ import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
 import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.component.Table
-import org.megamind.mycashpoint.utils.Constants
-import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.MyPrintDocumentAdapter
 import java.math.BigDecimal
 
 @RequiresApi(Build.VERSION_CODES.O)

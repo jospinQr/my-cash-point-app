@@ -5,13 +5,12 @@ import android.util.Log
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.content
 import io.ktor.http.isSuccess
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
 
 
 suspend inline fun <reified T> safeApiCall(

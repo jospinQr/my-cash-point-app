@@ -13,7 +13,7 @@ import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
 import org.megamind.mycashpoint.domain.usecase.agence.SaveOrUpdateAgenceUseCase
 import org.megamind.mycashpoint.domain.usecase.agence.AgenceValidationException
 import org.megamind.mycashpoint.domain.usecase.agence.AgenceField
-import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
 
 class AgenceViewModel(
     private val getAgences: GetAgencesUseCase,

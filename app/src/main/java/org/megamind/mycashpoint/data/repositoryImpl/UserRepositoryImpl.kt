@@ -12,9 +12,9 @@ import org.megamind.mycashpoint.data.data_source.remote.dto.auth.RegisterRequest
 import org.megamind.mycashpoint.data.data_source.remote.service.AuthService
 import org.megamind.mycashpoint.domain.model.User
 import org.megamind.mycashpoint.domain.repository.UserRepository
-import org.megamind.mycashpoint.utils.DataStorageManager
-import org.megamind.mycashpoint.utils.Result
-import org.megamind.mycashpoint.utils.decodeJwtPayload
+import org.megamind.mycashpoint.ui.screen.main.utils.DataStorageManager
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.decodeJwtPayload
 
 class UserRepositoryImpl(
     private val userDao: UserDao,

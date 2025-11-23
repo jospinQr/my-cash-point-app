@@ -1,10 +1,8 @@
 package org.megamind.mycashpoint.domain.model
 
-import androidx.room.PrimaryKey
 import org.megamind.mycashpoint.R
-import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
 import java.math.BigDecimal
-import java.util.UUID
 
 data class Transaction(
 

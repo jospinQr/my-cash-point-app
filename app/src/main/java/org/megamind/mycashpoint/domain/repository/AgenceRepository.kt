@@ -1,9 +1,8 @@
 package org.megamind.mycashpoint.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import org.megamind.mycashpoint.data.data_source.local.entity.AgenceEntity
 import org.megamind.mycashpoint.domain.model.Agence
-import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
 
 interface AgenceRepository {
 

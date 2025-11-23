@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.usecase.auth.LoginUseCase
-import org.megamind.mycashpoint.utils.Result
-import org.megamind.mycashpoint.utils.UtilsFonctions
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.UtilsFonctions
 
 class SignInViewModel(
     private val loginUseCase: LoginUseCase,

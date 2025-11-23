@@ -12,7 +12,7 @@ import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.domain.model.StatutSync
 import org.megamind.mycashpoint.domain.model.TransactionType
-import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
 import java.math.BigDecimal
 
 @Dao
@@ -126,7 +126,8 @@ private suspend fun adjustSoldesForTransaction(
                 montant = BigDecimal.ZERO,
                 devise = devise,
                 misAJourPar = userId,
-                codeAgence = transaction.codeAgence
+                codeAgence = transaction.codeAgence,
+                isSynced = false
             )
     }
 

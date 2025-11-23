@@ -1,12 +1,11 @@
 package org.megamind.mycashpoint.data.data_source.local.entity
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Index
 import org.megamind.mycashpoint.domain.model.StatutSync
 import org.megamind.mycashpoint.domain.model.TransactionType
-import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
 import java.math.BigDecimal
 
 
@@ -39,7 +38,7 @@ data class TransactionEntity(
     val soldeApres: BigDecimal? = null,
 
     val device: Constants.Devise,
-    val reference: String? = null,       // Ex: reçu opérateur
+    val reference: String? = null,
     val note: String? = null,
     val horodatage: Long = System.currentTimeMillis(),
     val creePar: Long,

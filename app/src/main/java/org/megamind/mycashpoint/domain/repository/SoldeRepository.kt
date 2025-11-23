@@ -3,8 +3,8 @@ package org.megamind.mycashpoint.domain.repository
 import kotlinx.coroutines.flow.Flow
 import org.megamind.mycashpoint.domain.model.Solde
 import org.megamind.mycashpoint.domain.model.SoldeType
-import org.megamind.mycashpoint.utils.Constants
-import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
 import java.math.BigDecimal
 
 interface SoldeRepository {
@@ -19,17 +19,20 @@ interface SoldeRepository {
 
     fun insertOrUpdate(solde: Solde): Flow<Result<Unit>>
 
-    fun updateMontant(
-        idOperateur: Int,
-        devise: Constants.Devise,
-        montant: BigDecimal,
-        soldeType: SoldeType
-    ): Flow<Result<Unit>>
 
     fun deleteByOperateurEtDevise(
         idOperateur: Int,
         devise: Constants.Devise
     ): Flow<Result<Unit>>
+
+
+    fun sendSoldeToServeur(solde: Solde): Flow<Result<Unit>>
+
+
+
+    fun getUnsyncedSoldes(): Flow<Result<List<Solde>>>
+
+    fun markAsSynced(solde: Solde): Flow<Result<Unit>>
+
+    fun syncSoldes(): Flow<Result<Unit>>
 }
-
-

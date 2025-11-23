@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.StatutSync
 import org.megamind.mycashpoint.domain.model.Transaction
-import org.megamind.mycashpoint.utils.Constants
-import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
 
 interface TransactionRepository {
 

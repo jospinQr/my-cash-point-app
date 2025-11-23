@@ -2,7 +2,6 @@ package org.megamind.mycashpoint.ui.screen.caisse
 
 
 import android.os.Build
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
@@ -55,7 +54,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -75,8 +73,8 @@ import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
 import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
-import org.megamind.mycashpoint.utils.Constants
-import org.megamind.mycashpoint.utils.toMontant
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.toMontant
 import java.math.BigDecimal
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -92,7 +90,7 @@ fun SoldeScreen(
 
     LaunchedEffect(viewModel) {
 
-        viewModel.uiEvent.collect{
+        viewModel.uiEvent.collect {
 
             when (it) {
                 is SoldeUiEvent.SoldeError -> {
@@ -104,7 +102,7 @@ fun SoldeScreen(
                     )
                 }
 
-              is  SoldeUiEvent.ShowSuccesMessage -> {
+                is SoldeUiEvent.ShowSuccesMessage -> {
                     snackbarHostState.showSnackbar(
                         visuals = CustomSnackbarVisuals(
                             message = it.successMessage,
@@ -131,7 +129,8 @@ fun SoldeScreen(
         onSeuilChange = viewModel::onSeuilChange,
         onSelectedTypeSoldeChange = viewModel::onSoldeTypeChange,
         onConfirmDialogShown = viewModel::onConfirmDialogShown,
-        onConfirmDialogDismiss = viewModel::onConfirmDialogDismiss
+        onConfirmDialogDismiss = viewModel::onConfirmDialogDismiss,
+        onUpdateServerAmount = viewModel::onUpadateServerSolde
     )
 
 }
@@ -154,7 +153,8 @@ fun SoldeScreenContent(
     onSaveClick: () -> Unit,
     onSelectedTypeSoldeChange: (SoldeType) -> Unit,
     onConfirmDialogShown: () -> Unit,
-    onConfirmDialogDismiss: () -> Unit
+    onConfirmDialogDismiss: () -> Unit,
+    onUpdateServerAmount:()->Unit,
 
 
 ) {
@@ -162,12 +162,23 @@ fun SoldeScreenContent(
 
     Scaffold(topBar = {
 
-        TopAppBar(title = {
-            Text(
-                "Soldes ${soldes.devise.name}",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
-        })
+        TopAppBar(
+            title = {
+                Text(
+                    "Soldes ${soldes.devise.name}",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+            },
+            actions = {
+               IconButton(onClick = { onUpdateServerAmount()}) {
+
+                   Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
+               }
+
+            }
+
+
+        )
     }, floatingActionButton = {
 
         FloatingActionButton(onClick = { onBottomSheetShown() }) {
@@ -643,7 +654,8 @@ fun SoldeScreenPreview() {
             onSaveClick = {},
             onSelectedTypeSoldeChange = {},
             onConfirmDialogShown = {},
-            onConfirmDialogDismiss = {}
+            onConfirmDialogDismiss = {},
+            onUpdateServerAmount = {}
         )
     }
 }

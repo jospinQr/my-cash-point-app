@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +60,7 @@ fun MyCashPointApp() {
         modifier = Modifier.fillMaxSize(),
         snackbarHost = {
             SnackbarHost(
+                modifier = Modifier.imePadding(),
                 hostState = snackbarHostState
             ) { data ->
                 CustomSnackbar(data) // ← ton composable custom

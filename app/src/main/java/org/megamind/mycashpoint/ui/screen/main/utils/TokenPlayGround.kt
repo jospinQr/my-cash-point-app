@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.utils
+package org.megamind.mycashpoint.ui.screen.main.utils
 
 import android.util.Base64
 import org.json.JSONObject

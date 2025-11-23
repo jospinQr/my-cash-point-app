@@ -11,8 +11,8 @@ import org.megamind.mycashpoint.domain.model.Commission
 import org.megamind.mycashpoint.domain.model.CommissionStats
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.repository.CommissionRepository
-import org.megamind.mycashpoint.utils.Constants
-import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
 
 class CommissionRepositoryImpl(
     private val commissionDao: CommissionDao

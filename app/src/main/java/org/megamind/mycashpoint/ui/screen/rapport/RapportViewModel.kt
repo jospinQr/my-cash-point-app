@@ -20,8 +20,8 @@ import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServ
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionField
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidationException
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
-import org.megamind.mycashpoint.utils.Constants
-import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
 import java.math.BigDecimal
 
 class RapportViewModel(

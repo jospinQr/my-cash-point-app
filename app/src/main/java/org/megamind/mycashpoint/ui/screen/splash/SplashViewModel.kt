@@ -4,17 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.domain.usecase.auth.GetUserByIdUseCase
-import org.megamind.mycashpoint.utils.DataStorageManager
+import org.megamind.mycashpoint.ui.screen.main.utils.DataStorageManager
 
-import org.megamind.mycashpoint.utils.Result
-import org.megamind.mycashpoint.utils.decodeJwtPayload
+import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.ui.screen.main.utils.decodeJwtPayload
 class SplashViewModel(
     private val getUserByIdUseCase: GetUserByIdUseCase, // Retourne le user dans Room
     private val dataStorageManager: DataStorageManager
