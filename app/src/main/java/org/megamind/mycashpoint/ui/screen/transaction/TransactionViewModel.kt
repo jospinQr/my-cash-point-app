@@ -57,13 +57,24 @@ class TransactionViewModel(
 
     fun onNomClientChange(nom: String) {
         _uiState.update {
-            it.copy(nomClient = nom, isNomError = false)
+            it.copy(nomClient = nom, isNomError = false )
+        }
+
+        if(_uiState.value.selectedType==TransactionType.DEPOT){
+            _uiState.update {
+                it.copy(nomBenef = nom)
+            }
         }
     }
 
     fun onTelephClientChange(teleph: String) {
         _uiState.update {
             it.copy(telephClient = teleph, isTelephClientError = false)
+        }
+        if(_uiState.value.selectedType==TransactionType.DEPOT){
+            _uiState.update {
+                it.copy(telephBenef = teleph)
+            }
         }
     }
 

@@ -1,9 +1,7 @@
 package org.megamind.mycashpoint.ui.screen.operateur
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,21 +21,30 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.operateurs
+import androidx.compose.runtime.getValue
+import org.megamind.mycashpoint.ui.component.ConfirmDialog
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -45,17 +52,35 @@ fun OperateurScreen(
     modifier: Modifier = Modifier,
     viewModel: OperateurViewModel = koinViewModel(),
     navigateToTransactionScreen: () -> Unit,
+    navigateToSignIn: () -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
     sharedTransitionScope: SharedTransitionScope
 
 ) {
 
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(viewModel) {
+
+        viewModel.uiEvent.collect {
+            when (it) {
+                OperateurUiEvent.NavigateToLogin -> {
+                    navigateToSignIn()
+                }
+            }
+        }
+
+    }
 
     OperateurScreenContent(
+        uiState = uiState,
         onOperateurSelected = viewModel::onOperateurSelected,
         onNavigateToTransactionScreen = navigateToTransactionScreen,
         sharedTransitionScope = sharedTransitionScope,
-        animatedVisibilityScope = animatedVisibilityScope
+        animatedVisibilityScope = animatedVisibilityScope,
+        onLogoutClick = viewModel::onLogOut,
+        onIsConfirmLogOutDialogDismiss = viewModel::onConfirmLogOutDialogDismiss,
+        onIsConfirmLogOutDialogShown = viewModel::onConfirmLogOutDialogShown
     )
 
 }
@@ -63,22 +88,35 @@ fun OperateurScreen(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun OperateurScreenContent(
+    uiState: OperateurUiState,
     modifier: Modifier = Modifier,
     onOperateurSelected: (Operateur) -> Unit,
     onNavigateToTransactionScreen: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onIsConfirmLogOutDialogShown: () -> Unit,
+    onIsConfirmLogOutDialogDismiss: () -> Unit,
+    onLogoutClick: () -> Unit
 
 ) {
 
 
     Scaffold(topBar = {
-        TopAppBar(title = {
-            Text(
-                "Choisissez un opérateur",
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-            )
-        })
+        TopAppBar(
+            title = {
+                Text(
+                    "Choisissez un opérateur",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                )
+            },
+            actions = {
+                IconButton(onClick = { onIsConfirmLogOutDialogShown() }) {
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = null
+                    )
+                }
+            })
     }) { innerPadding ->
 
         Box(
@@ -116,6 +154,19 @@ private fun OperateurScreenContent(
 
         }
     }
+
+
+    ConfirmDialog(
+        visible = uiState.isConfirmLogOutDialogShown,
+        onDismiss = {
+            onIsConfirmLogOutDialogDismiss()
+        },
+        onConfirm = {
+            onLogoutClick()
+        },
+    )
+
+
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)

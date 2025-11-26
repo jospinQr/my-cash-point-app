@@ -114,7 +114,7 @@ val appModule = module {
     }
 
     viewModel {
-        OperateurViewModel()
+        OperateurViewModel(get())
     }
     viewModel {
         TransactionViewModel(get(), get())

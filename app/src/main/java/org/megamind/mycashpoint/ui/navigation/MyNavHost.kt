@@ -85,8 +85,17 @@ fun MyNavHost(
             composable(route = Destination.OPERATEUR.name) {
 
                 OperateurScreen(
+
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedVisibilityScope = this,
+                    navigateToSignIn = {
+                        navController.navigate(Destination.LOGIN.name) {
+                            popUpTo(Destination.OPERATEUR.name) {
+                                inclusive = true
+                            }
+
+                        }
+                    },
                     navigateToTransactionScreen = {
                         navController.navigate(Destination.TRANSACTION.name)
                     })
