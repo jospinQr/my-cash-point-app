@@ -16,7 +16,7 @@ import org.megamind.mycashpoint.ui.screen.main.utils.EnumConverters
 
 @Database(
     entities = [UserEntity::class, SoldeEntity::class, TransactionEntity::class, AgenceEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(EnumConverters::class)

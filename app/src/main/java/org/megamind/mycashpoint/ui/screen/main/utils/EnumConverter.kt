@@ -2,7 +2,7 @@ package org.megamind.mycashpoint.ui.screen.main.utils
 
 import androidx.room.TypeConverter
 import org.megamind.mycashpoint.domain.model.SoldeType
-import org.megamind.mycashpoint.domain.model.StatutSync
+
 import org.megamind.mycashpoint.domain.model.TransactionType
 import java.math.BigDecimal
 
@@ -22,12 +22,7 @@ class EnumConverters {
     @TypeConverter
     fun toTypeFlux(value: String): TransactionType = TransactionType.valueOf(value)
 
-    // ---- StatutSync ----
-    @TypeConverter
-    fun fromStatutSync(value: StatutSync): String = value.name
 
-    @TypeConverter
-    fun toStatutSync(value: String): StatutSync = StatutSync.valueOf(value)
 
     @TypeConverter
     fun toDevise(value: String): Constants.Devise = Constants.Devise.valueOf(value)

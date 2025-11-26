@@ -3,7 +3,6 @@ package org.megamind.mycashpoint.data.data_source.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Index
-import org.megamind.mycashpoint.domain.model.StatutSync
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.ui.screen.main.utils.Constants
 import java.math.BigDecimal
@@ -43,6 +42,6 @@ data class TransactionEntity(
     val horodatage: Long = System.currentTimeMillis(),
     val creePar: Long,
     val codeAgence: String,
-    val statutSync: StatutSync = StatutSync.EN_ATTENTE,
+    val isSynced: Boolean,
 
     )

@@ -4,7 +4,7 @@ import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.Transaction
 
 
-fun Transaction.toTransactionEntity(): TransactionEntity {
+fun Transaction.toTransactionEntity(isSynced: Boolean): TransactionEntity {
 
 
     return TransactionEntity(
@@ -25,7 +25,8 @@ fun Transaction.toTransactionEntity(): TransactionEntity {
         note = note,
         horodatage = horodatage,
         creePar = creePar,
-        codeAgence = codeAgence
+        codeAgence = codeAgence,
+        isSynced = isSynced
     )
 
 }

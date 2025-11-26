@@ -12,14 +12,18 @@ import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransaction
 import org.megamind.mycashpoint.domain.model.Operateur
+import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
+import org.megamind.mycashpoint.domain.usecase.solde.SyncSoldesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.SyncTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionField
 import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidationException
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
+import org.megamind.mycashpoint.ui.screen.caisse.SoldeUiEvent
 import org.megamind.mycashpoint.ui.screen.main.utils.Constants
 import org.megamind.mycashpoint.ui.screen.main.utils.Result
 import java.math.BigDecimal
@@ -28,7 +32,9 @@ class RapportViewModel(
     private val getTransactionByOperateurAndDeviseUseCase: GetTransactionsByOperatorAndDeviceUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
-    private val sendOneTransactToServerUseCase: SendOneTransactToServerUseCase
+    private val sendOneTransactToServerUseCase: SendOneTransactToServerUseCase,
+    private val syncTransactionUseCase: SyncTransactionUseCase,
+    private val syncSoldesUseCase: SyncSoldesUseCase
 
 ) : ViewModel() {
 
@@ -47,6 +53,10 @@ class RapportViewModel(
     private val _selectedDevise get() = uiState.value.selectedDevise
     private val _selectedOperateur get() = uiState.value.selectedOperateur
 
+
+    init {
+        gettransactionByOperateurAndDevise()
+    }
 
     fun onSearchValueChange(value: String) {
         _uiState.update {
@@ -361,10 +371,6 @@ class RapportViewModel(
     }
 
 
-    init {
-        gettransactionByOperateurAndDevise()
-    }
-
     fun gettransactionByOperateurAndDevise() {
 
 
@@ -497,8 +503,9 @@ class RapportViewModel(
                         }
 
                         _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Transaction envoyé au serveur"))
-
+                        gettransactionByOperateurAndDevise()
                     }
+
                     is Result.Error -> {
                         _uiState.update {
                             it.copy(isLoading = false, isTransactionDialogVisible = false)
@@ -510,15 +517,141 @@ class RapportViewModel(
                         )
                     }
                 }
+            }
+        }
+    }
+
+    fun onSyncTransaction() {
+
+        viewModelScope.launch {
+
+            syncTransactionUseCase().collect { result ->
+
+                when (result) {
+
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true)
+                        }
+                    }
+
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(isLoading = false)
+                        }
+
+                        _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Synchronisation reussit"))
+                        gettransactionByOperateurAndDevise()
+                    }
+
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(isLoading = false)
+                        }
+
+                        _uiEvent.emit(
+                            RapportUiEvent.ShowError(
+                                result.e?.message ?: "Erreur inconnue"
+                            )
+                        )
+                    }
+                }
 
 
             }
+
         }
 
     }
 
-}
 
+    fun onSyncSolde() {
+        viewModelScope.launch {
+
+            syncSoldesUseCase().collect { result ->
+                when (result) {
+                    Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true)
+                        }
+                    }
+
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(isLoading = false)
+                        }
+
+                        _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Solde mis à jour avec succès"))
+                    }
+
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = result.e?.message ?: "Erreur inconnue"
+                            )
+                        }
+
+                        _uiEvent.emit(
+                            RapportUiEvent.ShowError(
+                                result.e?.message ?: "Erreur inconnue"
+                            )
+                        )
+
+                    }
+                }
+
+            }
+
+
+        }
+
+    }
+
+
+    fun onActionMenuVisibile() {
+
+        _uiState.update {
+            it.copy(isActionMenuVisible = true)
+        }
+
+    }
+
+    fun onActionMenuDismiss() {
+        _uiState.update {
+            it.copy(isActionMenuVisible = false)
+        }
+
+    }
+
+    fun onSyncTransactConfirmDialog() {
+
+        _uiState.update {
+            it.copy(isSyncTransactConformDialogShown = true)
+        }
+    }
+
+    fun onSyncTransactConfirmDialogDismiss() {
+
+        _uiState.update {
+            it.copy(isSyncTransactConformDialogShown = false)
+        }
+    }
+
+    fun onSyncSoldeConfirmDialog() {
+
+        _uiState.update {
+            it.copy(isSyncSoldeConformDialogShown = true)
+        }
+    }
+
+    fun onSyncSoldeConfirmDialogDismiss() {
+
+        _uiState.update {
+            it.copy(isSyncSoldeConformDialogShown = false)
+        }
+    }
+}
 
 data class RapportUiState(
 
@@ -545,10 +678,14 @@ data class RapportUiState(
     val isEditTelephoneClientError: Boolean = false,
     val isEditNomBeneficiaireError: Boolean = false,
     val isEditTelephoneBeneficiaireError: Boolean = false,
-    val editErrorMessage: String = ""
+    val editErrorMessage: String = "",
+    val isActionMenuVisible: Boolean = false,
+    val isSyncTransactConformDialogShown: Boolean = false,
+   val isSyncSoldeConformDialogShown : Boolean = false
 
-)
+) {
 
+}
 
 sealed class RapportUiEvent {
 
@@ -557,4 +694,11 @@ sealed class RapportUiEvent {
     data class ShowSuccesMessage(val succesMessage: String) : RapportUiEvent()
 
 
+}
+
+sealed class DialogState {
+    data object None : DialogState()
+    data class TransactionDetail(val transaction: Transaction) : DialogState()
+    data class DeleteConfirmation(val transaction: Transaction) : DialogState()
+    data object Loading : DialogState()
 }

@@ -30,16 +30,15 @@ data class Transaction(
     val horodatage: Long = System.currentTimeMillis(),
     val creePar: Long = 0,
     val codeAgence: String = "",
-    val statutSync: StatutSync = StatutSync.EN_ATTENTE,
 
     )
 
 
 enum class TransactionType(val icon: Int) {
-    DEPOT(R.drawable.depot), RETRAIT(R.drawable.retrait), TRANSFERT_ENTRANT(R.drawable.trans_entrant), TRANSFERT_SORTANT(
-        R.drawable.trans_sortie
-    ),
+    DEPOT(R.drawable.depot),
+    RETRAIT(R.drawable.retrait),
+    TRANSFERT_ENTRANT(R.drawable.trans_entrant),
+    TRANSFERT_SORTANT(R.drawable.trans_sortie),
     COMMISSION(R.drawable.transaction_out)
 }
 
-enum class StatutSync { EN_ATTENTE, SYNC, CONFLIT }

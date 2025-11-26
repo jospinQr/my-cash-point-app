@@ -2,14 +2,13 @@ package org.megamind.mycashpoint.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
-import org.megamind.mycashpoint.domain.model.StatutSync
+import org.megamind.mycashpoint.domain.model.Solde
 import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.ui.screen.main.utils.Constants
 import org.megamind.mycashpoint.ui.screen.main.utils.Result
 
 interface TransactionRepository {
 
-    fun insert(transaction: Transaction): Flow<Result<Unit>>
 
     fun allTransactions(): Flow<Result<List<Transaction>>>
 
@@ -18,7 +17,7 @@ interface TransactionRepository {
         device: Constants.Devise
     ): Flow<Result<List<TransactionEntity>>>
 
-    fun getTransactionsBySyncStatus(statut: StatutSync): Flow<Result<List<Transaction>>>
+    fun getUnSyncedTransaction(): Flow<Result<List<Transaction>>>
 
     fun deleteTransactionById(id: Long): Flow<Result<Unit>>
 
@@ -30,5 +29,9 @@ interface TransactionRepository {
 
 
     fun sendOneTransactToServer(transaction: Transaction): Flow<Result<Unit>>
+
+    fun markAsSynced(transaction: Transaction): Flow<Result<Unit>>
+
+    fun syncTransation(): Flow<Result<Unit>>
 }
 

@@ -38,6 +38,7 @@ import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -68,10 +69,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,10 +80,10 @@ import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.Operateur
-import org.megamind.mycashpoint.domain.model.StatutSync
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.AuthTextField
+import org.megamind.mycashpoint.ui.component.ConfirmDialog
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
 import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
 import org.megamind.mycashpoint.ui.component.CustomerButton
@@ -118,7 +119,6 @@ fun RapportScreen(
                             type = SnackbarType.ERROR
                         )
                     )
-
 
                 }
 
@@ -178,7 +178,15 @@ fun RapportScreen(
         onEditNoteChange = viewModel::onEditNoteChange,
         onEditDeviseChange = viewModel::onEditDeviseChange,
         onEditTypeChange = viewModel::onEditTypeChange,
-        onEditSubmit = viewModel::onEditTransactionSubmit
+        onEditSubmit = viewModel::onEditTransactionSubmit,
+        onSyncTransaction = viewModel::onSyncTransaction,
+        onSyncSolde = viewModel::onSyncSolde,
+        onActionMenuDismiss = viewModel::onActionMenuDismiss,
+        onActionMenuVisible = viewModel::onActionMenuVisibile,
+        onSyncTransactionDialogShown = viewModel::onSyncTransactConfirmDialog,
+        onSyncTransactDialoDismiss = viewModel::onSyncTransactConfirmDialogDismiss,
+        onSyncSoldeDialogShown = viewModel::onSyncSoldeConfirmDialog,
+        onSyncSoldeDialogDismiss = viewModel::onSyncSoldeConfirmDialogDismiss
     )
 
 
@@ -213,8 +221,16 @@ fun RapportScreenContent(
     onEditTypeChange: (TransactionType) -> Unit = {},
     onEditSubmit: () -> Unit = {},
     onSendOneTrasactToServer: () -> Unit = {},
+    onSyncTransaction: () -> Unit = {},
+    onSyncSolde: () -> Unit = {},
+    onActionMenuVisible: () -> Unit,
+    onActionMenuDismiss: () -> Unit,
+    onSyncTransactionDialogShown: () -> Unit,
+    onSyncTransactDialoDismiss: () -> Unit = {},
+    onSyncSoldeDialogShown: () -> Unit,
+    onSyncSoldeDialogDismiss: () -> Unit = {},
 
-    ) {
+) {
 
 
     Scaffold(
@@ -242,9 +258,43 @@ fun RapportScreenContent(
                     }
 
 
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = { onActionMenuVisible() }) {
 
                         Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null)
+
+                    }
+
+                    DropdownMenu(
+                        expanded = uiState.isActionMenuVisible,
+                        onDismissRequest = { onActionMenuDismiss() }
+
+                    ) {
+
+
+                        actionMenus.forEachIndexed { index, actionMenu ->
+
+                            DropdownMenuItem(
+                                text = { Text(actionMenu.text) },
+                                onClick = {
+
+                                    when (index) {
+
+                                        0 -> {
+                                            onSyncSoldeDialogShown()
+                                        }
+
+                                        1 -> {
+                                            onSyncTransactionDialogShown()
+                                        }
+
+                                        2 -> {
+
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
 
                     }
 
@@ -379,25 +429,6 @@ fun RapportScreenContent(
                     onRowClick = onTransactionClick
                 )
 
-                if (uiState.isTransactionDialogVisible && uiState.selectedTransaction != null) {
-                    TransactionDetailDialog(
-                        transaction = uiState.selectedTransaction,
-                        onDismissRequest = onTransactionDialogDismiss,
-                        onDeleteClick = onTransactionDelete,
-                        onEditClick = onTransactionEdit,
-                        onSyncClick = onSendOneTrasactToServer,
-                        onPrintClick = onTransactionPrint
-                    )
-                }
-
-                if (uiState.isDeleteConfirmationVisible && uiState.selectedTransaction != null) {
-                    DeleteTransactionConfirmationDialog(
-                        transaction = uiState.selectedTransaction,
-                        onConfirm = onDeleteConfirmationConfirm,
-                        onDismiss = onDeleteConfirmationDismiss
-                    )
-                }
-
 
             }
 
@@ -406,30 +437,60 @@ fun RapportScreenContent(
         if (uiState.isLoading) {
             LoadinDialog()
         }
+        if (uiState.isTransactionDialogVisible && uiState.selectedTransaction != null) {
+            TransactionDetailDialog(
+                transaction = uiState.selectedTransaction,
+                onDismissRequest = onTransactionDialogDismiss,
+                onDeleteClick = onTransactionDelete,
+                onEditClick = onTransactionEdit,
+                onSyncClick = onSendOneTrasactToServer,
+                onPrintClick = onTransactionPrint
+            )
+        }
+
+        if (uiState.isDeleteConfirmationVisible && uiState.selectedTransaction != null) {
+            DeleteTransactionConfirmationDialog(
+                transaction = uiState.selectedTransaction,
+                onConfirm = onDeleteConfirmationConfirm,
+                onDismiss = onDeleteConfirmationDismiss
+            )
+        }
 
 
-    }
 
 
-
-
-    if (uiState.isEditSheetVisible) {
-        TransactionEditBottomSheet(
-            uiState = uiState,
-            onDismiss = onEditSheetDismiss,
-            onTypeChange = onEditTypeChange,
-            onDeviseChange = onEditDeviseChange,
-            onMontantChange = onEditMontantChange,
-            onNomClientChange = onEditNomClientChange,
-            onTelephoneClientChange = onEditTelephoneClientChange,
-            onNomBeneficiaireChange = onEditNomBeneficiaireChange,
-            onTelephoneBeneficiaireChange = onEditTelephoneBeneficiaireChange,
-            onNoteChange = onEditNoteChange,
-            onSubmit = onEditSubmit
+        ConfirmDialog(
+            visible = uiState.isSyncTransactConformDialogShown,
+            title = "Vous êtes sur le point d'envoyer les transactions sur le serveur.",
+            onDismiss = { onSyncTransactDialoDismiss() },
+            onConfirm = { onSyncTransaction() }
         )
+        ConfirmDialog(
+            visible = uiState.isSyncSoldeConformDialogShown,
+            title = "Vous êtes sur le point d'envoyer les soldes sur le serveur.",
+            onDismiss = { onSyncSoldeDialogDismiss() },
+            onConfirm = { onSyncSolde() }
+        )
+
+
+        if (uiState.isEditSheetVisible) {
+            TransactionEditBottomSheet(
+                uiState = uiState,
+                onDismiss = onEditSheetDismiss,
+                onTypeChange = onEditTypeChange,
+                onDeviseChange = onEditDeviseChange,
+                onMontantChange = onEditMontantChange,
+                onNomClientChange = onEditNomClientChange,
+                onTelephoneClientChange = onEditTelephoneClientChange,
+                onNomBeneficiaireChange = onEditNomBeneficiaireChange,
+                onTelephoneBeneficiaireChange = onEditTelephoneBeneficiaireChange,
+                onNoteChange = onEditNoteChange,
+                onSubmit = onEditSubmit
+            )
+        }
+
+
     }
-
-
 }
 
 
@@ -874,7 +935,7 @@ fun RapportScreenContentPreview() {
                     horodatage = System.currentTimeMillis() - 3600000,
                     creePar = 1L,
                     idOperateur = 1,
-                    statutSync = StatutSync.SYNC,
+                    isSynced = false,
                     reference = "",
                     codeAgence = ""
                 ),
@@ -894,7 +955,7 @@ fun RapportScreenContentPreview() {
                     horodatage = System.currentTimeMillis() - 7200000,
                     creePar = 1L,
                     idOperateur = 1,
-                    statutSync = StatutSync.SYNC,
+                    isSynced = false,
                     reference = "",
                     codeAgence = ""
                 ),
@@ -914,7 +975,7 @@ fun RapportScreenContentPreview() {
                     horodatage = System.currentTimeMillis() - 10800000,
                     creePar = 1,
                     idOperateur = 1,
-                    statutSync = StatutSync.SYNC,
+                    isSynced = false,
                     reference = "",
                     codeAgence = ""
                 )
@@ -941,7 +1002,13 @@ fun RapportScreenContentPreview() {
             onEditDeviseChange = {},
             onEditTypeChange = {},
             onEditSubmit = {},
-            onSendOneTrasactToServer = {}
+            onSendOneTrasactToServer = {},
+            onActionMenuDismiss = {},
+            onActionMenuVisible = {},
+            onSyncTransactionDialogShown = {},
+            onSyncTransactDialoDismiss = {},
+            onSyncSoldeDialogShown = {},
+            onSyncSoldeDialogDismiss = {}
         )
     }
 }

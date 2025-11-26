@@ -10,7 +10,6 @@ import org.megamind.mycashpoint.data.data_source.local.mapper.toTransaction
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransactionEntity
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toTransactionRequest
 import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
-import org.megamind.mycashpoint.domain.model.StatutSync
 import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.repository.TransactionRepository
 import org.megamind.mycashpoint.ui.screen.main.utils.Constants
@@ -24,12 +23,19 @@ class TransactionRepositoryImpl(
 
 
     val TAG = "TransactionRepo"
-    override fun insert(transaction: Transaction): Flow<Result<Unit>> = flow {
+
+
+    override fun insertTransactionAndUpdateSoldes(
+        transaction: Transaction,
+    ): Flow<Result<Transaction>> = flow {
         try {
+
             emit(Result.Loading)
-            val transactionEntity = transaction.toTransactionEntity()
-            transactionDao.insertAndReturnId(transactionEntity)
-            emit(Result.Success(Unit))
+            val transactionEntity = transaction.toTransactionEntity(isSynced = false)
+            val id = transactionDao.insertTransactionAndUpdateSoldes(transactionEntity, soldeDao)
+            val reloaded = transactionDao.getById(id)?.toTransaction()
+            emit(Result.Success(reloaded))
+
         } catch (e: Exception) {
             emit(Result.Error(e))
         }
@@ -59,11 +65,12 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override fun getTransactionsBySyncStatus(statut: StatutSync): Flow<Result<List<Transaction>>> =
+    override fun getUnSyncedTransaction(): Flow<Result<List<Transaction>>> =
         flow {
             try {
                 emit(Result.Loading)
-                val transactions = transactionDao.getBySyncStatus(statut).map { it.toTransaction() }
+                val transactions =
+                    transactionDao.getUnSyncedTransaction().map { it.toTransaction() }
                 emit(Result.Success(transactions))
             } catch (e: Exception) {
                 emit(Result.Error(e))
@@ -86,7 +93,7 @@ class TransactionRepositoryImpl(
         try {
 
             emit(Result.Loading)
-            val entity = transaction.toTransactionEntity()
+            val entity = transaction.toTransactionEntity(isSynced = false)
             transactionDao.updateTransactionAndUpdateSoldes(entity, soldeDao)
             emit(Result.Success(Unit))
 
@@ -104,14 +111,18 @@ class TransactionRepositoryImpl(
             emit(Result.Loading)
             when (val result = transactionService.save(transaction.toTransactionRequest())) {
                 is Result.Success -> {
+
+                    transactionDao.makeAsSync(transaction.id)
                     emit(Result.Success(Unit))
                     Log.i(TAG, "Sended")
+
+
                 }
 
                 is Result.Error -> {
                     emit(Result.Error(result.e ?: Exception("Erreur inconnue lors de l'envoi")))
                     Log.e(TAG, result.e?.message ?: "Erreur inconnue")
-                    Log.d(TAG,transaction.toTransactionRequest().toString())
+                    Log.d(TAG, transaction.toTransactionRequest().toString())
                 }
 
                 else -> {
@@ -124,20 +135,46 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override fun insertTransactionAndUpdateSoldes(
-        transaction: Transaction,
-    ): Flow<Result<Transaction>> = flow {
-        try {
+    override fun markAsSynced(transaction: Transaction): Flow<Result<Unit>> {
+        TODO("Not yet implemented")
+    }
 
+    override fun syncTransation(): Flow<Result<Unit>> = flow {
+
+
+        try {
             emit(Result.Loading)
-            val transactionEntity = transaction.toTransactionEntity()
-            val id = transactionDao.insertTransactionAndUpdateSoldes(transactionEntity, soldeDao)
-            val reloaded = transactionDao.getById(id)?.toTransaction()
-            emit(Result.Success(reloaded))
+            val unSyncedTransaction = transactionDao.getUnSyncedTransaction()
+
+            if (unSyncedTransaction.isEmpty()) {
+                emit(Result.Success(Unit))
+                return@flow
+            }
+
+
+            unSyncedTransaction.forEach { transactionEntity ->
+
+                val transaction = transactionEntity.toTransaction()
+                val result = transactionService.save(transaction.toTransactionRequest())
+
+                if (result is Result.Success) {
+                    transactionDao.makeAsSync(transaction.id)
+                } else if (result is Result.Error) {
+
+                    throw result.e
+                        ?: Exception("Impossible de synchroniser la transaction ${transaction.id}")
+                }
+
+
+            }
+            emit(Result.Success(Unit))
 
         } catch (e: Exception) {
             emit(Result.Error(e))
+            Log.e(TAG, e.message.toString())
         }
+
+
     }
 
 

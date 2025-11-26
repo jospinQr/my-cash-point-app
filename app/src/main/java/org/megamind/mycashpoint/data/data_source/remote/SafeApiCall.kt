@@ -25,6 +25,7 @@ suspend inline fun <reified T> safeApiCall(
 
         } else {
             val errorBody = response.bodyAsText()
+            Log.e("SafeApi", errorBody)
             Result.Error(
                 ApiException(
                     code = response.status.value,
@@ -40,6 +41,7 @@ suspend inline fun <reified T> safeApiCall(
         Result.Error(NetworkException("Vérifiez votre connexion au serveur", e))
 
     } catch (e: ApiException) {
+        Log.e("safeApiCall", e.message)
         Result.Error(e)
     } catch (e: Exception) {
         Result.Error(UnknownApiException(e))

@@ -29,7 +29,6 @@ interface SoldeRepository {
     fun sendSoldeToServeur(solde: Solde): Flow<Result<Unit>>
 
 
-
     fun getUnsyncedSoldes(): Flow<Result<List<Solde>>>
 
     fun markAsSynced(solde: Solde): Flow<Result<Unit>>

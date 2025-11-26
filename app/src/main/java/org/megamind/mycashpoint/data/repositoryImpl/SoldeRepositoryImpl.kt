@@ -1,11 +1,13 @@
 package org.megamind.mycashpoint.data.repositoryImpl
 
+import android.net.http.HttpException
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.data.data_source.local.dao.SoldeDao
 import org.megamind.mycashpoint.data.data_source.local.mapper.toSolde
 import org.megamind.mycashpoint.data.data_source.local.mapper.toSoldeEntity
+import org.megamind.mycashpoint.data.data_source.remote.ApiException
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toSoldeRequestDto
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toSoldeUpdateAmountRequestDto
 import org.megamind.mycashpoint.data.data_source.remote.service.SoldeService
@@ -127,7 +129,7 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
             emit(Loading)
             val unsyncedSoldes = soldeDao.getUnsyncedSoldes()
             if (unsyncedSoldes.isEmpty()) {
-                emit(Success(Unit))
+                emit(Error(Exception("Aucun solde à synchroniser")))
                 return@flow
             }
 
@@ -142,8 +144,23 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
                     soldeDao.markAsSynced(solde.idOperateur, solde.soldeType, solde.devise)
                 } else if (result is Error) {
 
-                    Log.e(TAG, "Failed to sync solde ${solde.idOperateur}: ${result.e?.message}")
-                    throw result.e ?: Exception("Failed to sync solde ${solde.idOperateur}")
+                    if (result.e is ApiException && result.e.code == 404) {
+
+                        val soldeResult = soldeService.save(solde.toSoldeRequestDto())
+
+                        if (soldeResult is Success) {
+                            soldeDao.markAsSynced(solde.idOperateur, solde.soldeType, solde.devise)
+                        } else {
+                            throw result.e
+                        }
+
+                    } else {
+
+                        throw result.e ?: Exception("Erreur inconnue lors de l'envoi")
+
+                    }
+
+
                 }
             }
             emit(Success(Unit))

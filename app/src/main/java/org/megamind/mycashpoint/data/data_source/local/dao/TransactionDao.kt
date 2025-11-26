@@ -7,10 +7,8 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
-
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.SoldeType
-import org.megamind.mycashpoint.domain.model.StatutSync
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.ui.screen.main.utils.Constants
 import java.math.BigDecimal
@@ -70,15 +68,16 @@ interface TransactionDao {
         )
     }
 
-    @Query(""" SELECT * FROM flux_caisse WHERE idOperateur = :idOperateur AND device = :device ORDER BY horodatage DESC """)
+    @Query(""" SELECT * FROM flux_caisse WHERE idOperateur = :idOperateur AND device = :device AND isSynced=0 ORDER BY horodatage DESC """)
     suspend fun getTransactionsByOperatorAndDevice(
         idOperateur: Int,
         device: Constants.Devise
     ): List<TransactionEntity>
 
 
-    @Query("SELECT * FROM flux_caisse WHERE statutSync = :statut")
-    suspend fun getBySyncStatus(statut: StatutSync): List<TransactionEntity>
+    @Query("SELECT * FROM flux_caisse WHERE isSynced = 0")
+    suspend fun getUnSyncedTransaction(): List<TransactionEntity>
+
 
     // --- Méthode atomique pour insertion et mise à jour des soldes ---
     @Transaction
@@ -106,7 +105,11 @@ interface TransactionDao {
         updateCodeTransaction(generatedId, codeTransaction)
         return generatedId
     }
+
+    @Query("UPDATE flux_caisse SET isSynced=1 WHERE id=:id")
+    suspend fun makeAsSync(id: Long)
 }
+
 
 private suspend fun adjustSoldesForTransaction(
     transaction: TransactionEntity,
