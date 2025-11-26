@@ -32,6 +32,7 @@ class TransactionViewModel(
     private val _uiEvent = MutableSharedFlow<TransactionUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
     private val _montant get() = _uiState.value.montant
+    private val _commision get() = _uiState.value.commission
     private val _nomClient get() = _uiState.value.nomClient
     private val _telephClient get() = _uiState.value.telephClient
     private val _nomBenef get() = _uiState.value.nomBenef
@@ -45,6 +46,13 @@ class TransactionViewModel(
         _uiState.update {
             it.copy(montant = montant, isMontantError = false)
         }
+    }
+
+    fun onCommissionChange(commission: String) {
+        _uiState.update {
+            it.copy(commission = commission)
+        }
+
     }
 
     fun onNomClientChange(nom: String) {
@@ -118,6 +126,7 @@ class TransactionViewModel(
                 type = _typeTransact,
                 device = _devise,
                 montant = _montant.toBigDecimalOrNull() ?: BigDecimal(0),
+                commission = _commision.toFloatOrNull(),
                 nomClient = _nomClient,
                 numClient = _telephClient,
                 nomBeneficaire = _nomBenef,
@@ -148,7 +157,7 @@ class TransactionViewModel(
                                 isFormVisble = false
                             )
                         }
-                        _uiEvent.emit(TransactionUiEvent.ShowSuccessMessage("Transaction enregistrée"))
+
                         _uiEvent.emit(
                             TransactionUiEvent.ReprintReceipt(
                                 result.data!!,
@@ -222,7 +231,7 @@ data class TransactionUiState(
     val montant: String = "",
     val nomClient: String = "",
     val telephClient: String = "",
-
+    val commission: String = "",
     val nomBenef: String = "",
     val telephBenef: String = "",
     val note: String = "",

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.rounded.Print
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -424,12 +425,20 @@ fun RapportScreenContent(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
+                if (transactions.isNotEmpty()) {
+                    TransactionTable(
+                        transactions = transactions,
+                        onRowClick = onTransactionClick
+                    )
 
-                TransactionTable(
-                    transactions = transactions,
-                    onRowClick = onTransactionClick
-                )
+                } else {
 
+                    Column (Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center,horizontalAlignment = Alignment.CenterHorizontally){
+
+                        Text("Aucune transaction non synchronisé")
+                        Button(onClick = {}) { Text("Transactions synchronisées") }
+                    }
+                }
 
             }
 

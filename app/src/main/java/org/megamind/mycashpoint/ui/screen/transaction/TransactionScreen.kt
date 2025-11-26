@@ -29,7 +29,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Note
+import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.rounded.AttachMoney
+import androidx.compose.material.icons.rounded.Money
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material3.Card
@@ -178,6 +180,7 @@ fun TransactionScreen(
         onSave = viewModel::onSaveClick,
         onConfirmDialogDismiss = viewModel::onConfirmDialogDismiss,
         onConfirmDialogShown = viewModel::onConfirmDialogShown,
+        onCommissionChange = viewModel::onCommissionChange
     )
 
 }
@@ -202,6 +205,7 @@ fun TransactionScreenContent(
     onSave: (Int) -> Unit,
     onConfirmDialogDismiss: () -> Unit,
     onConfirmDialogShown: () -> Unit,
+    onCommissionChange : (String)->Unit
 
     ) {
 
@@ -483,6 +487,23 @@ fun TransactionScreenContent(
                             }
                         )
                     }
+
+                    CustomOutlinedTextField(
+                        value = uiState.commission,
+                        onValueChange = {
+                            onCommissionChange(it)
+                        },
+                        label = "Commission en %",
+                        imeAction = ImeAction.Done,
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Money,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                    )
                     CustomOutlinedTextField(
                         value = uiState.note,
                         onValueChange = {
@@ -627,7 +648,8 @@ fun TransactionScreenContentPreview() {
                     onNoteChange = {},
                     onSave = {},
                     onConfirmDialogDismiss = {},
-                    onConfirmDialogShown = {}
+                    onConfirmDialogShown = {},
+                    onCommissionChange = {}
                 )
             }
         }

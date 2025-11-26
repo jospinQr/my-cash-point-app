@@ -26,6 +26,7 @@ data class TransactionEntity(
     val idOperateur: Int,             // ex: "AIRTEL"
     val type: TransactionType,                  // Type de mouvement
     val montant: BigDecimal,
+    val commission: Float? = null,
 
     val nomClient: String? = null,// Montant en centimes
     val numClient: String? = null,
