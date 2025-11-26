@@ -537,7 +537,7 @@ class RapportViewModel(
 
                     is Result.Success -> {
                         _uiState.update {
-                            it.copy(isLoading = false)
+                            it.copy(isLoading = false, isSyncTransactConformDialogShown = false, isActionMenuVisible = false)
                         }
 
                         _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Synchronisation reussit"))
@@ -546,7 +546,7 @@ class RapportViewModel(
 
                     is Result.Error -> {
                         _uiState.update {
-                            it.copy(isLoading = false)
+                            it.copy(isLoading = false, isSyncTransactConformDialogShown = false)
                         }
 
                         _uiEvent.emit(
@@ -578,7 +578,7 @@ class RapportViewModel(
 
                     is Result.Success -> {
                         _uiState.update {
-                            it.copy(isLoading = false)
+                            it.copy(isLoading = false, isSyncSoldeConformDialogShown = false, isActionMenuVisible = false)
                         }
 
                         _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Solde mis à jour avec succès"))
@@ -588,6 +588,7 @@ class RapportViewModel(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
+                                isSyncSoldeConformDialogShown = false,
                                 errorMessage = result.e?.message ?: "Erreur inconnue"
                             )
                         }
@@ -681,7 +682,7 @@ data class RapportUiState(
     val editErrorMessage: String = "",
     val isActionMenuVisible: Boolean = false,
     val isSyncTransactConformDialogShown: Boolean = false,
-   val isSyncSoldeConformDialogShown : Boolean = false
+    val isSyncSoldeConformDialogShown: Boolean = false
 
 ) {
 

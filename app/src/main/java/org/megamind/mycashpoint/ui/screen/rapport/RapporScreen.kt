@@ -230,7 +230,7 @@ fun RapportScreenContent(
     onSyncSoldeDialogShown: () -> Unit,
     onSyncSoldeDialogDismiss: () -> Unit = {},
 
-) {
+    ) {
 
 
     Scaffold(
@@ -280,11 +280,12 @@ fun RapportScreenContent(
                                     when (index) {
 
                                         0 -> {
-                                            onSyncSoldeDialogShown()
+                                            onSyncTransactionDialogShown()
+
                                         }
 
                                         1 -> {
-                                            onSyncTransactionDialogShown()
+                                            onSyncSoldeDialogShown()
                                         }
 
                                         2 -> {

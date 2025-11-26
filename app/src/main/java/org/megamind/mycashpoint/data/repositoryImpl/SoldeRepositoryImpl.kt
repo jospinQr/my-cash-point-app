@@ -75,33 +75,6 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
         }
     }
 
-    override fun sendSoldeToServeur(solde: Solde): Flow<Result<Unit>> = flow {
-
-        try {
-            emit(Loading)
-
-            when (val result = soldeService.save(solde.toSoldeRequestDto())) {
-                is Success -> {
-                    Log.i(TAG, "Sended")
-                    emit(Success(Unit))
-
-                }
-
-                is Error -> {
-                    Log.e(TAG, result.e?.message ?: "Erreur inconnue")
-                    emit(Error(result.e ?: Exception("Erreur inconnue lors de l'envoi")))
-
-                }
-
-                else -> {
-                    Log.e(TAG, "Erreur inattendu")
-                    emit(Error(Exception("État inattendu lors de l'envoi")))
-                }
-            }
-        } catch (e: Exception) {
-            emit(Error(e))
-        }
-    }
 
 
     override fun getUnsyncedSoldes(): Flow<Result<List<Solde>>> = flow {

@@ -27,7 +27,6 @@ import java.math.BigDecimal
 class SoldeViewModel(
     private val getSolde: GetSoldeByOperateurEtTypeEtDeviseUseCase,
     private val saveOrUpdateSolde: SaveOrUpdateSoldeUseCase,
-    private val syncSoldesUseCase: SyncSoldesUseCase,
     val storageManager: DataStorageManager,
 ) : ViewModel() {
 
@@ -233,38 +232,6 @@ class SoldeViewModel(
     }
 
 
-    fun onUpadateServerSolde() {
-        viewModelScope.launch {
-
-            syncSoldesUseCase().collect { result ->
-                when (result) {
-                    Result.Loading -> {
-                        _uiState.update {
-                            it.copy(isLoading = true)
-                        }
-                    }
-
-                    is Result.Success -> {
-                        _uiState.update {
-                            it.copy(isLoading = false)
-                        }
-
-                        _uiEvent.emit(SoldeUiEvent.ShowSuccesMessage("Solde mis à jour avec succès"))
-                    }
-
-                    is Result.Error -> {
-                        _uiState.update {
-                            it.copy(isLoading = false, errorMessage = result.e?.message)
-                        }
-                    }
-                }
-
-            }
-
-
-        }
-
-    }
 }
 
 data class SoldeUiState(

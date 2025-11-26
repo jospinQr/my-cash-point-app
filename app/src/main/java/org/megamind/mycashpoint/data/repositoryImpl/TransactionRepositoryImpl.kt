@@ -147,7 +147,7 @@ class TransactionRepositoryImpl(
             val unSyncedTransaction = transactionDao.getUnSyncedTransaction()
 
             if (unSyncedTransaction.isEmpty()) {
-                emit(Result.Success(Unit))
+                emit(Result.Error(Exception("Pas de transaction à synchroniser")))
                 return@flow
             }
 

@@ -121,7 +121,7 @@ val appModule = module {
     }
 
     viewModel {
-        SoldeViewModel(get(), get(), get(), get())
+        SoldeViewModel(get(), get(), get())
     }
 
 
@@ -130,7 +130,7 @@ val appModule = module {
     }
 
     viewModel {
-        RapportViewModel(get(), get(), get(), get(), get(),get())
+        RapportViewModel(get(), get(), get(), get(), get(), get())
     }
 
     viewModel {

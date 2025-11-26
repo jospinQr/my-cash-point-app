@@ -130,7 +130,7 @@ fun SoldeScreen(
         onSelectedTypeSoldeChange = viewModel::onSoldeTypeChange,
         onConfirmDialogShown = viewModel::onConfirmDialogShown,
         onConfirmDialogDismiss = viewModel::onConfirmDialogDismiss,
-        onUpdateServerAmount = viewModel::onUpadateServerSolde
+
     )
 
 }
@@ -154,7 +154,7 @@ fun SoldeScreenContent(
     onSelectedTypeSoldeChange: (SoldeType) -> Unit,
     onConfirmDialogShown: () -> Unit,
     onConfirmDialogDismiss: () -> Unit,
-    onUpdateServerAmount:()->Unit,
+
 
 
 ) {
@@ -169,13 +169,7 @@ fun SoldeScreenContent(
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             },
-            actions = {
-               IconButton(onClick = { onUpdateServerAmount()}) {
 
-                   Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
-               }
-
-            }
 
 
         )
@@ -655,7 +649,7 @@ fun SoldeScreenPreview() {
             onSelectedTypeSoldeChange = {},
             onConfirmDialogShown = {},
             onConfirmDialogDismiss = {},
-            onUpdateServerAmount = {}
+
         )
     }
 }
