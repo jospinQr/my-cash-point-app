@@ -8,7 +8,7 @@ import org.megamind.mycashpoint.data.data_source.local.mapper.toAgence
 import org.megamind.mycashpoint.data.data_source.local.mapper.toAgenceEntity
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.repository.AgenceRepository
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.utils.Result
 
 
 class AgenceRepositoryImpl(private val agenceDao: AgenceDao) : AgenceRepository {

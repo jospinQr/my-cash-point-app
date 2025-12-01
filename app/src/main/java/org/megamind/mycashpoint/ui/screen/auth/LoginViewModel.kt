@@ -10,12 +10,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.Role
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.usecase.auth.LoginUseCase
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
-import org.megamind.mycashpoint.ui.screen.main.utils.UtilsFonctions
+import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.utils.UtilsFonctions
+import org.megamind.mycashpoint.utils.decodeJwtPayload
 
-class SignInViewModel(
+class LoginViewModel(
     private val loginUseCase: LoginUseCase,
 ) : ViewModel() {
 
@@ -32,8 +34,6 @@ class SignInViewModel(
 
     private val _password: String
         get() = _uiState.value.password
-
-
 
 
     fun onEmailChange(email: String) {
@@ -91,10 +91,25 @@ class SignInViewModel(
                     }
 
                     is Result.Success -> {
+
                         _uiState.update {
                             it.copy(isLoading = false)
                         }
-                        _uiEvent.emit(SignInUiEvent.NavigateToHome)
+
+                        val userRole = decodeJwtPayload(result.data?.token!!).optString("role")
+                        when (userRole) {
+                            Role.ADMIN.name -> _uiEvent.emit(SignInUiEvent.NavigateToAdmintHomeScreen)
+                            Role.AGENT.name -> {
+                                _uiEvent.emit(SignInUiEvent.NavigateToAgentHomeScreen)
+
+                            }
+                            else -> {
+                                _uiEvent.emit(SignInUiEvent.ShowError("Role Iconnu"))
+
+                            }
+                        }
+
+
 
                     }
 
@@ -181,7 +196,8 @@ data class SignInUiState(
 
 sealed class SignInUiEvent {
 
-    object NavigateToHome : SignInUiEvent()
+    object NavigateToAgentHomeScreen : SignInUiEvent()
+    object NavigateToAdmintHomeScreen : SignInUiEvent()
 
     data class ShowError(val message: String) : SignInUiEvent()
 

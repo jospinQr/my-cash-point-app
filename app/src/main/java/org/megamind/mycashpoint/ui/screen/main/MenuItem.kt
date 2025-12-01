@@ -1,14 +1,6 @@
 package org.megamind.mycashpoint.ui.screen.main
 
 import androidx.annotation.DrawableRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.Report
-import androidx.compose.material.icons.outlined.CloudSync
-import androidx.compose.material.icons.outlined.MonetizationOn
-import androidx.compose.material.icons.outlined.Report
-import androidx.compose.ui.graphics.vector.ImageVector
 import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.ui.navigation.Destination
 
@@ -19,11 +11,10 @@ data class MenuItem(
     val selectedIcon: Int,
     val unSelectedIcon: Int,
     val route: String,
+)
 
-    )
 
-
-val navBarItem = listOf(
+val agentNavBarItem = listOf(
 
     MenuItem(
         title = "Transaction",
@@ -47,3 +38,30 @@ val navBarItem = listOf(
         route = Destination.RAPPORT.name
     ),
 )
+
+
+val adminNavBarItem = listOf(
+
+    MenuItem(
+        title = "Tableau de bord",
+        selectedIcon = R.drawable.dash_fill,
+        unSelectedIcon = R.drawable.dash_out,
+        route = Destination.DASHBOARD.name
+    ),
+
+    MenuItem(
+        title = "Rapport",
+        selectedIcon = R.drawable.rapport_fill,
+        unSelectedIcon = R.drawable.rapport_out,
+        route = Destination.ADMIN_REPPORT.name
+    ),
+
+
+    MenuItem(
+        title = "Paramètres",
+        selectedIcon = R.drawable.parameter_out,
+        unSelectedIcon = R.drawable.parmeter_fill,
+        route = Destination.SETTINGS.name
+    ),
+)
+

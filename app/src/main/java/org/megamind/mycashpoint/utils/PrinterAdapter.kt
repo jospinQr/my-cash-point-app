@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.ui.screen.main.utils
+package org.megamind.mycashpoint.utils
 
 
 import android.content.Context

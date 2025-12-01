@@ -38,10 +38,10 @@ import org.megamind.mycashpoint.domain.usecase.transaction.SyncTransactionUseCas
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
 import org.megamind.mycashpoint.ui.screen.Agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
-import org.megamind.mycashpoint.ui.screen.auth.SignInViewModel
+import org.megamind.mycashpoint.ui.screen.auth.LoginViewModel
 import org.megamind.mycashpoint.ui.screen.caisse.SoldeViewModel
 import org.megamind.mycashpoint.ui.screen.main.MainViewModel
-import org.megamind.mycashpoint.ui.screen.main.utils.DataStorageManager
+import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.ui.screen.rapport.RapportViewModel
 import org.megamind.mycashpoint.ui.screen.splash.SplashViewModel
@@ -102,7 +102,7 @@ val appModule = module {
 //view models
 
     viewModel {
-        SignInViewModel(get())
+        LoginViewModel(get())
     }
 
     viewModel {
@@ -110,7 +110,7 @@ val appModule = module {
     }
 
     viewModel {
-        MainViewModel()
+        MainViewModel(get())
     }
 
     viewModel {
@@ -134,7 +134,7 @@ val appModule = module {
     }
 
     viewModel {
-        SplashViewModel(get(), get())
+        SplashViewModel(get(), )
     }
 
 

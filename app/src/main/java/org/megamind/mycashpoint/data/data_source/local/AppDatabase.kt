@@ -11,7 +11,7 @@ import org.megamind.mycashpoint.data.data_source.local.entity.AgenceEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
-import org.megamind.mycashpoint.ui.screen.main.utils.EnumConverters
+import org.megamind.mycashpoint.utils.EnumConverters
 
 
 @Database(

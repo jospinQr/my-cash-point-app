@@ -1,9 +1,7 @@
-package org.megamind.mycashpoint.ui.screen
+package org.megamind.mycashpoint.ui.screen.splash
 
 import android.os.Build
-import android.window.SplashScreen
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,12 +21,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.ui.component.AnimatedTextByLetter
-import org.megamind.mycashpoint.ui.screen.splash.SplashUiEvent
-import org.megamind.mycashpoint.ui.screen.splash.SplashViewModel
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 
 
@@ -37,7 +32,8 @@ fun SplashScreen(
     modifier: Modifier = Modifier,
     viewModel: SplashViewModel = koinViewModel(),
     navigateToLoginScreen: () -> Unit = {},
-    navigateToHomeScreen: () -> Unit = {}
+    navigateToAgentHomeScreen: () -> Unit = {},
+    navigateToAdminHomeScreen: () -> Unit = {},
 ) {
 
 
@@ -45,8 +41,12 @@ fun SplashScreen(
 
         viewModel.uiEvent.collect {
             when (it) {
-                SplashUiEvent.NavigateToHome -> {
-                    navigateToHomeScreen()
+                SplashUiEvent.NavigateToAdminHomeScreen -> {
+                    navigateToAdminHomeScreen()
+                }
+
+                SplashUiEvent.NavigateToAgentHomeScreen -> {
+                    navigateToAgentHomeScreen()
                 }
 
                 SplashUiEvent.NavigateToLogin -> {

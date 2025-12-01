@@ -1,6 +1,6 @@
 package org.megamind.mycashpoint.domain.model
 
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.utils.Constants
 
 data class CommissionStats(
     val idOperateur: Int? = null,

@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.repository.TransactionRepository
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.utils.Result
 import java.math.BigDecimal
 
 class InsertTransactionAndUpdateSoldesUseCase(

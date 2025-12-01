@@ -3,9 +3,8 @@ package org.megamind.mycashpoint.domain.repository
 import kotlinx.coroutines.flow.Flow
 import org.megamind.mycashpoint.domain.model.Solde
 import org.megamind.mycashpoint.domain.model.SoldeType
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
-import java.math.BigDecimal
+import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.Result
 
 interface SoldeRepository {
 
@@ -25,13 +24,19 @@ interface SoldeRepository {
         devise: Constants.Devise
     ): Flow<Result<Unit>>
 
-
-
-
-
     fun getUnsyncedSoldes(): Flow<Result<List<Solde>>>
 
     fun markAsSynced(solde: Solde): Flow<Result<Unit>>
 
+
+    //remote
     fun syncSoldes(): Flow<Result<Unit>>
+
+
+    fun getSoldeFromServerByCriteria(
+        codeAgence: String,
+        operateurId: Long,
+        deviseCode: String,
+        soldeType: SoldeType
+    ): Flow<Result<Solde>>
 }

@@ -18,7 +18,7 @@ import org.koin.dsl.module
 import org.megamind.mycashpoint.data.data_source.remote.service.AuthService
 import org.megamind.mycashpoint.data.data_source.remote.service.SoldeService
 import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
-import org.megamind.mycashpoint.ui.screen.main.utils.DataStorageManager
+import org.megamind.mycashpoint.utils.DataStorageManager
 
 val ktorModule = module {
 

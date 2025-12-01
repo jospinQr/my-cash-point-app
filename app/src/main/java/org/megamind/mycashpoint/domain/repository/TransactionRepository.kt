@@ -2,10 +2,11 @@ package org.megamind.mycashpoint.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
-import org.megamind.mycashpoint.domain.model.Solde
+import org.megamind.mycashpoint.domain.model.PaginatedTransaction
 import org.megamind.mycashpoint.domain.model.Transaction
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.domain.model.TransactionType
+import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.Result
 
 interface TransactionRepository {
 
@@ -30,8 +31,27 @@ interface TransactionRepository {
 
     fun sendOneTransactToServer(transaction: Transaction): Flow<Result<Unit>>
 
-    fun markAsSynced(transaction: Transaction): Flow<Result<Unit>>
 
     fun syncTransation(): Flow<Result<Unit>>
+
+    fun getFromServerByCriteria(
+        codeAgence: String,
+        operateurId: Long,
+        deviseCode: String,
+        type: TransactionType,
+        page: Int,
+        size: Int,
+    ): Flow<Result<PaginatedTransaction>>
+
+    fun generateTransactionResponse(
+        codeAgence: String,
+        operateurId: Long,
+        deviseCode: String,
+        type: TransactionType,
+        startDate: Long?,
+        endDate: Long?
+    ): Flow<Result<ByteArray>>
+
+
 }
 

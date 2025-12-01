@@ -12,8 +12,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.window.core.layout.WindowSizeClass
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.Role
+
 import org.megamind.mycashpoint.ui.screen.Agence.AgenceScreen
-import org.megamind.mycashpoint.ui.screen.SplashScreen
+import org.megamind.mycashpoint.ui.screen.splash.SplashScreen
+import org.megamind.mycashpoint.ui.screen.admin.AdminRepportScreen
+import org.megamind.mycashpoint.ui.screen.admin.DashBoardScreen
+import org.megamind.mycashpoint.ui.screen.admin.SettingsScreen
 
 import org.megamind.mycashpoint.ui.screen.auth.LoginInScreen
 import org.megamind.mycashpoint.ui.screen.auth.RegisterScreen
@@ -32,7 +37,8 @@ fun MyNavHost(
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     startDestination: String = Destination.SPLASH.name,
-    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
+
 ) {
 
 
@@ -41,19 +47,29 @@ fun MyNavHost(
             startDestination = startDestination, navController = navController, modifier = modifier
         ) {
             composable(route = Destination.SPLASH.name) {
-                SplashScreen(modifier = Modifier, navigateToHomeScreen = {
-                    navController.navigate(Destination.OPERATEUR.name) {
-                        popUpTo(Destination.SPLASH.name) {
-                            inclusive = true
+                SplashScreen(
+                    modifier = Modifier,
+                    navigateToAdminHomeScreen = {
+                        navController.navigate(Destination.DASHBOARD.name) {
+                            popUpTo(Destination.SPLASH.name) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    navigateToAgentHomeScreen = {
+                        navController.navigate(Destination.OPERATEUR.name) {
+                            popUpTo(Destination.SPLASH.name) {
+                                inclusive = true
+                            }
+                        }
+                    }, navigateToLoginScreen = {
+                        navController.navigate(Destination.LOGIN.name) {
+                            popUpTo(Destination.SPLASH.name) {
+                                inclusive = true
+                            }
                         }
                     }
-                }, navigateToLoginScreen = {
-                    navController.navigate(Destination.LOGIN.name) {
-                        popUpTo(Destination.SPLASH.name) {
-                            inclusive = true
-                        }
-                    }
-                })
+                )
 
             }
 
@@ -61,14 +77,23 @@ fun MyNavHost(
                 LoginInScreen(
                     snackbarHostate = snackbarHostState,
                     windowSizeClass = windowSizeClass,
-                    navigateToMainScreen = {
+                    navigateToAdminHome = {
+                        navController.navigate(Destination.DASHBOARD.name) {
+                            popUpTo(Destination.LOGIN.name) {
+                                inclusive = true
+                            }
 
+                        }
+                    },
+                    navigateToAgentHome = {
                         navController.navigate(Destination.OPERATEUR.name) {
                             popUpTo(Destination.LOGIN.name) {
                                 inclusive = true
                             }
+
                         }
                     }
+
                 )
             }
 
@@ -125,6 +150,21 @@ fun MyNavHost(
             }
             composable(route = Destination.AGENCE.name) {
                 AgenceScreen()
+            }
+
+
+            composable(route = Destination.DASHBOARD.name) {
+                DashBoardScreen()
+            }
+
+            composable(route = Destination.ADMIN_REPPORT.name) {
+
+                AdminRepportScreen()
+            }
+
+            composable(route = Destination.SETTINGS.name) {
+
+                SettingsScreen()
             }
 
 

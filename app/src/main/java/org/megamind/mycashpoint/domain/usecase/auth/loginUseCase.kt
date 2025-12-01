@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import org.megamind.mycashpoint.data.data_source.remote.dto.auth.AuthResponse
 import org.megamind.mycashpoint.data.data_source.remote.dto.auth.LoginRequest
 import org.megamind.mycashpoint.domain.repository.UserRepository
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.utils.Result
 
 class LoginUseCase(private val userRepository: UserRepository) {
 

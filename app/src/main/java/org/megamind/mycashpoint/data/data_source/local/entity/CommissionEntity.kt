@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import org.megamind.mycashpoint.domain.model.TransactionType
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.utils.Constants
 import java.math.BigDecimal
 
 @Entity(

@@ -31,7 +31,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Note
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.rounded.AttachMoney
-import androidx.compose.material.icons.rounded.Money
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material3.Card
@@ -80,8 +79,8 @@ import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.navigation.Destination
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurUiState
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
-import org.megamind.mycashpoint.ui.screen.main.utils.MyPrintDocumentAdapter
+import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
 
 
 

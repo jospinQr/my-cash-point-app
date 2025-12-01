@@ -6,7 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
 import org.megamind.mycashpoint.domain.model.SoldeType
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.utils.Constants
 import java.math.BigDecimal
 
 @Dao

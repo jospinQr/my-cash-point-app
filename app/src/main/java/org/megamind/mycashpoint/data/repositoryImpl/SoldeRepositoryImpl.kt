@@ -1,23 +1,22 @@
 package org.megamind.mycashpoint.data.repositoryImpl
 
-import android.net.http.HttpException
-import android.util.Log
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.data.data_source.local.dao.SoldeDao
 import org.megamind.mycashpoint.data.data_source.local.mapper.toSolde
 import org.megamind.mycashpoint.data.data_source.local.mapper.toSoldeEntity
 import org.megamind.mycashpoint.data.data_source.remote.ApiException
+import org.megamind.mycashpoint.data.data_source.remote.mapper.toSolde
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toSoldeRequestDto
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toSoldeUpdateAmountRequestDto
 import org.megamind.mycashpoint.data.data_source.remote.service.SoldeService
 import org.megamind.mycashpoint.domain.model.Solde
 import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.domain.repository.SoldeRepository
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
-import org.megamind.mycashpoint.ui.screen.main.utils.Result.*
-import java.math.BigDecimal
+import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.utils.Result.*
 
 class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeService: SoldeService) :
     SoldeRepository {
@@ -74,7 +73,6 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
             emit(Error(e))
         }
     }
-
 
 
     override fun getUnsyncedSoldes(): Flow<Result<List<Solde>>> = flow {
@@ -140,6 +138,43 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
         } catch (e: Exception) {
             emit(Error(e))
         }
+    }
+
+    override fun getSoldeFromServerByCriteria(
+        codeAgence: String,
+        operateurId: Long,
+        deviseCode: String,
+        soldeType: SoldeType
+    ): Flow<Result<Solde>> = flow {
+
+
+        val soldeResult = soldeService.getSoldeByCriteria(
+            codeAgence,
+            operateurId,
+            deviseCode,
+            soldeType
+        )
+
+        when (soldeResult) {
+            is Loading -> {
+                emit(Loading)
+            }
+
+            is Success -> {
+                val solde = soldeResult.data?.toSolde()
+                emit(Success(solde))
+            }
+
+            is Error -> {
+
+                emit(Error(soldeResult.e ?: Exception("Erreur inconue")))
+            }
+
+        }
+
+
+    }.catch {
+        emit(Error(it))
     }
 }
 

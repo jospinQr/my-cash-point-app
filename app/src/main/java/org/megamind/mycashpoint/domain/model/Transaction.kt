@@ -1,7 +1,7 @@
 package org.megamind.mycashpoint.domain.model
 
 import org.megamind.mycashpoint.R
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.utils.Constants
 import java.math.BigDecimal
 
 data class Transaction(

@@ -7,7 +7,7 @@ import org.megamind.mycashpoint.data.data_source.remote.dto.auth.AuthResponse
 import org.megamind.mycashpoint.data.data_source.remote.dto.auth.LoginRequest
 import org.megamind.mycashpoint.data.data_source.remote.dto.auth.RegisterRequest
 import org.megamind.mycashpoint.data.data_source.remote.safeApiCall
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.utils.Result
 
 class AuthService(private val httpClient: HttpClient) {
 

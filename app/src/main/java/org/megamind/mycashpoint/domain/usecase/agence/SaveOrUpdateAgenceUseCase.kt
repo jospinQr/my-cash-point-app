@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.repository.AgenceRepository
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.utils.Result
 
 class SaveOrUpdateAgenceUseCase(
     private val repository: AgenceRepository

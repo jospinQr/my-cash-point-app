@@ -6,13 +6,13 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.Role
 import org.megamind.mycashpoint.domain.usecase.auth.GetUserByIdUseCase
-import org.megamind.mycashpoint.ui.screen.main.utils.DataStorageManager
+import org.megamind.mycashpoint.utils.DataStorageManager
 
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
-import org.megamind.mycashpoint.ui.screen.main.utils.decodeJwtPayload
+import org.megamind.mycashpoint.utils.decodeJwtPayload
+
 class SplashViewModel(
-    private val getUserByIdUseCase: GetUserByIdUseCase, // Retourne le user dans Room
     private val dataStorageManager: DataStorageManager
 ) : ViewModel() {
 
@@ -31,64 +31,28 @@ class SplashViewModel(
         // 1. Pas de token  login direct
         if (token.isNullOrBlank()) {
             _uiEvent.emit(SplashUiEvent.NavigateToLogin)
-            Log.e(TAG,"token null")
+            Log.e(TAG, "token null")
             return@launch
         }
 
         // 2. Token expiré  login
         if (isTokenExpired(token)) {
             _uiEvent.emit(SplashUiEvent.NavigateToLogin)
-            Log.e(TAG,"token expirer")
+            Log.e(TAG, "token expirer")
             return@launch
         }
 
-        // 3. Extraire les infos du token JWT
-        val claims = decodeJwtPayload(token)
-        val userId = claims.optString("sub").toLongOrNull()
+        // 3. Extraire le role du token JWT
+        val role = decodeJwtPayload(token).optString("role")
 
-        if (userId == null) {
-            _uiEvent.emit(SplashUiEvent.NavigateToLogin)
-            Log.e(TAG,"user  id du token est null")
-            return@launch
+        when (role) {
+
+            Role.ADMIN.name -> _uiEvent.emit(SplashUiEvent.NavigateToAdminHomeScreen)
+            Role.AGENT.name -> _uiEvent.emit(SplashUiEvent.NavigateToAgentHomeScreen)
+            else -> _uiEvent.emit(SplashUiEvent.NavigateToLogin)
         }
 
-        // 4. Charger le user depuis ROOM
-        getUserByIdUseCase(userId).collect { result ->
 
-            when (result) {
-
-                is Result.Loading -> Unit
-
-                is Result.Error -> {
-                    // Si Room renvoie une erreur → login
-                    _uiEvent.emit(SplashUiEvent.NavigateToLogin)
-                    Log.e(TAG,"Error de fetch ${result.e?.message}")
-                }
-
-                is Result.Success -> {
-                    val localUser = result.data
-
-                    // 5. Aucun user en local → login
-                    if (localUser == null) {
-                        _uiEvent.emit(SplashUiEvent.NavigateToLogin)
-                        Log.e(TAG,"Local user est null")
-                        return@collect
-                    }
-
-                    // 6. Comparaison DB <-> Token
-                    val tokenUserName = claims.optString("name")
-
-                    if (localUser.name != tokenUserName) {
-                        _uiEvent.emit(SplashUiEvent.NavigateToLogin)
-                        Log.e(TAG,"Local user est different de celui du token")
-                        return@collect
-                    }
-
-                    // 7. Tout est OK !
-                    _uiEvent.emit(SplashUiEvent.NavigateToHome)
-                }
-            }
-        }
     }
 
     private fun isTokenExpired(token: String): Boolean {
@@ -115,5 +79,8 @@ data class SplashUiState(
 
 sealed class SplashUiEvent {
     object NavigateToLogin : SplashUiEvent()
-    object NavigateToHome : SplashUiEvent()
+    object NavigateToAgentHomeScreen : SplashUiEvent()
+    object NavigateToAdminHomeScreen : SplashUiEvent()
+
+
 }

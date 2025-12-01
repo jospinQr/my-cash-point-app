@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import org.megamind.mycashpoint.domain.model.Commission
 import org.megamind.mycashpoint.domain.model.CommissionStats
 import org.megamind.mycashpoint.domain.model.TransactionType
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.Result
 
 interface CommissionRepository {
 

@@ -11,9 +11,12 @@ import org.megamind.mycashpoint.data.data_source.local.mapper.toTransactionEntit
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toTransactionRequest
 import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
 import org.megamind.mycashpoint.domain.model.Transaction
+import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.repository.TransactionRepository
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.Result
+import org.megamind.mycashpoint.data.data_source.remote.mapper.toPaginatedTransaction
+import org.megamind.mycashpoint.domain.model.PaginatedTransaction
 
 class TransactionRepositoryImpl(
     private val transactionService: TransactionService,
@@ -135,9 +138,6 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override fun markAsSynced(transaction: Transaction): Flow<Result<Unit>> {
-        TODO("Not yet implemented")
-    }
 
     override fun syncTransation(): Flow<Result<Unit>> = flow {
 
@@ -175,6 +175,90 @@ class TransactionRepositoryImpl(
         }
 
 
+    }
+
+    override fun getFromServerByCriteria(
+        codeAgence: String,
+        operateurId: Long,
+        deviseCode: String,
+        type: TransactionType,
+        page: Int,
+        size: Int,
+    ): Flow<Result<PaginatedTransaction>> = flow {
+
+        try {
+            emit(Result.Loading)
+            val result = transactionService.findByCriteria(
+                codeAgence = codeAgence,
+                operateurId = operateurId,
+                deviseCode = deviseCode,
+                type = type,
+                page = page,
+                size = size
+            )
+
+            when (result) {
+                is Result.Success -> {
+                    emit(Result.Success(result.data?.toPaginatedTransaction()))
+                }
+
+                is Result.Error -> {
+                    emit(Result.Error(result.e ?: Exception("Erreur inconnue")))
+                }
+
+                is Result.Loading -> {
+                    emit(Result.Loading)
+                }
+            }
+
+
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
+
+    }
+
+    override fun generateTransactionResponse(
+        codeAgence: String,
+        operateurId: Long,
+        deviseCode: String,
+        type: TransactionType,
+        startDate: Long?,
+        endDate: Long?
+    ): Flow<Result<ByteArray>> = flow {
+
+        try {
+
+
+            val result = transactionService.generateTransactionRepport(
+                codeAgence = codeAgence,
+                operateurId = operateurId,
+                deviseCode = deviseCode,
+                type = type,
+                startDate = startDate,
+                endDate = endDate
+            )
+            when (result) {
+                is Result.Loading -> {
+                    emit(Result.Loading)
+                }
+
+                is Result.Success -> {
+                    emit(Result.Success(result.data))
+                }
+
+                is Result.Error -> {
+                    emit(Result.Error(result.e ?: Exception("Erreur inconue")))
+                }
+            }
+
+
+        } catch (e: Exception) {
+
+
+            emit(Result.Error(e))
+
+        }
     }
 
 

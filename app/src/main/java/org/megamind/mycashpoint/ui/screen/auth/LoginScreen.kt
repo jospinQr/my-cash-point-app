@@ -2,13 +2,12 @@ package org.megamind.mycashpoint.ui.screen.auth
 
 import android.content.Context
 import android.os.Build
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,17 +22,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -53,19 +47,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
-import org.megamind.mycashpoint.domain.model.Agence
-import org.megamind.mycashpoint.ui.screen.Agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.component.AuthTextField
 import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
 import org.megamind.mycashpoint.ui.component.CustomerButton
-import org.megamind.mycashpoint.ui.component.CustomerTextButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
-import org.megamind.mycashpoint.ui.component.QuestionDialog
 import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 
@@ -79,7 +68,7 @@ import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
  * et la navigation en fonction des résultats de l'authentification.
  *
  * @param modifier [Modifier] optionnel pour le thème et la mise en page.
- * @param viewModel Le [SignInViewModel] responsable de la gestion de l'état et de la logique de l'écran.
+ * @param viewModel Le [LoginViewModel] responsable de la gestion de l'état et de la logique de l'écran.
  *                  Par défaut, une instance injectée par Koin.
  * @param navigateToMainScreen Une fonction lambda à appeler lorsque l'utilisateur se connecte avec succès,
  *                       déclenchant la navigation vers l'écran d'accueil.
@@ -88,20 +77,20 @@ import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 @Composable
 fun LoginInScreen(
     modifier: Modifier = Modifier,
-    viewModel: SignInViewModel = koinViewModel(),
-    navigateToMainScreen: () -> Unit,
+    viewModel: LoginViewModel = koinViewModel(),
+    navigateToAgentHome: () -> Unit,
+    navigateToAdminHome: () -> Unit,
     windowSizeClass: WindowSizeClass,
     snackbarHostate: SnackbarHostState
 
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
     SignInEventHandler(
         viewModel = viewModel,
-        context = context,
-        navigateToHome = navigateToMainScreen,
+        navigateToAgentHome = { navigateToAgentHome() },
+        navigateToAdminHome = { navigateToAdminHome() },
         snackbarHostState = snackbarHostate,
     )
 
@@ -113,6 +102,7 @@ fun LoginInScreen(
         onSignIn = { viewModel.onSignIn() },
         onPasswordVisibilityChange = { viewModel.onPasswordVisibilityChange() },
         windowSizeClass = windowSizeClass,
+
 
         )
 }
@@ -126,6 +116,7 @@ fun SignInScreenContent(
     onPasswordVisibilityChange: () -> Unit,
     windowSizeClass: WindowSizeClass,
 
+
     ) {
     val isCompact = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
 
@@ -138,7 +129,9 @@ fun SignInScreenContent(
             onPasswordChange = onPasswordChange,
             onSignIn = onSignIn,
             onPasswordVisibilityChange = onPasswordVisibilityChange,
-        )
+
+
+            )
     }
 
     if (uiState.isLoading) {
@@ -179,6 +172,7 @@ private fun AdaptiveSignInLayout(
                 onSignIn = onSignIn,
                 onPasswordVisibilityChange = onPasswordVisibilityChange,
                 showLogoAbove = true,
+
 
                 )
         }
@@ -226,7 +220,7 @@ private fun SignInContent(
 
     ) {
     if (showLogoAbove) {
-        LogoSection()
+        LogoSection(modifier = Modifier.clickable {})
     }
 
 
@@ -262,6 +256,7 @@ private fun SignInContent(
         uiState = uiState,
         onSignIn = onSignIn,
 
+
         )
 
     if (uiState.isSendingPasswordResetEmail) {
@@ -291,9 +286,11 @@ private fun PasswordVisibilityIcon(
 private fun SignInButtonsSection(
     uiState: SignInUiState,
     onSignIn: () -> Unit,
-) {
+
+    ) {
     CustomerButton(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         onClick = onSignIn,
         contentColor = MaterialTheme.colorScheme.background
     ) {
@@ -371,16 +368,20 @@ private fun SignInButtonContent(
 // Composable séparé pour gérer les événements - Plus stable avec Live Edit
 @Composable
 private fun SignInEventHandler(
-    viewModel: SignInViewModel,
-    context: Context,
-    navigateToHome: () -> Unit,
+    viewModel: LoginViewModel,
+    navigateToAgentHome: () -> Unit,
+    navigateToAdminHome: () -> Unit,
     snackbarHostState: SnackbarHostState
 ) {
     LaunchedEffect(viewModel) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is SignInUiEvent.NavigateToHome -> {
-                    navigateToHome()
+                is SignInUiEvent.NavigateToAgentHomeScreen -> {
+                    navigateToAgentHome()
+                }
+
+                is SignInUiEvent.NavigateToAdmintHomeScreen -> {
+                    navigateToAdminHome()
                 }
 
                 is SignInUiEvent.ShowError -> {
@@ -394,6 +395,7 @@ private fun SignInEventHandler(
                         )
 
                 }
+
 
             }
         }
@@ -410,9 +412,11 @@ fun LoginScreePreview() {
     MyCashPointTheme {
 
         LoginInScreen(
-            navigateToMainScreen = {},
-            snackbarHostate = snackbarHostate,
-            windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+            navigateToAgentHome = {},
+            navigateToAdminHome = {},
+            windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
+            snackbarHostate = snackbarHostate
+
         )
 
     }

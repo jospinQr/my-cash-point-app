@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.emitAll
 import org.megamind.mycashpoint.domain.repository.TransactionRepository
-import org.megamind.mycashpoint.ui.screen.main.utils.Result
+import org.megamind.mycashpoint.utils.Result
 
 class DeleteTransactionUseCase(
     private val repository: TransactionRepository

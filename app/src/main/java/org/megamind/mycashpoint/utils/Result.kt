@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.ui.screen.main.utils
+package org.megamind.mycashpoint.utils
 
 
 sealed class Result<out T>(val data: T? = null, val e: Throwable? = null) {

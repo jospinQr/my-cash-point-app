@@ -4,7 +4,7 @@ package org.megamind.mycashpoint.data.data_source.remote.dto.solde
 import kotlinx.serialization.Serializable
 import org.megamind.mycashpoint.data.data_source.remote.dto.serializer.BigDecimalSerializer
 import org.megamind.mycashpoint.domain.model.SoldeType
-import org.megamind.mycashpoint.ui.screen.main.utils.Constants
+import org.megamind.mycashpoint.utils.Constants
 import java.math.BigDecimal
 
 @Serializable()

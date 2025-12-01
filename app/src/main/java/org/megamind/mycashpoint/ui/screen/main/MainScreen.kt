@@ -1,161 +1,341 @@
 package org.megamind.mycashpoint.ui.screen.main
 
+
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.PermanentDrawerSheet
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowWidthSizeClass
+import org.koin.androidx.compose.koinViewModel
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.Role
 import org.megamind.mycashpoint.ui.component.CustomSnackbar
 import org.megamind.mycashpoint.ui.navigation.Destination
 import org.megamind.mycashpoint.ui.navigation.MyNavHost
-import kotlin.collections.contains
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MyCashPointApp() {
+fun MyCashPointApp(
+    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
+    viewModel: MainViewModel = koinViewModel()
+) {
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Déterminer si on doit afficher le BottomBar
-    val showBottomBar = currentDestination?.hierarchy?.any {
-        it.route in listOf(
-            Destination.OPERATEUR.name,
-            Destination.CAISSE.name,
-            Destination.RAPPORT.name,
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            )
-    } == true
+
+    // Routes qui doivent afficher la BottomBar AGENT
+    val agentBottomBarRoutes = listOf(
+        Destination.OPERATEUR.name,
+        Destination.CAISSE.name,
+        Destination.RAPPORT.name
+    )
+
+// Routes qui doivent afficher la BottomBar ADMIN
+    val adminBottomBarRoutes = listOf(
+        Destination.DASHBOARD.name,
+        Destination.ADMIN_REPPORT.name,
+        Destination.SETTINGS.name
+    )
+
+
+    val currentRoute = currentDestination?.route
+
+    val showAgentBottomBar = currentRoute in agentBottomBarRoutes
+    val showAdminBottomBar = currentRoute in adminBottomBarRoutes
+
+    val isCompact =
+        windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
+    val isMedium = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
+    val isExpanded = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
+
+
+
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = {
             SnackbarHost(
-                modifier = Modifier.imePadding(),
                 hostState = snackbarHostState
             ) { data ->
-                CustomSnackbar(data) // ← ton composable custom
+                CustomSnackbar(data) //
             }
         },
         bottomBar = {
 
-            AnimatedVisibility(
-                visible = showBottomBar,
-                enter = fadeIn(),
-
-                ) {
-
-
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f),
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    tonalElevation = 10.dp
-                )
-                {
-
-                    navBarItem.forEachIndexed { index, item ->
-
-                        val selected = currentDestination?.hierarchy?.any {
-                            it.route == item.route
-                        }
-                        NavigationBarItem(
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = MaterialTheme.colorScheme.primary.copy(),
-                                selectedIconColor = MaterialTheme.colorScheme.background,
-                                selectedTextColor = MaterialTheme.colorScheme.background
-
-                            ),
-                            selected = selected == true,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            label = {
-                                Text(
-                                    item.title,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    fontWeight = if (selected == true) FontWeight.Bold else FontWeight.Normal
-                                )
-                            },
-                            icon = {
-
-                                if (selected == true) {
-                                    Crossfade(
-                                        targetState = item,
-                                        animationSpec = spring(
-                                            dampingRatio = Spring.DampingRatioHighBouncy,
-                                            stiffness = Spring.StiffnessMedium
-                                        )
-                                    ) { it ->
-                                        Icon(
-                                            painter = painterResource(it.selectedIcon),
-                                            contentDescription = null,
-
-                                            )
-                                    }
-                                } else {
-                                    Crossfade(targetState = item) {
-                                        Icon(
-                                            painter = painterResource(it.unSelectedIcon),
-                                            contentDescription = null
-                                        )
-                                    }
-                                }
-                            }
-                        )
-
-
+            when {
+                showAgentBottomBar -> AgentBottomBar(navController, currentDestination)
+                showAdminBottomBar -> {
+                    if (isCompact) {
+                        AdminBottomBar(navController, currentDestination)
                     }
-
                 }
             }
+        },
 
 
+        ) { innerPadding ->
+
+
+        if (isExpanded) {
+
+            PermanentDrawer(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                navController = navController,
+                currentDestination = currentDestination,
+                windowSizeClass = windowSizeClass,
+                snackbarHostState = snackbarHostState,
+
+                )
+
+
+        } else {
+            Row(modifier = Modifier.fillMaxSize()) {
+
+                // 👉 Grands écrans → RailBar
+                if (isMedium) {
+                    NavigationRailBar(
+                        navController = navController,
+                        currentDestination = currentDestination
+                    )
+                }
+
+                MyNavHost(
+                    modifier = Modifier
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                        .weight(1f),
+                    navController = navController,
+                    snackbarHostState = snackbarHostState,
+                    windowSizeClass = windowSizeClass,
+
+                    )
+
+            }
         }
+    }
+}
 
 
-    ) { innerPadding ->
+@Composable
+fun AgentBottomBar(navController: NavController, currentDestination: NavDestination?) {
+
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f)
+    ) {
+        agentNavBarItem.forEach { item ->
+
+            val selected = currentDestination?.route == item.route
+
+            NavigationBarItem(
+                selected = selected,
+                onClick = {
+                    navController.navigate(item.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                label = { Text(item.title) },
+                icon = {
+                    Icon(
+                        painter = painterResource(
+                            if (selected) item.selectedIcon else item.unSelectedIcon
+                        ),
+                        contentDescription = null
+                    )
+                }
+            )
+        }
+    }
+}
 
 
+@Composable
+fun AdminBottomBar(navController: NavController, currentDestination: NavDestination?) {
+
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .06f)
+    ) {
+        adminNavBarItem.forEach { item ->
+
+            val selected = currentDestination?.route == item.route
+
+            NavigationBarItem(
+                selected = selected,
+                onClick = {
+                    navController.navigate(item.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                label = { Text(item.title) },
+                icon = {
+                    Icon(
+                        painter = painterResource(if (selected) item.selectedIcon else item.unSelectedIcon),
+                        contentDescription = null
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun NavigationRailBar(
+    navController: NavController,
+    currentDestination: NavDestination?
+) {
+    NavigationRail {
+
+        adminNavBarItem.forEach { item ->
+
+            val selected = currentDestination?.route == item.route
+            NavigationRailItem(
+                selected = selected,
+                onClick = {
+                    navController.navigate(item.route) {
+                        popUpTo(navController.graph.findStartDestination().id)
+                        launchSingleTop = true
+                    }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(
+                            if (selected) item.selectedIcon else item.unSelectedIcon
+                        ),
+                        contentDescription = null
+                    )
+                },
+                label = { Text(item.title) },
+                alwaysShowLabel = false
+            )
+        }
+    }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun PermanentDrawer(
+    modifier: Modifier,
+    navController: NavHostController,
+    currentDestination: NavDestination?,
+    windowSizeClass: WindowSizeClass,
+    snackbarHostState: SnackbarHostState,
+
+    ) {
+
+    PermanentNavigationDrawer(
+        drawerContent = {
+            PermanentDrawerSheet {
+                adminNavBarItem.forEach { item ->
+                    val selected = currentDestination?.route == item.route
+                    val bgColor by animateColorAsState(
+                        targetValue = if (selected)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        else
+                            Color.Transparent
+                    )
+                    val iconColor by animateColorAsState(
+                        targetValue = if (selected)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurface
+                    )
+
+                    // Animation taille icône
+                    val iconSize by animateDpAsState(
+                        targetValue = if (selected) 26.dp else 22.dp
+                    )
+                    NavigationDrawerItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(
+                                    if (selected) item.selectedIcon else item.unSelectedIcon
+                                ),
+                                tint = iconColor,
+                                modifier = Modifier.size(iconSize),
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text(item.title) },
+                        selected = currentDestination?.route == item.route,
+                        colors = NavigationDrawerItemDefaults.colors(
+                            selectedContainerColor = bgColor,
+                            unselectedContainerColor = Color.Transparent
+                        ),
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        onClick = {
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.findStartDestination().id)
+                            }
+                        }
+
+                    )
+
+                }
+
+            }
+        }
+    ) {
         MyNavHost(
-            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
+            modifier = modifier,
             navController = navController,
-            snackbarHostState = snackbarHostState
-        )
+            snackbarHostState = snackbarHostState,
+            windowSizeClass = windowSizeClass,
+
+            )
 
     }
 }
+

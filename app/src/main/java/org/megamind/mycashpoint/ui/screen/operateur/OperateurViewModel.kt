@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.domain.model.Operateur
-import org.megamind.mycashpoint.ui.screen.main.utils.DataStorageManager
+import org.megamind.mycashpoint.utils.DataStorageManager
 
 class OperateurViewModel(private val datastorageManager: DataStorageManager) : ViewModel() {
 
