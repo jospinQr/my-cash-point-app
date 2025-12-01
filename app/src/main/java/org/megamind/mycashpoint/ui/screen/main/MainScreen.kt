@@ -1,6 +1,7 @@
 package org.megamind.mycashpoint.ui.screen.main
 
 
+import android.net.http.SslCertificate.saveState
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateColorAsState
@@ -132,28 +133,29 @@ fun MyCashPointApp(
                 )
 
 
+        } else if (isMedium) {
+            NavigationRailBar(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                navController = navController,
+                currentDestination = currentDestination,
+                windowSizeClass = windowSizeClass,
+                snackbarHostState = snackbarHostState,
+            )
         } else {
-            Row(modifier = Modifier.fillMaxSize()) {
 
-                // 👉 Grands écrans → RailBar
-                if (isMedium) {
-                    NavigationRailBar(
-                        navController = navController,
-                        currentDestination = currentDestination
-                    )
-                }
 
-                MyNavHost(
-                    modifier = Modifier
-                        .padding(bottom = innerPadding.calculateBottomPadding())
-                        .weight(1f),
-                    navController = navController,
-                    snackbarHostState = snackbarHostState,
-                    windowSizeClass = windowSizeClass,
+            MyNavHost(
+                modifier = Modifier
+                    .padding(bottom = innerPadding.calculateBottomPadding()),
+                navController = navController,
+                snackbarHostState = snackbarHostState,
+                windowSizeClass = windowSizeClass,
 
-                    )
+                )
 
-            }
+
         }
     }
 }
@@ -172,13 +174,11 @@ fun AgentBottomBar(navController: NavController, currentDestination: NavDestinat
             NavigationBarItem(
                 selected = selected,
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    safeNavigate(
+                        navController = navController,
+                        currentRoute = currentDestination?.route,
+                        targetRoute = item.route
+                    )
                 },
                 label = { Text(item.title) },
                 icon = {
@@ -208,13 +208,11 @@ fun AdminBottomBar(navController: NavController, currentDestination: NavDestinat
             NavigationBarItem(
                 selected = selected,
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    safeNavigate(
+                        navController = navController,
+                        currentRoute = currentDestination?.route,
+                        targetRoute = item.route
+                    )
                 },
                 label = { Text(item.title) },
                 icon = {
@@ -228,36 +226,50 @@ fun AdminBottomBar(navController: NavController, currentDestination: NavDestinat
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationRailBar(
-    navController: NavController,
-    currentDestination: NavDestination?
+    modifier: Modifier,
+    navController: NavHostController,
+    currentDestination: NavDestination?,
+    windowSizeClass: WindowSizeClass,
+    snackbarHostState: SnackbarHostState,
 ) {
-    NavigationRail {
+    Row {
+        NavigationRail {
 
-        adminNavBarItem.forEach { item ->
+            adminNavBarItem.forEach { item ->
 
-            val selected = currentDestination?.route == item.route
-            NavigationRailItem(
-                selected = selected,
-                onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id)
-                        launchSingleTop = true
-                    }
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(
-                            if (selected) item.selectedIcon else item.unSelectedIcon
-                        ),
-                        contentDescription = null
-                    )
-                },
-                label = { Text(item.title) },
-                alwaysShowLabel = false
-            )
+                val selected = currentDestination?.route == item.route
+                NavigationRailItem(
+                    selected = selected,
+                    onClick = {
+                        safeNavigate(
+                            navController = navController,
+                            currentRoute = currentDestination?.route,
+                            targetRoute = item.route
+                        )
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(
+                                if (selected) item.selectedIcon else item.unSelectedIcon
+                            ),
+                            contentDescription = null
+                        )
+                    },
+                    label = { Text(item.title) },
+                    alwaysShowLabel = false
+                )
+            }
         }
+        MyNavHost(
+            modifier = modifier.weight(1f),
+            navController = navController,
+            snackbarHostState = snackbarHostState,
+            windowSizeClass = windowSizeClass,
+
+            )
     }
 }
 
@@ -316,9 +328,11 @@ fun PermanentDrawer(
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                             .clip(RoundedCornerShape(8.dp)),
                         onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id)
-                            }
+                            safeNavigate(
+                                navController = navController,
+                                currentRoute = currentDestination?.route,
+                                targetRoute = item.route
+                            )
                         }
 
                     )
@@ -336,6 +350,19 @@ fun PermanentDrawer(
 
             )
 
+    }
+}
+
+
+fun safeNavigate(navController: NavController, currentRoute: String?, targetRoute: String) {
+    if (currentRoute == targetRoute) return
+
+    navController.navigate(targetRoute) {
+        popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
     }
 }
 

@@ -103,12 +103,12 @@ class LoginViewModel(
                                 _uiEvent.emit(SignInUiEvent.NavigateToAgentHomeScreen)
 
                             }
+
                             else -> {
                                 _uiEvent.emit(SignInUiEvent.ShowError("Role Iconnu"))
 
                             }
                         }
-
 
 
                     }
@@ -177,8 +177,8 @@ class LoginViewModel(
 
 
 data class SignInUiState(
-    val email: String = "joekahereni25@gmail.com",
-    val password: String = "1234567890",
+    val email: String = "",
+    val password: String = "",
     val agence: String = "",
     val isLoading: Boolean = false,
     val isSendingPasswordResetDialogShown: Boolean = false,
