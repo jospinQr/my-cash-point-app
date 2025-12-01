@@ -1,6 +1,7 @@
 package org.megamind.mycashpoint.ui.screen.main
 
 
+import android.content.res.Configuration
 import android.net.http.SslCertificate.saveState
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -33,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,6 +66,7 @@ fun MyCashPointApp(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isAdmin = uiState.userRole == Role.ADMIN
 
 
     // Routes qui doivent afficher la BottomBar AGENT
@@ -94,6 +97,9 @@ fun MyCashPointApp(
 
 
 
+
+
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = {
@@ -119,7 +125,7 @@ fun MyCashPointApp(
         ) { innerPadding ->
 
 
-        if (isExpanded) {
+        if (isExpanded && isAdmin) {
 
             PermanentDrawer(
                 modifier = Modifier
@@ -133,7 +139,7 @@ fun MyCashPointApp(
                 )
 
 
-        } else if (isMedium) {
+        } else if (isMedium && isAdmin) {
             NavigationRailBar(
                 modifier = Modifier
                     .padding(innerPadding)
