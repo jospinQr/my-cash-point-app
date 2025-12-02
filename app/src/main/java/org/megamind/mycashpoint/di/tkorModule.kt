@@ -15,6 +15,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+import org.megamind.mycashpoint.data.data_source.remote.service.AgenceService
 import org.megamind.mycashpoint.data.data_source.remote.service.AuthService
 import org.megamind.mycashpoint.data.data_source.remote.service.SoldeService
 import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
@@ -60,6 +61,10 @@ val ktorModule = module {
     }
     single {
         SoldeService(get())
+    }
+
+    single {
+        AgenceService(get())
     }
 
 }

@@ -47,12 +47,14 @@ class OperateurViewModel(private val datastorageManager: DataStorageManager) : V
         }
     }
 
+
 }
 
 data class OperateurUiState(
     val selectedOperateur: Operateur? = null,
-    val isConfirmLogOutDialogShown: Boolean = false
-)
+    val isConfirmLogOutDialogShown: Boolean = false,
+
+    )
 
 sealed class OperateurUiEvent {
     object NavigateToLogin : OperateurUiEvent()

@@ -6,48 +6,71 @@ import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.data.data_source.local.dao.AgenceDao
 import org.megamind.mycashpoint.data.data_source.local.mapper.toAgence
 import org.megamind.mycashpoint.data.data_source.local.mapper.toAgenceEntity
+import org.megamind.mycashpoint.data.data_source.remote.mapper.toAgence
+import org.megamind.mycashpoint.data.data_source.remote.mapper.toAgenceRequest
+import org.megamind.mycashpoint.data.data_source.remote.service.AgenceService
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.repository.AgenceRepository
 import org.megamind.mycashpoint.utils.Result
 
 
-class AgenceRepositoryImpl(private val agenceDao: AgenceDao) : AgenceRepository {
+class AgenceRepositoryImpl(private val agenceService: AgenceService) : AgenceRepository {
 
 
     override fun saveOrUpdate(agence: Agence): Flow<Result<Unit>> = flow {
-        emit(Result.Loading)
-        agenceDao.insertOrUpdate(agence.toAgenceEntity())
-        emit(Result.Success(Unit))
 
+        val result = agenceService.save(agence.toAgenceRequest())
+
+        when (result) {
+            is Result.Success -> {
+
+                emit(Result.Success(Unit))
+            }
+
+            is Result.Loading -> {
+                emit(Result.Loading)
+            }
+
+            is Result.Error -> {
+                emit(Result.Error(result.e ?: Exception("Erreur inconnue")))
+            }
+        }
     }.catch {
         emit(Result.Error(it))
     }
 
     override fun getAll(): Flow<Result<List<Agence>>> = flow {
+
+
+        when (val result = agenceService.getAll()) {
+            is Result.Loading -> {
+                emit(Result.Loading)
+            }
+
+            is Result.Success -> {
+                emit(Result.Success(result.data?.map { it.toAgence() }))
+            }
+
+            is Result.Error<*> -> {
+                emit(Result.Error(result.e ?: Exception("Erreur inconnue")))
+            }
+        }
+
         emit(Result.Loading)
-        val agences = agenceDao.getAll().map { it.toAgence() }
-        emit(Result.Success(agences))
+
+
     }.catch {
         emit(Result.Error(it))
 
     }
 
-    override  fun getById(id: String): Flow<Result<Agence?>> = flow {
-        emit(Result.Loading)
-        val agence = agenceDao.getByID(id)
-        emit(Result.Success(agence?.toAgence()))
-    }.catch {
-        emit(Result.Error(it))
+    override fun getById(id: String): Flow<Result<Agence?>> = flow {
 
     }
 
-    override  fun deleteById(id: String): Flow<Result<Unit>> = flow {
-        emit(Result.Loading)
-        agenceDao.deleteById(id)
-        emit(Result.Success(Unit))
-    }.catch {
-        emit(Result.Error(it))
-
+    override fun deleteById(id: String): Flow<Result<Unit>> = flow {
 
     }
+
+
 }

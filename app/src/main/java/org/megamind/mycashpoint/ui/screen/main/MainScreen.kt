@@ -9,8 +9,10 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -104,6 +106,7 @@ fun MyCashPointApp(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = {
             SnackbarHost(
+                modifier = Modifier.imePadding(),
                 hostState = snackbarHostState
             ) { data ->
                 CustomSnackbar(data) //
@@ -129,7 +132,6 @@ fun MyCashPointApp(
 
             PermanentDrawer(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .fillMaxSize(),
                 navController = navController,
                 currentDestination = currentDestination,
@@ -293,7 +295,7 @@ fun PermanentDrawer(
 
     PermanentNavigationDrawer(
         drawerContent = {
-            PermanentDrawerSheet {
+            PermanentDrawerSheet (drawerTonalElevation = 4.dp, modifier = Modifier.width(220.dp)){
                 adminNavBarItem.forEach { item ->
                     val selected = currentDestination?.route == item.route
                     val bgColor by animateColorAsState(
@@ -324,7 +326,7 @@ fun PermanentDrawer(
                                 contentDescription = null
                             )
                         },
-                        label = { Text(item.title) },
+                        label = { Text(item.title, color = iconColor) },
                         selected = currentDestination?.route == item.route,
                         colors = NavigationDrawerItemDefaults.colors(
                             selectedContainerColor = bgColor,

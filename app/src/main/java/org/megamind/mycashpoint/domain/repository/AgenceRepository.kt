@@ -8,8 +8,8 @@ interface AgenceRepository {
 
     fun saveOrUpdate(agence: Agence): Flow<Result<Unit>>
     fun getAll(): Flow<Result<List<Agence>>>
-     fun getById(id: String): Flow<Result<Agence?>>
-     fun deleteById(id: String): Flow<Result<Unit>>
+    fun getById(id: String): Flow<Result<Agence?>>
+    fun deleteById(id: String): Flow<Result<Unit>>
 }
 
 

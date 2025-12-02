@@ -157,12 +157,14 @@ private fun OperateurScreenContent(
 
 
     ConfirmDialog(
+        title = "Voulez-vous vous déconnecter ?",
         visible = uiState.isConfirmLogOutDialogShown,
         onDismiss = {
             onIsConfirmLogOutDialogDismiss()
         },
         onConfirm = {
             onLogoutClick()
+            onIsConfirmLogOutDialogDismiss()
         },
     )
 

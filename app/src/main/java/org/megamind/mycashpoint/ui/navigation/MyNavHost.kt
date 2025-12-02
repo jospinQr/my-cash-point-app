@@ -12,12 +12,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.window.core.layout.WindowSizeClass
-import org.megamind.mycashpoint.data.data_source.remote.dto.auth.Role
 
 import org.megamind.mycashpoint.ui.screen.Agence.AgenceScreen
 import org.megamind.mycashpoint.ui.screen.splash.SplashScreen
 import org.megamind.mycashpoint.ui.screen.admin.AdminRepportScreen
-import org.megamind.mycashpoint.ui.screen.admin.DashBoardScreen
+import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardScreen
 import org.megamind.mycashpoint.ui.screen.admin.SettingsScreen
 
 import org.megamind.mycashpoint.ui.screen.auth.LoginInScreen
@@ -39,7 +38,7 @@ fun MyNavHost(
     startDestination: String = Destination.SPLASH.name,
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
 
-) {
+    ) {
 
 
     SharedTransitionLayout {
@@ -115,7 +114,7 @@ fun MyNavHost(
                     animatedVisibilityScope = this,
                     navigateToSignIn = {
                         navController.navigate(Destination.LOGIN.name) {
-                            popUpTo(Destination.OPERATEUR.name) {
+                            popUpTo(0) {
                                 inclusive = true
                             }
 

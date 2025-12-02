@@ -37,6 +37,7 @@ import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServ
 import org.megamind.mycashpoint.domain.usecase.transaction.SyncTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
 import org.megamind.mycashpoint.ui.screen.Agence.AgenceViewModel
+import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardViewModel
 import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
 import org.megamind.mycashpoint.ui.screen.auth.LoginViewModel
 import org.megamind.mycashpoint.ui.screen.caisse.SoldeViewModel
@@ -97,6 +98,7 @@ val appModule = module {
     single { SendOneTransactToServerUseCase(get()) }
     single { SyncSoldesUseCase(get()) }
     single { SyncTransactionUseCase(get()) }
+    single { GetAgencesUseCase(get()) }
 
 
 //view models
@@ -134,7 +136,11 @@ val appModule = module {
     }
 
     viewModel {
-        SplashViewModel(get(), )
+        SplashViewModel(get())
+    }
+
+    viewModel {
+        DashBoardViewModel(get())
     }
 
 

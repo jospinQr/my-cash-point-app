@@ -28,12 +28,16 @@ private fun validateTransaction(transaction: Transaction): TransactionValidation
     return when {
         transaction.idOperateur <= 0 ->
             TransactionValidationException.FieldRequired(TransactionField.OPERATEUR)
+
         transaction.montant <= java.math.BigDecimal.ZERO ->
             TransactionValidationException.InvalidAmount
+
         transaction.nomClient.isNullOrBlank() ->
             TransactionValidationException.FieldRequired(TransactionField.NOM_CLIENT)
+
         transaction.numClient.isNullOrBlank() ->
             TransactionValidationException.FieldRequired(TransactionField.TEL_CLIENT)
+
         else -> null
     }
 }
