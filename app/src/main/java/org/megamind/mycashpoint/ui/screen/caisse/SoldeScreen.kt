@@ -200,7 +200,8 @@ fun SoldeScreenContent(
                 Row(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+                )
+                {
 
                     operateurs.forEachIndexed { index, operateur ->
 
@@ -326,7 +327,8 @@ fun SoldeScreenContent(
                             .padding(14.dp)
 
 
-                    ) {
+                    )
+                    {
 
                         Column {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
