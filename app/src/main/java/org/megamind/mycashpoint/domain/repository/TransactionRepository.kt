@@ -2,7 +2,9 @@ package org.megamind.mycashpoint.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
+import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TopOperateurDto
 import org.megamind.mycashpoint.domain.model.PaginatedTransaction
+import org.megamind.mycashpoint.domain.model.TopOperateur
 import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.utils.Constants
@@ -43,7 +45,7 @@ interface TransactionRepository {
         size: Int,
     ): Flow<Result<PaginatedTransaction>>
 
-    fun generateTransactionResponse(
+    fun generateTransactionRepport(
         codeAgence: String,
         operateurId: Long,
         deviseCode: String,
@@ -53,5 +55,9 @@ interface TransactionRepository {
     ): Flow<Result<ByteArray>>
 
 
+    fun getTopTransactionByOperateur(
+        codeAgence: String,
+        devise: Constants.Devise
+    ): Flow<Result<List<TopOperateur>>>
 }
 

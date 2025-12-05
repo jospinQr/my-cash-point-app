@@ -6,10 +6,8 @@ import java.math.BigDecimal
 data class TopOperateur(
 
     val operateurNom: String,
-    val montantTotal: BigDecimal,
     val nombreTransactions: Int,
-    val operateurId: Int,
-    val devise: String
+
 )
 
 

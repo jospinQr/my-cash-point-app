@@ -6,10 +6,12 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.PaginateTransactionsResponse
+import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TopOperateurDto
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionRequest
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionResponse
 import org.megamind.mycashpoint.data.data_source.remote.safeApiCall
 import org.megamind.mycashpoint.domain.model.TransactionType
+import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
 
 class TransactionService(
@@ -70,6 +72,19 @@ class TransactionService(
     }
 
 
+    suspend fun getTopTransactionByOperateur(
+        codeAgence: String,
+        devise: Constants.Devise
+    ): Result<List<TopOperateurDto>> {
+
+        return safeApiCall<List<TopOperateurDto>> {
+            httpClient.get("transaction/agence/$codeAgence/top-operateurs") {
+                parameter("devise", devise.name)
+            }
+
+        }
+
+    }
 
 
 }

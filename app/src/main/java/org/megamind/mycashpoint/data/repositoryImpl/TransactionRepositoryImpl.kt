@@ -8,6 +8,8 @@ import org.megamind.mycashpoint.data.data_source.local.dao.TransactionDao
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransaction
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransactionEntity
+import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TopOperateurDto
+import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.toTopOperateur
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toTransactionRequest
 import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
 import org.megamind.mycashpoint.domain.model.Transaction
@@ -17,6 +19,7 @@ import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toPaginatedTransaction
 import org.megamind.mycashpoint.domain.model.PaginatedTransaction
+import org.megamind.mycashpoint.domain.model.TopOperateur
 
 class TransactionRepositoryImpl(
     private val transactionService: TransactionService,
@@ -218,7 +221,7 @@ class TransactionRepositoryImpl(
 
     }
 
-    override fun generateTransactionResponse(
+    override fun generateTransactionRepport(
         codeAgence: String,
         operateurId: Long,
         deviseCode: String,
@@ -228,8 +231,7 @@ class TransactionRepositoryImpl(
     ): Flow<Result<ByteArray>> = flow {
 
         try {
-
-
+            emit(Result.Loading)
             val result = transactionService.generateTransactionRepport(
                 codeAgence = codeAgence,
                 operateurId = operateurId,
@@ -239,9 +241,6 @@ class TransactionRepositoryImpl(
                 endDate = endDate
             )
             when (result) {
-                is Result.Loading -> {
-                    emit(Result.Loading)
-                }
 
                 is Result.Success -> {
                     emit(Result.Success(result.data))
@@ -250,6 +249,8 @@ class TransactionRepositoryImpl(
                 is Result.Error -> {
                     emit(Result.Error(result.e ?: Exception("Erreur inconue")))
                 }
+
+                is Result.Loading -> {}
             }
 
 
@@ -259,6 +260,37 @@ class TransactionRepositoryImpl(
             emit(Result.Error(e))
 
         }
+    }
+
+    override fun getTopTransactionByOperateur(
+        codeAgence: String,
+        devise: Constants.Devise
+    ): Flow<Result<List<TopOperateur>>> = flow {
+
+        emit(Result.Loading)
+        try {
+
+            val result = transactionService.getTopTransactionByOperateur(codeAgence, devise)
+            when (result) {
+
+
+                is Result.Success -> {
+                    emit(Result.Success(result.data?.map { it.toTopOperateur() }))
+                }
+
+                is Result.Error -> {
+                    emit(Result.Error(result.e ?: Exception("Erreur inconue")))
+                }
+
+                is Result.Loading -> {}
+            }
+
+
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
+
+
     }
 
 

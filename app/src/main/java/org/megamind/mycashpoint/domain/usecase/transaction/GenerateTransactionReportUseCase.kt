@@ -15,7 +15,7 @@ class GenerateTransactionReportUseCase(private val repository: TransactionReposi
         startDate: Long?,
         endDate: Long?
     ): Flow<Result<ByteArray>> {
-        return repository.generateTransactionResponse(
+        return repository.generateTransactionRepport(
             codeAgence = codeAgence,
             operateurId = operateurId,
             deviseCode = deviseCode,

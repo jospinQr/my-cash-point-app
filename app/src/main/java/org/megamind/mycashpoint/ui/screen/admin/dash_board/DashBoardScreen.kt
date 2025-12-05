@@ -74,6 +74,7 @@ import org.megamind.mycashpoint.domain.model.TopOperateur
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.AnimatedPieChart
 import org.megamind.mycashpoint.ui.component.PieChartData
+import org.megamind.mycashpoint.ui.component.SkeletonLoadingEffect
 import org.megamind.mycashpoint.ui.component.TextDropdown
 import org.megamind.mycashpoint.ui.component.dynamicPieColor
 import org.megamind.mycashpoint.ui.component.getPieChartColor
@@ -93,6 +94,8 @@ fun DashBoardScreen(
 
     LaunchedEffect(Unit) {
         viewModel.getAllAgence()
+
+
     }
 
     DashBoardScreenContent(
@@ -102,8 +105,8 @@ fun DashBoardScreen(
         onSelectedOperateurChange = viewModel::onSelectedOperateurChange,
         onSelectedDeviseChange = viewModel::onSelectedDeviseChange,
         onSelectedSoldeTypeChange = viewModel::onSelectedSoldeTypeChange,
-        solde = Solde()
-    )
+
+        )
 
 }
 
@@ -117,7 +120,6 @@ fun DashBoardScreenContent(
     onSelectedOperateurChange: (Operateur) -> Unit = {},
     onSelectedDeviseChange: (Constants.Devise) -> Unit = {},
     onSelectedSoldeTypeChange: (SoldeType) -> Unit = {},
-    solde: Solde
 ) {
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -134,10 +136,18 @@ fun DashBoardScreenContent(
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    when {
-                        uiState.isAgenceLoading -> CircularProgressIndicator()
-                        uiState.agenceErrorMessage != null -> Text(uiState.agenceErrorMessage)
-                        else -> TextDropdown(
+
+                    if (uiState.isAgenceLoading) {
+                        SkeletonLoadingEffect(
+                            modifier = Modifier
+                                .width(102.dp)
+                                .height(24.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                        )
+                    } else if (uiState.agenceErrorMessage != null) {
+                        Text(uiState.agenceErrorMessage)
+                    } else {
+                        TextDropdown(
                             items = uiState.agenceList,
                             selectedItem = uiState.selectedAgence,
                             onItemSelected = onSelectedAgence,
@@ -147,6 +157,7 @@ fun DashBoardScreenContent(
                         )
                     }
 
+
                 }
             })
     }) {
@@ -155,28 +166,37 @@ fun DashBoardScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
-                .padding(horizontal = 2.dp, vertical = 4.dp)
+                .padding(horizontal = 2.dp, vertical = 4.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
 
-            ) {
-                OperateurSection(uiState, onSelectedOperateurChange)
-                Spacer(modifier = Modifier.height(8.dp))
-                DeviseSection(
-                    uiState = uiState,
-                    onSelectedDeviseChange = { onSelectedDeviseChange(it) })
-                Spacer(modifier = Modifier.height(8.dp))
-                PieCharSection(uiState)
-                Spacer(Modifier.height(8.dp))
-                SoldeSection(
-                   uiState =  uiState,
-                    solde = solde,
-                    onSelectedSoldeTypeChange = { onSelectedSoldeTypeChange(it) }
-                )
-                Spacer(Modifier.height(8.dp))
-                ActionRappide(uiState = uiState)
+
+            if (uiState.isAgenceLoading) {
+                DashBoardLoadingSkeleton()
+            } else if (uiState.agenceErrorMessage != null) {
+
+                Text(uiState.agenceErrorMessage)
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+
+                ) {
+                    OperateurSection(uiState, onSelectedOperateurChange)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DeviseSection(
+                        uiState = uiState,
+                        onSelectedDeviseChange = { onSelectedDeviseChange(it) })
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PieCharSection(uiState)
+                    Spacer(Modifier.height(8.dp))
+                    SoldeSection(
+                        uiState = uiState,
+                        onSelectedSoldeTypeChange = { onSelectedSoldeTypeChange(it) }
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    ActionRappide(uiState = uiState)
+                }
             }
         }
     }
@@ -231,12 +251,29 @@ fun ActionRappide(modifier: Modifier = Modifier, uiState: DashBoardUiState) {
 
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun SoldeSection(
     uiState: DashBoardUiState,
     onSelectedSoldeTypeChange: (SoldeType) -> Unit,
-    solde: Solde
-) {
+
+    ) {
+
+    if (uiState.currenteSolde == null) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text("Aucun solde, verifier vos critères de recherche")
+        }
+        return
+    }
+
+    if (uiState.isSoldeLoading) {
+
+        SoldeCardSkeleton()
+        return
+    }
+
+
+    val solde = uiState.currenteSolde
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -245,6 +282,7 @@ private fun SoldeSection(
 
     )
     {
+
 
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -256,7 +294,6 @@ private fun SoldeSection(
                     .fillMaxWidth()
                     .padding(12.dp)
             ) {
-
 
                 Column {
 
@@ -318,6 +355,21 @@ private fun SoldeSection(
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    if (uiState.soldeErrorMessage != null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                text = uiState.soldeErrorMessage,
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.error)
+                            )
+                        }
+                        return@Box
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Image(
                             modifier = Modifier
@@ -396,14 +448,25 @@ private fun SoldeSection(
 @Composable
 private fun PieCharSection(uiState: DashBoardUiState) {
 
+    if (uiState.isTopOperateurLoading) {
+        PieChartSkeleton()
+        return
+    }
+
+    if (uiState.topOperateurErrorMessage != null) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(uiState.topOperateurErrorMessage)
+        }
+    }
     val colors = listOf(
 
         MaterialTheme.colorScheme.primary,
-        MaterialTheme.colorScheme.secondary,
+        MaterialTheme.colorScheme.inversePrimary,
         MaterialTheme.colorScheme.tertiary,
         MaterialTheme.colorScheme.error,
 
         )
+
 
     Box(modifier = Modifier.padding(horizontal = 12.dp)) {
         Card(
@@ -553,6 +616,7 @@ fun DashBoardScreenPreview() {
         DashBoardScreenContent(
 
             uiState = DashBoardUiState(
+                currenteSolde = Solde(),
                 selectedAgence = Agence("AGO1", "Bbo Centre"),
                 selectedOperateur = operateurs.firstOrNull(),
                 selectedDevise = Constants.Devise.CDF,
@@ -570,42 +634,31 @@ fun DashBoardScreenPreview() {
                 topOperateur = listOf(
                     TopOperateur(
                         operateurNom = "Airtel Money",
-                        montantTotal = 10000.toBigDecimal(),
                         nombreTransactions = 10,
-                        operateurId = 1,
-                        devise = "CDF"
                     ),
                     TopOperateur(
                         operateurNom = "Orange Money",
-                        montantTotal = 10000.toBigDecimal(),
                         nombreTransactions = 13,
-                        operateurId = 1,
-                        devise = "CDF"
                     ),
 
                     TopOperateur(
                         operateurNom = "Vodacom M-Pesa",
-                        montantTotal = 10000.toBigDecimal(),
                         nombreTransactions = 4,
-                        operateurId = 1,
-                        devise = "CDF"
                     ),
 
                     TopOperateur(
                         operateurNom = "Equity",
-                        montantTotal = 10000.toBigDecimal(),
                         nombreTransactions = 10,
-                        operateurId = 1,
-                        devise = "CDF"
-                    ),
+
+                        ),
 
 
                     )
 
             ),
 
-            solde = Solde()
-        )
+
+            )
 
 
     }

@@ -1,5 +1,6 @@
 package org.megamind.mycashpoint.data.repositoryImpl
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -15,7 +16,7 @@ import org.megamind.mycashpoint.utils.Result
 
 
 class AgenceRepositoryImpl(private val agenceService: AgenceService) : AgenceRepository {
-
+    val TAG = "AgenceRepositoryImpl"
 
     override fun saveOrUpdate(agence: Agence): Flow<Result<Unit>> = flow {
 
@@ -42,21 +43,24 @@ class AgenceRepositoryImpl(private val agenceService: AgenceService) : AgenceRep
     override fun getAll(): Flow<Result<List<Agence>>> = flow {
 
 
+        emit(Result.Loading)
         when (val result = agenceService.getAll()) {
-            is Result.Loading -> {
-                emit(Result.Loading)
-            }
+
 
             is Result.Success -> {
                 emit(Result.Success(result.data?.map { it.toAgence() }))
+                Log.i(TAG, "Success")
             }
 
             is Result.Error<*> -> {
                 emit(Result.Error(result.e ?: Exception("Erreur inconnue")))
+                Log.i(TAG, "Error ${result.e?.message}")
             }
-        }
 
-        emit(Result.Loading)
+            else -> {}
+
+
+        }
 
 
     }.catch {

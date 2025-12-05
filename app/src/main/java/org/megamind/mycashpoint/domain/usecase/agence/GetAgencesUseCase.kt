@@ -11,16 +11,10 @@ import org.megamind.mycashpoint.utils.Result
 class GetAgencesUseCase(
     private val repository: AgenceRepository
 ) {
-    operator fun invoke(): Flow<Result<List<Agence>>> = flow {
-        emit(Result.Loading)
-        try {
-            emitAll(repository.getAll())
-        } catch (e: Exception) {
-            emit(Result.Error(e))
-        }
+    operator fun invoke(): Flow<Result<List<Agence>>> = repository.getAll()
 
 
-    }
+
 }
 
 

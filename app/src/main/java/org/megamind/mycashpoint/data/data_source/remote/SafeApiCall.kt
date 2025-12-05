@@ -41,8 +41,8 @@ suspend inline fun <reified T> safeApiCall(
         Result.Error(NetworkException("Vérifiez votre connexion au serveur", e))
 
     } catch (e: ApiException) {
-        Log.e("safeApiCall", e.message)
-        Result.Error(e)
+        Log.e("safeApiCall", e.errorBody.toString())
+        Result.Error(Exception(e.errorBody))
     } catch (e: Exception) {
         Result.Error(UnknownApiException(e))
     }
@@ -52,7 +52,7 @@ suspend inline fun <reified T> safeApiCall(
 fun extractMessageFromErrorBody(body: String): String? {
     return try {
         val json = Json.parseToJsonElement(body).jsonObject
-        json["error"]?.jsonPrimitive?.content
+        json["message"]?.jsonPrimitive?.content
     } catch (_: Exception) {
         null
     }

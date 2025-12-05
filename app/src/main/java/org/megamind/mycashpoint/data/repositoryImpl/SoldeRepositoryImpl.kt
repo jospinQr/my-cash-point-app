@@ -1,5 +1,6 @@
 package org.megamind.mycashpoint.data.repositoryImpl
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -148,6 +149,7 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
     ): Flow<Result<Solde>> = flow {
 
 
+        emit(Loading)
         val soldeResult = soldeService.getSoldeByCriteria(
             codeAgence,
             operateurId,
@@ -156,9 +158,6 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
         )
 
         when (soldeResult) {
-            is Loading -> {
-                emit(Loading)
-            }
 
             is Success -> {
                 val solde = soldeResult.data?.toSolde()
@@ -168,7 +167,11 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
             is Error -> {
 
                 emit(Error(soldeResult.e ?: Exception("Erreur inconue")))
+                Log.e(TAG, "getSoldeFromServerByCriteria: ${soldeResult.e?.message}")
+
             }
+
+            else -> {}
 
         }
 
