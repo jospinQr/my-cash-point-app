@@ -87,16 +87,14 @@ import org.megamind.mycashpoint.utils.toMontant
 @Composable
 fun DashBoardScreen(
     modifier: Modifier = Modifier,
-    viewModel: DashBoardViewModel = koinViewModel()
+    viewModel: DashBoardViewModel = koinViewModel(),
+    navigateToCreateAgence: () -> Unit,
+    navigateToCreateAgent: () -> Unit,
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.getAllAgence()
 
-
-    }
 
     DashBoardScreenContent(
         uiState = uiState,
@@ -105,8 +103,10 @@ fun DashBoardScreen(
         onSelectedOperateurChange = viewModel::onSelectedOperateurChange,
         onSelectedDeviseChange = viewModel::onSelectedDeviseChange,
         onSelectedSoldeTypeChange = viewModel::onSelectedSoldeTypeChange,
+        navigateToCreateAgence = navigateToCreateAgence,
+        navigateToCreateAgent = navigateToCreateAgent
 
-        )
+    )
 
 }
 
@@ -120,6 +120,8 @@ fun DashBoardScreenContent(
     onSelectedOperateurChange: (Operateur) -> Unit = {},
     onSelectedDeviseChange: (Constants.Devise) -> Unit = {},
     onSelectedSoldeTypeChange: (SoldeType) -> Unit = {},
+    navigateToCreateAgence: () -> Unit = {},
+    navigateToCreateAgent: () -> Unit = {},
 ) {
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -195,7 +197,11 @@ fun DashBoardScreenContent(
                         onSelectedSoldeTypeChange = { onSelectedSoldeTypeChange(it) }
                     )
                     Spacer(Modifier.height(8.dp))
-                    ActionRappide(uiState = uiState)
+                    ActionRappide(
+                        uiState = uiState,
+                        onCreateAgenceClick = navigateToCreateAgence,
+                        onCreateAgentClick = navigateToCreateAgent
+                    )
                 }
             }
         }
@@ -203,7 +209,14 @@ fun DashBoardScreenContent(
 }
 
 @Composable
-fun ActionRappide(modifier: Modifier = Modifier, uiState: DashBoardUiState) {
+fun ActionRappide(
+    modifier: Modifier = Modifier,
+    uiState: DashBoardUiState,
+    onCreateAgenceClick: () -> Unit,
+    onCreateAgentClick: () -> Unit
+) {
+
+
     data class Action(val icon: ImageVector, val text: String)
 
     val actions = listOf(
@@ -230,7 +243,12 @@ fun ActionRappide(modifier: Modifier = Modifier, uiState: DashBoardUiState) {
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     IconButton(
-                        onClick = {},
+                        onClick = {
+                            when (index) {
+                                0 -> onCreateAgenceClick()
+                                2 -> onCreateAgentClick()
+                            }
+                        },
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .09f)
                         )

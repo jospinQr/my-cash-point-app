@@ -52,7 +52,7 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.domain.model.Agence
-import org.megamind.mycashpoint.ui.screen.Agence.AgenceViewModel
+import org.megamind.mycashpoint.ui.screen.agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.component.AuthTextField
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.CustomerTextButton

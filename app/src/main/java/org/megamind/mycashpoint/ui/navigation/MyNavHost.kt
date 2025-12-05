@@ -13,7 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.window.core.layout.WindowSizeClass
 
-import org.megamind.mycashpoint.ui.screen.Agence.AgenceScreen
+import org.megamind.mycashpoint.ui.screen.agence.AgenceScreen
 import org.megamind.mycashpoint.ui.screen.splash.SplashScreen
 import org.megamind.mycashpoint.ui.screen.admin.AdminRepportScreen
 import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardScreen
@@ -148,12 +148,19 @@ fun MyNavHost(
 
             }
             composable(route = Destination.AGENCE.name) {
-                AgenceScreen()
+                AgenceScreen(snackbarHostState = snackbarHostState)
             }
 
 
             composable(route = Destination.DASHBOARD.name) {
-                DashBoardScreen()
+                DashBoardScreen(
+                    navigateToCreateAgence = {
+                        navController.navigate(Destination.AGENCE.name)
+                    },
+                    navigateToCreateAgent = {
+                        navController.navigate(Destination.REGISTER.name)
+                    }
+                )
             }
 
             composable(route = Destination.ADMIN_REPPORT.name) {

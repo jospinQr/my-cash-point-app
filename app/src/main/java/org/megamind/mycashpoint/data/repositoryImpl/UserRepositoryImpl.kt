@@ -66,8 +66,18 @@ class UserRepositoryImpl(
         emit(Result.Loading)
         try {
 
-            val result = authService.register(registerRequest)
-            emit(Result.Success(result.data))
+            when (val result = authService.register(registerRequest)) {
+
+                is Result.Success -> {
+                    emit(Result.Success(result.data))
+                }
+
+                is Result.Error<*> -> {
+                    emit(Result.Error(Exception(result.e?.message)))
+                }
+
+                Result.Loading -> {}
+            }
         } catch (ex: Exception) {
             emit(Result.Error(ex))
 

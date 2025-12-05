@@ -20,21 +20,19 @@ class AgenceRepositoryImpl(private val agenceService: AgenceService) : AgenceRep
 
     override fun saveOrUpdate(agence: Agence): Flow<Result<Unit>> = flow {
 
-        val result = agenceService.save(agence.toAgenceRequest())
-
-        when (result) {
+        emit(Result.Loading)
+        when (val result = agenceService.save(agence.toAgenceRequest())) {
             is Result.Success -> {
 
                 emit(Result.Success(Unit))
             }
 
-            is Result.Loading -> {
-                emit(Result.Loading)
-            }
 
             is Result.Error -> {
                 emit(Result.Error(result.e ?: Exception("Erreur inconnue")))
             }
+
+            is Result.Loading -> {}
         }
     }.catch {
         emit(Result.Error(it))

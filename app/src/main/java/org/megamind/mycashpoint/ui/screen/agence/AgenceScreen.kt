@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.ui.screen.Agence
+package org.megamind.mycashpoint.ui.screen.agence
 
 import android.widget.Toast
 import androidx.compose.foundation.border
@@ -22,8 +22,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -34,30 +36,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
+import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
 import org.megamind.mycashpoint.ui.component.LoadinDialog
+import org.megamind.mycashpoint.ui.component.SnackbarType
 
 @Composable
 fun AgenceScreen(
     modifier: Modifier = Modifier,
-    viewModel: AgenceViewModel = koinViewModel()
+    viewModel: AgenceViewModel = koinViewModel(),
+    snackbarHostState: SnackbarHostState
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val agences by viewModel.agences.collectAsStateWithLifecycle()
 
 
-    LaunchedEffect(viewModel) {
+    LaunchedEffect(Unit) {
 
         viewModel.uiEvent.collect { event ->
             when (event) {
                 AgenceUiEvent.OnSaveOrUpdate -> {
-                    Toast.makeText(context, "Enregistrement reussi", Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            message = "Agence enregistrée avec succès",
+                            type = SnackbarType.SUCCESS
+                        )
+                    )
                 }
             }
         }
@@ -92,11 +102,19 @@ fun AgenceScreenContent(
 ) {
 
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Agence") }) }, floatingActionButton = {
-        FloatingActionButton(onClick = { onFormShown() }) {
-            Icon(Icons.Default.Add, contentDescription = null)
-        }
-    }) { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(title = {
+                Text(
+                    "Agence",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            })
+        }, floatingActionButton = {
+            FloatingActionButton(onClick = { onFormShown() }) {
+                Icon(Icons.Default.Add, contentDescription = null)
+            }
+        }) { innerPadding ->
 
         Box(
             modifier = Modifier
@@ -112,6 +130,7 @@ fun AgenceScreenContent(
                         .padding(16.dp)
                         .align(Alignment.Center)
                 )
+                return@Box
             }
             LazyColumn(contentPadding = PaddingValues(12.dp)) {
 
@@ -119,7 +138,12 @@ fun AgenceScreenContent(
 
                     ListItem(
 
-                        headlineContent = { Text(agence.codeAgence) },
+                        headlineContent = {
+                            Text(
+                                agence.codeAgence,
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                            )
+                        },
                         supportingContent = { Text(agence.designation) },
                         modifier = Modifier
                             .border(

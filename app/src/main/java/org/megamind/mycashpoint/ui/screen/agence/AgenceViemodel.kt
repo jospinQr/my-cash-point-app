@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.ui.screen.Agence
+package org.megamind.mycashpoint.ui.screen.agence
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -101,7 +101,7 @@ class AgenceViewModel(
                     is Result.Success<*> -> {
 
                         _uiState.update {
-                            it.copy(isLoadind = false)
+                            it.copy(isLoadind = false, isFomShown = false)
                         }
                         _uiEvent.emit(AgenceUiEvent.OnSaveOrUpdate)
                         getAgence()
@@ -115,11 +115,19 @@ class AgenceViewModel(
                             is AgenceValidationException.FieldRequired -> {
                                 _uiState.update {
                                     when (ex.field) {
-                                        AgenceField.ID -> it.copy(isLoadind = false, isIdError = true)
-                                        AgenceField.DESIGNATION -> it.copy(isLoadind = false, isDesignationError = true)
+                                        AgenceField.ID -> it.copy(
+                                            isLoadind = false,
+                                            isIdError = true
+                                        )
+
+                                        AgenceField.DESIGNATION -> it.copy(
+                                            isLoadind = false,
+                                            isDesignationError = true
+                                        )
                                     }
                                 }
                             }
+
                             else -> {
                                 _uiState.update {
                                     it.copy(isLoadind = false, error = ex?.message)

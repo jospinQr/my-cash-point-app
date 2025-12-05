@@ -98,15 +98,22 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
             return
         }
 
+        val userName = _uiState.value.userName
+        val password = _uiState.value.password
+        val agenceId = _uiState.value.selectedAgence?.codeAgence ?: return
+        val role = _uiState.value.selecteRole.name
+
+
 
 
         viewModelScope.launch(Dispatchers.IO) {
 
             registerUseCase(
-                _uiState.value.userName,
-                _uiState.value.password,
-                _uiState.value.selectedAgence?.codeAgence ?: "",
-                _uiState.value.selecteRole.name
+                userName = userName,
+                password = password,
+                agenceId = agenceId,
+                role = role
+
             ).collect { result ->
 
                 when (val result = result) {

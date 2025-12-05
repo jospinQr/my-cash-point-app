@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
@@ -34,12 +36,20 @@ class DashBoardViewModel(
 ) : ViewModel() {
 
 
+    private val TAG = "DashBoardViewModel"
     private val _uiState = MutableStateFlow(DashBoardUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _uiEvent = MutableSharedFlow<DashBoardUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
+
     private var hasLoadedAgences = false
-    private val TAG = "DashBoardViewModel"
 
 
+    init {
+        getAllAgence()
+    }
     fun getAllAgence() {
 
         viewModelScope.launch {
@@ -251,3 +261,13 @@ data class DashBoardUiState(
     val currenteSolde: Solde? = null,
     val topOperateur: List<TopOperateur> = emptyList()
 )
+
+
+sealed class DashBoardUiEvent {
+
+    object NavigateToCreateAgence : DashBoardUiEvent()
+
+    object NavigateToCreateAgent : DashBoardUiEvent()
+
+
+}

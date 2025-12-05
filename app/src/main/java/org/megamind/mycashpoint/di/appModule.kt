@@ -38,7 +38,7 @@ import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndU
 import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SyncTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
-import org.megamind.mycashpoint.ui.screen.Agence.AgenceViewModel
+import org.megamind.mycashpoint.ui.screen.agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardViewModel
 import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
 import org.megamind.mycashpoint.ui.screen.auth.LoginViewModel
