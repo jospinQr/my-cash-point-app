@@ -18,10 +18,10 @@ import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SyncSoldesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
+
 import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SyncTransactionUseCase
-import org.megamind.mycashpoint.domain.usecase.transaction.TransactionField
-import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidationException
+
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
@@ -276,7 +276,7 @@ class RapportViewModel(
 
         val updatedTransaction = transaction.toTransaction().copy(
             type = currentState.editSelectedType,
-            device = currentState.editSelectedDevise,
+            devise = currentState.editSelectedDevise,
             montant = montant,
             nomClient = currentState.editNomClient,
             numClient = currentState.editTelephoneClient,
@@ -315,53 +315,9 @@ class RapportViewModel(
                     }
 
                     is Result.Error -> {
-                        when (val error = result.e) {
-                            is TransactionValidationException.FieldRequired -> {
-                                _uiState.update {
-                                    when (error.field) {
-                                        TransactionField.NOM_CLIENT -> it.copy(
-                                            isEditNomClientError = true,
-                                            isLoading = false
-                                        )
 
-                                        TransactionField.TEL_CLIENT -> it.copy(
-                                            isEditTelephoneClientError = true,
-                                            isLoading = false
-                                        )
-
-                                        TransactionField.NOM_BENEF -> it.copy(
-                                            isEditNomBeneficiaireError = true,
-                                            isLoading = false
-                                        )
-
-                                        TransactionField.TEL_BENEF -> it.copy(
-                                            isEditTelephoneBeneficiaireError = true,
-                                            isLoading = false
-                                        )
-
-                                        else -> it.copy(isLoading = false)
-                                    }
-                                }
-                            }
-
-                            is TransactionValidationException.InvalidAmount -> {
-                                _uiState.update {
-                                    it.copy(
-                                        isLoading = false,
-                                        isEditMontantError = true
-                                    )
-                                }
-                            }
-
-                            else -> {
-                                _uiState.update {
-                                    it.copy(
-                                        isLoading = false,
-                                        editErrorMessage = error?.message
-                                            ?: "Erreur lors de la mise à jour"
-                                    )
-                                }
-                            }
+                        _uiState.update {
+                            it.copy(isLoading = false, editErrorMessage = result.e?.message ?: "")
                         }
                     }
                 }
@@ -536,7 +492,11 @@ class RapportViewModel(
 
                     is Result.Success -> {
                         _uiState.update {
-                            it.copy(isLoading = false, isSyncTransactConformDialogShown = false, isActionMenuVisible = false)
+                            it.copy(
+                                isLoading = false,
+                                isSyncTransactConformDialogShown = false,
+                                isActionMenuVisible = false
+                            )
                         }
 
                         _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Synchronisation reussit"))
@@ -577,7 +537,11 @@ class RapportViewModel(
 
                     is Result.Success -> {
                         _uiState.update {
-                            it.copy(isLoading = false, isSyncSoldeConformDialogShown = false, isActionMenuVisible = false)
+                            it.copy(
+                                isLoading = false,
+                                isSyncSoldeConformDialogShown = false,
+                                isActionMenuVisible = false
+                            )
                         }
 
                         _uiEvent.emit(RapportUiEvent.ShowSuccesMessage("Solde mis à jour avec succès"))

@@ -1,12 +1,10 @@
 package org.megamind.mycashpoint.ui.screen.auth
 
-import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,8 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -225,19 +223,18 @@ private fun SignInContent(
 
 
     AuthTextField(
-        value = uiState.email,
+        value = uiState.userName,
         onValueChange = onEmailChange,
         label = "Nom",
         modifier = Modifier.fillMaxWidth(),
-        isError = uiState.isEmailError,
-        supportText = "Entrer une adresse email valide"
+        isError = uiState.isUserNameError,
+        supportText = "Le nom doit contenir au moins 3 caractères"
     )
 
     Spacer(modifier = Modifier.height(4.dp))
 
     AuthTextField(
         value = uiState.password,
-
         onValueChange = onPasswordChange,
         label = "Mot de passe",
         modifier = Modifier.fillMaxWidth(),
@@ -249,7 +246,8 @@ private fun SignInContent(
             )
         },
         isError = uiState.isPasswordError,
-        supportText = "Entrer un mot de passe valide"
+        supportText = "Le mot de passe doit contenir au moins 6 caractères",
+        keyBordType = KeyboardType.Password
     )
 
     SignInButtonsSection(

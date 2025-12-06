@@ -138,7 +138,7 @@ fun TransactionScreen(
                                 "date" to Constants.formatTimestamp(transaction.horodatage),
                                 "motif" to transaction.type.name,
                                 "montant" to "${transaction.montant}",
-                                "devise" to transaction.device.symbole,
+                                "devise" to transaction.devise.symbole,
                                 "nom" to transaction.nomClient.toString(),
                                 "agent" to userName,
 
@@ -209,7 +209,6 @@ fun TransactionScreenContent(
     ) {
 
     val selectedOperateur = operateurUiState.selectedOperateur
-    val context = LocalContext.current
 
 
     with(sharedTransitionScope) {

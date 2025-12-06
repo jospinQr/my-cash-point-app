@@ -19,7 +19,7 @@ fun Transaction.toTransactionRequest(): TransactionRequest {
         numBeneficaire = numBeneficaire,
         soldeAvant = soldeAvant,
         soldeApres = soldeApres,
-        deviseCode = device.name,
+        deviseCode = devise.name,
         reference = reference,
         note = note,
         codeAgence = codeAgence,

@@ -1,5 +1,6 @@
 package org.megamind.mycashpoint.ui.screen.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,7 @@ import org.megamind.mycashpoint.utils.UtilsFonctions
 
 class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewModel() {
 
-
+    val TAG = "Register ViewModel"
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
@@ -27,18 +28,9 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
     val uiEvent: SharedFlow<RegisterUiEvent> = _uiEvent.asSharedFlow()
 
 
-    fun onEmailChange(email: String) {
-        _uiState.update {
-            it.copy(
-                email = email,
-                isEmailError = !UtilsFonctions.isValidEmail(email)
-            )
-        }
-    }
-
     fun onPasswordChange(password: String) {
         _uiState.update {
-            it.copy(password = password, isPasswordError = _uiState.value.password.length <= 8)
+            it.copy(password = password, isPasswordError = false)
         }
     }
 
@@ -46,14 +38,14 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
         _uiState.update {
             it.copy(
                 passWordRepeat = password,
-                isPasswordRepError = _uiState.value.password != _uiState.value.passWordRepeat
+                isPasswordRepError = false
             )
         }
     }
 
     fun onNameChange(name: String) {
         _uiState.update {
-            it.copy(userName = name, isNameError = _uiState.value.userName.isEmpty())
+            it.copy(userName = name, isNameError = false)
         }
     }
 
@@ -65,46 +57,12 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
 
     fun onRegister() {
 
-
-        if (_uiState.value.userName.isEmpty()) {
-
-            _uiState.update {
-                it.copy(isNameError = true)
-            }
-            return
-        }
-        if (_uiState.value.email.isEmpty()) {
-
-            _uiState.update {
-                it.copy(isEmailError = true)
-            }
-            return
-        }
-
-        if (_uiState.value.password.isEmpty()) {
-
-            _uiState.update {
-                it.copy(isPasswordError = true)
-            }
-            return
-        }
-
-
-        if (_uiState.value.password != _uiState.value.passWordRepeat) {
-
-            _uiState.update {
-                it.copy(isPasswordRepError = true)
-            }
-            return
-        }
+        if (!validateForm()) return
 
         val userName = _uiState.value.userName
         val password = _uiState.value.password
         val agenceId = _uiState.value.selectedAgence?.codeAgence ?: return
         val role = _uiState.value.selecteRole.name
-
-
-
 
         viewModelScope.launch(Dispatchers.IO) {
 
@@ -158,6 +116,9 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
         _uiState.update {
             it.copy(isPasswordVisible = !_uiState.value.isPasswordVisible)
         }
+
+
+        Log.i(TAG, "isPasswordVisible: ${_uiState.value.isPasswordVisible}")
     }
 
     fun onAgenceMenuDismiss() {
@@ -171,18 +132,58 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
             it.copy(isAgenceExpanded = true)
         }
     }
+
+    fun onUserRoleChange(role: Role) {
+        _uiState.update {
+            it.copy(selecteRole = role)
+        }
+    }
+
+    private fun validateForm(): Boolean {
+        var isValid = true
+
+        if (_uiState.value.userName.isEmpty()) {
+            _uiState.update {
+                it.copy(isNameError = true)
+            }
+            isValid = false
+        }
+
+        if (_uiState.value.password.isEmpty() || _uiState.value.password.length <= 8) {
+            _uiState.update {
+                it.copy(isPasswordError = true)
+            }
+            isValid = false
+
+        }
+
+        if (_uiState.value.passWordRepeat.isEmpty() || _uiState.value.passWordRepeat != _uiState.value.password) {
+            _uiState.update {
+                it.copy(isPasswordRepError = true)
+            }
+            isValid = false
+        }
+
+        if (_uiState.value.selecteRole == Role.AGENT && _uiState.value.selectedAgence == null) {
+            _uiState.update {
+                it.copy(isAgenceExpanded = true)
+            }
+            isValid = false
+        }
+
+        return isValid
+    }
+
 }
 
 
 data class RegisterUiState(
-    val userName: String = "joe",
-    val email: String = "joekahereni25@gmail.com",
-    val password: String = "1234567890",
+    val userName: String = "",
+    val password: String = "",
     val agence: String = "",
-    val passWordRepeat: String = "1234567890",
+    val passWordRepeat: String = "",
     val isPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
-    val isPasswordShown: Boolean = false,
     val isEmailError: Boolean = false,
     val isPasswordError: Boolean = false,
     val isPasswordRepError: Boolean = false,
@@ -190,7 +191,7 @@ data class RegisterUiState(
     val isRegisting: Boolean = false,
     val selectedAgence: Agence? = null,
     val isAgenceExpanded: Boolean = false,
-    val selecteRole: Role = Role.ADMIN
+    val selecteRole: Role = Role.AGENT
 ) {
 
 

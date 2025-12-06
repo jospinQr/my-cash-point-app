@@ -42,7 +42,7 @@ import org.megamind.mycashpoint.ui.screen.agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardViewModel
 import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
 import org.megamind.mycashpoint.ui.screen.auth.LoginViewModel
-import org.megamind.mycashpoint.ui.screen.caisse.SoldeViewModel
+import org.megamind.mycashpoint.ui.screen.solde.SoldeViewModel
 import org.megamind.mycashpoint.ui.screen.main.MainViewModel
 import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel

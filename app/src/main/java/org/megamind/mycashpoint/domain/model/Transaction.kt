@@ -24,7 +24,7 @@ data class Transaction(
     val soldeAvant: BigDecimal? = null,
     val soldeApres: BigDecimal? = null,
 
-    val device: Constants.Devise,
+    val devise: Constants.Devise,
     val reference: String? = null,       // Ex: reçu opérateur
     val note: String? = null,
     val horodatage: Long = System.currentTimeMillis(),

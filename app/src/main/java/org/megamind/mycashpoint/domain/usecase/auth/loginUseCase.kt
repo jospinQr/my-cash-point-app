@@ -8,9 +8,10 @@ import org.megamind.mycashpoint.utils.Result
 
 class LoginUseCase(private val userRepository: UserRepository) {
 
-    operator fun invoke(email: String, password: String): Flow<Result<AuthResponse>> {
 
-        val loginRequest = LoginRequest(email, password)
+    operator fun invoke(userName: String, password: String): Flow<Result<AuthResponse>> {
+
+        val loginRequest = LoginRequest(userName, password)
         return userRepository.login(loginRequest)
 
     }

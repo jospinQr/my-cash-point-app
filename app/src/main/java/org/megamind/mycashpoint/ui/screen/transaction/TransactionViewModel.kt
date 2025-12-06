@@ -11,8 +11,6 @@ import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
-import org.megamind.mycashpoint.domain.usecase.transaction.TransactionField
-import org.megamind.mycashpoint.domain.usecase.transaction.TransactionValidationException
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
@@ -57,10 +55,10 @@ class TransactionViewModel(
 
     fun onNomClientChange(nom: String) {
         _uiState.update {
-            it.copy(nomClient = nom, isNomError = false )
+            it.copy(nomClient = nom, isNomError = false)
         }
 
-        if(_uiState.value.selectedType==TransactionType.DEPOT){
+        if (_uiState.value.selectedType == TransactionType.DEPOT) {
             _uiState.update {
                 it.copy(nomBenef = nom)
             }
@@ -71,7 +69,7 @@ class TransactionViewModel(
         _uiState.update {
             it.copy(telephClient = teleph, isTelephClientError = false)
         }
-        if(_uiState.value.selectedType==TransactionType.DEPOT){
+        if (_uiState.value.selectedType == TransactionType.DEPOT) {
             _uiState.update {
                 it.copy(telephBenef = teleph)
             }
@@ -127,15 +125,12 @@ class TransactionViewModel(
 
     fun onSaveClick(operateurId: Int) {
 
-
         viewModelScope.launch {
             val claims = decodeJwtPayload(storageManager.getToken()!!)
-
-
             val transaction = Transaction(
                 idOperateur = operateurId,
                 type = _typeTransact,
-                device = _devise,
+                devise = _devise,
                 montant = _montant.toBigDecimalOrNull() ?: BigDecimal(0),
                 commission = _commision.toFloatOrNull(),
                 nomClient = _nomClient,
@@ -179,42 +174,18 @@ class TransactionViewModel(
 
                     is Result.Error<*> -> {
                         _uiState.update { it.copy(isLoading = false, isFormVisble = false) }
-                        when (val ex = result.e) {
-                            is TransactionValidationException.FieldRequired -> {
-                                _uiState.update {
-                                    when (ex.field) {
-                                        TransactionField.OPERATEUR -> it
-                                        TransactionField.TYPE -> it
-                                        TransactionField.DEVISE -> it
-                                        TransactionField.NOM_CLIENT -> it.copy(isNomError = true)
-                                        TransactionField.TEL_CLIENT -> it.copy(isTelephClientError = true)
-                                        TransactionField.NOM_BENEF -> it.copy(isNomBenefError = true)
-                                        TransactionField.TEL_BENEF -> it.copy(isTelephBenefError = true)
-                                    }
-                                }
-                            }
 
-                            is TransactionValidationException.InvalidAmount -> {
-                                _uiState.update { it.copy(isMontantError = true) }
-                            }
-
-                            else -> {
-                                _uiEvent.emit(
-                                    TransactionUiEvent.ShowErrorMessage(
-                                        ex?.message ?: "Erreur inconnue"
-                                    )
-                                )
-                            }
-                        }
                     }
-                }
 
+                }
             }
         }
     }
 
 
     fun onConfirmDialogShown() {
+
+        if (!validateForm()) return
 
         _uiState.update {
             it.copy(isConfirmDialogShown = true)
@@ -228,8 +199,41 @@ class TransactionViewModel(
         }
     }
 
+    private fun validateForm(): Boolean {
+        var isValid = true
+
+        if (_montant.isEmpty() || _montant.toBigDecimalOrNull() == null || _montant.toBigDecimal() == BigDecimal.ZERO) {
+            _uiState.update { it.copy(isMontantError = true) }
+            isValid = false
+        }
+
+        if (_nomClient.isEmpty()) {
+            _uiState.update { it.copy(isNomError = true) }
+            isValid = false
+        }
+
+        if (_telephClient.isEmpty()) {
+            _uiState.update { it.copy(isTelephClientError = true) }
+            isValid = false
+        }
+
+        if (_uiState.value.selectedType == TransactionType.DEPOT) {
+            if (_nomBenef.isEmpty()) {
+                _uiState.update { it.copy(isNomBenefError = true) }
+                isValid = false
+            }
+
+            if (_telephBenef.isEmpty()) {
+                _uiState.update { it.copy(isTelephBenefError = true) }
+                isValid = false
+            }
+        }
+
+        return isValid
+    }
 
 }
+
 
 data class TransactionUiState(
 

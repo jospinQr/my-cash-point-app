@@ -2,7 +2,9 @@ package org.megamind.mycashpoint.ui.screen.auth
 
 
 import android.content.Context
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -31,6 +33,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -43,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,11 +55,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import org.koin.androidx.compose.koinViewModel
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.Role
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.ui.screen.agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.component.AuthTextField
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.CustomerTextButton
+import org.megamind.mycashpoint.ui.component.LoadinDialog
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 
 
@@ -69,16 +75,12 @@ fun RegisterScreen(
     windowSizeClass: WindowSizeClass,
 
 
+
     ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-
     val agences by agenceViewModel.agences.collectAsStateWithLifecycle()
-
-
-
-
 
     LaunchedEffect(viewModel) {
 
@@ -86,7 +88,7 @@ fun RegisterScreen(
 
             when (uiEvent) {
                 RegisterUiEvent.NavigateToHome -> {
-                    Toast.makeText(context, "Reuissit", Toast.LENGTH_LONG).show()
+
                 }
 
                 is RegisterUiEvent.ShowError -> {
@@ -96,16 +98,8 @@ fun RegisterScreen(
         }
     }
 
-    RegisterEventHandler(
-        viewModel = viewModel,
-        context = context,
-        navigateToHome = navigateToHome
-    )
-
-
     RegisterScreenContent(
         uiState = uiState,
-        onEmailChange = { viewModel.onEmailChange(it) },
         onPasswordChange = { viewModel.onPasswordChange(it) },
         onSignIn = { viewModel.onRegister() },
         onNameChange = { viewModel.onNameChange(it) },
@@ -116,7 +110,8 @@ fun RegisterScreen(
         onAgenceMenuExpanded = { viewModel.onAgenceMenuExpanded() },
         onAgenceMenuDismiss = { viewModel.onAgenceMenuDismiss() },
         onSelectedAgenceChange = { viewModel.onAgenceChange(it) },
-        agences = agences
+        agences = agences,
+        onUserRoleChange = viewModel::onUserRoleChange,
     )
 
 }
@@ -124,7 +119,7 @@ fun RegisterScreen(
 @Composable
 fun RegisterScreenContent(
     uiState: RegisterUiState,
-    onEmailChange: (String) -> Unit,
+
     onPasswordChange: (String) -> Unit,
     onNameChange: (String) -> Unit,
     onPasswordRepeatChange: (String) -> Unit,
@@ -135,7 +130,9 @@ fun RegisterScreenContent(
     onAgenceMenuExpanded: () -> Unit,
     onAgenceMenuDismiss: () -> Unit,
     onSelectedAgenceChange: (Agence) -> Unit,
-    agences: List<Agence>
+    agences: List<Agence>,
+    onUserRoleChange: (Role) -> Unit
+
 
 ) {
     val isCompact = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
@@ -145,7 +142,6 @@ fun RegisterScreenContent(
             modifier = Modifier.padding(innerPadding),
             isCompact = isCompact,
             uiState = uiState,
-            onEmailChange = onEmailChange,
             onPasswordChange = onPasswordChange,
             onSignIn = onSignIn,
             onPasswordVisibilityChange = onPasswordVisibilityChange,
@@ -156,11 +152,15 @@ fun RegisterScreenContent(
             onAgenceMenuDismiss = onAgenceMenuDismiss,
             onSelectedAgenceChange = onSelectedAgenceChange,
             agences = agences,
+            onUserRoleChange = onUserRoleChange
 
 
-            )
+        )
     }
 
+    if (uiState.isLoading) {
+        LoadinDialog()
+    }
 
 }
 
@@ -169,7 +169,6 @@ private fun AdaptiveRegisterLayout(
     modifier: Modifier = Modifier,
     isCompact: Boolean,
     uiState: RegisterUiState,
-    onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onNameChange: (String) -> Unit,
     onPasswordRepeatChange: (String) -> Unit,
@@ -179,7 +178,8 @@ private fun AdaptiveRegisterLayout(
     onAgenceMenuExpanded: () -> Unit,
     onAgenceMenuDismiss: () -> Unit,
     onSelectedAgenceChange: (Agence) -> Unit,
-    agences: List<Agence>
+    agences: List<Agence>,
+    onUserRoleChange: (Role) -> Unit
 
 
 ) {
@@ -199,7 +199,6 @@ private fun AdaptiveRegisterLayout(
             IconSection(modifier = Modifier)
             RegisterContent(
                 uiState = uiState,
-                onEmailChange = onEmailChange,
                 onPasswordChange = onPasswordChange,
                 onNameChange = onNameChange,
                 onPasswordRepeatChange = onPasswordRepeatChange,
@@ -210,6 +209,8 @@ private fun AdaptiveRegisterLayout(
                 onAgenceMenuDismiss = onAgenceMenuDismiss,
                 onSelectedAgenceChange = onSelectedAgenceChange,
                 agences = agences,
+                onUserRoleChange = onUserRoleChange
+
             )
         }
     } else {
@@ -230,7 +231,6 @@ private fun AdaptiveRegisterLayout(
             ) {
                 RegisterContent(
                     uiState = uiState,
-                    onEmailChange = onEmailChange,
                     onPasswordChange = onPasswordChange,
                     onNameChange = onNameChange,
                     onPasswordRepeatChange = onPasswordRepeatChange,
@@ -252,7 +252,6 @@ private fun AdaptiveRegisterLayout(
 @Composable
 private fun RegisterContent(
     uiState: RegisterUiState,
-    onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onNameChange: (String) -> Unit,
     onPasswordRepeatChange: (String) -> Unit,
@@ -262,12 +261,36 @@ private fun RegisterContent(
     onAgenceMenuExpanded: () -> Unit,
     onAgenceMenuDismiss: () -> Unit,
     onSelectedAgenceChange: (Agence) -> Unit,
-    agences: List<Agence>
+    agences: List<Agence>,
+    onUserRoleChange: (Role) -> Unit = {}
 
 
 ) {
 
 
+    Row(
+        Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+
+
+        Role.entries.forEachIndexed { index, role ->
+
+            Text(
+                text = role.name,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+            )
+            RadioButton(
+                selected = uiState.selecteRole == role,
+                onClick = {
+                    onUserRoleChange(role)
+                }
+            )
+
+        }
+
+    }
     AuthTextField(
         value = uiState.userName,
         onValueChange = onNameChange,
@@ -277,15 +300,6 @@ private fun RegisterContent(
         supportText = "Champ obligatoire"
     )
     Spacer(modifier = Modifier.height(4.dp))
-    AuthTextField(
-        value = uiState.email,
-        onValueChange = onEmailChange,
-        label = "Email",
-        modifier = Modifier.fillMaxWidth(),
-        isError = uiState.isEmailError,
-        supportText = "Entrer une adresse email valide"
-    )
-    Spacer(modifier = Modifier.height(4.dp))
 
     AuthTextField(
         value = uiState.password,
@@ -293,10 +307,26 @@ private fun RegisterContent(
         onValueChange = onPasswordChange,
         label = "Mot de passe",
         modifier = Modifier.fillMaxWidth(),
-        visualTransformation = if (uiState.isPasswordShown) VisualTransformation.None else PasswordVisualTransformation(),
+        visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
             PasswordVisibilityIcon(
-                isPasswordShown = uiState.isPasswordShown,
+                isPasswordShown = uiState.isPasswordVisible,
+                onPasswordVisibilityChange = onPasswordVisibilityChange
+            )
+        },
+        isError = uiState.isPasswordError,
+        supportText = "Entrer un mot de passe valide(8 caractères minimum)"
+    )
+    AuthTextField(
+        value = uiState.passWordRepeat,
+
+        onValueChange = onPasswordRepeatChange,
+        label = "Repéter le mot de passe",
+        modifier = Modifier.fillMaxWidth(),
+        visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            PasswordVisibilityIcon(
+                isPasswordShown = uiState.isPasswordVisible,
                 onPasswordVisibilityChange = onPasswordVisibilityChange
             )
         },
@@ -353,24 +383,6 @@ private fun RegisterContent(
             }
         }
     }
-    AuthTextField(
-        value = uiState.passWordRepeat,
-
-        onValueChange = onPasswordRepeatChange,
-        label = "Répéter le mot de passe",
-        modifier = Modifier.fillMaxWidth(),
-        visualTransformation = if (uiState.isPasswordShown) VisualTransformation.None else PasswordVisualTransformation(),
-        trailingIcon = {
-            PasswordVisibilityIcon(
-                isPasswordShown = uiState.isPasswordShown,
-                onPasswordVisibilityChange = onPasswordVisibilityChange
-            )
-        },
-        isError = uiState.isPasswordRepError,
-        supportText = "Les mots de passe ne correspondent pas"
-    )
-
-
 
 
 
@@ -423,34 +435,6 @@ private fun RegisterButtonsSection(
     Spacer(modifier = Modifier.height(16.dp))
 
 
-    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-
-
-        Text(
-            modifier = Modifier,
-            text = "Mot de passe oublié ?",
-            style = MaterialTheme.typography.bodySmall
-        )
-        Spacer(modifier = Modifier.width(2.dp))
-        CustomerTextButton(
-            modifier = Modifier,
-            onClick = {
-
-                onNavigateToSignUp()
-
-            },
-            containerColor = MaterialTheme.colorScheme.background
-        ) {
-            Text(
-                text = "S'inscrire",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-
-    }
-
-
 }
 
 
@@ -465,7 +449,7 @@ fun IconSection(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "Inscrivez vous pour continuer avec  MyCashPoint",
+            "Veillez inscrir un agent ou un adminisrateur",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline,
         )
@@ -517,9 +501,8 @@ private fun RegisterButtonContent(
 @Composable
 private fun RegisterEventHandler(
     viewModel: RegisterViewModel,
-    context: Context,
-    navigateToHome: () -> Unit
-) {
+
+    ) {
     LaunchedEffect(viewModel) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -532,6 +515,7 @@ private fun RegisterEventHandler(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Preview(showBackground = true)
 @Composable
 fun RegisterScreePreview() {
@@ -539,10 +523,22 @@ fun RegisterScreePreview() {
 
     MyCashPointTheme {
 
-        RegisterScreen(
-            navigateToHome = {},
+        RegisterScreenContent(
+            uiState = RegisterUiState(),
+            onPasswordChange = {},
+            onNameChange = {},
+            onPasswordRepeatChange = {},
+            onSignIn = {},
+            onPasswordVisibilityChange = {},
             onNavigateToSignUp = {},
-            windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+            onAgenceMenuExpanded = {},
+            onAgenceMenuDismiss = {},
+            onSelectedAgenceChange = {},
+            agences = emptyList(),
+            windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
+            onUserRoleChange = {}
+
+
         )
 
     }

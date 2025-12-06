@@ -21,7 +21,7 @@ import org.megamind.mycashpoint.ui.screen.admin.SettingsScreen
 
 import org.megamind.mycashpoint.ui.screen.auth.LoginInScreen
 import org.megamind.mycashpoint.ui.screen.auth.RegisterScreen
-import org.megamind.mycashpoint.ui.screen.caisse.SoldeScreen
+import org.megamind.mycashpoint.ui.screen.solde.SoldeScreen
 
 import org.megamind.mycashpoint.ui.screen.rapport.RapportScreen
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurScreen

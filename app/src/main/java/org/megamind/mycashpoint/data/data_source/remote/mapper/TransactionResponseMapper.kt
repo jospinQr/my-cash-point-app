@@ -21,7 +21,7 @@ fun TransactionResponse.toTransaction(): Transaction {
         numBeneficaire = numBeneficaire,
         soldeAvant = soldeAvant,
         soldeApres = soldeApres,
-        device = devise,
+        devise = devise,
         reference = reference,
         note = note,
         horodatage = horodatage,

@@ -1,4 +1,4 @@
-package org.megamind.mycashpoint.ui.screen.caisse
+package org.megamind.mycashpoint.ui.screen.solde
 
 
 import android.os.Build

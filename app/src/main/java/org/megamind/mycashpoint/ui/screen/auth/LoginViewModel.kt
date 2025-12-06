@@ -29,44 +29,45 @@ class LoginViewModel(
     val uiEvent = _uiEvent.asSharedFlow()
 
 
-    private val _email: String
-        get() = _uiState.value.email
+    private val _userName: String
+        get() = _uiState.value.userName
 
     private val _password: String
         get() = _uiState.value.password
 
 
-    fun onEmailChange(email: String) {
+    fun onEmailChange(userName: String) {
         _uiState.update {
             it.copy(
-                email = email,
-                isEmailError = !UtilsFonctions.isValidEmail(email)
+                userName = userName,
+                isUserNameError = false
+
             )
         }
     }
 
     fun onPasswordChange(password: String) {
         _uiState.update {
-            it.copy(password = password, isPasswordError = password.length <= 8)
+            it.copy(password = password, isPasswordError = false)
         }
     }
 
-    fun onAgenceChange(agence: Agence) {
+    fun onPasswordVisibilityChange() {
         _uiState.update {
-            it.copy(agence = agence.designation, selectedAgence = agence)
+            it.copy(isPasswordShown = !_uiState.value.isPasswordShown)
         }
     }
 
     fun onSignIn() {
 
-        if (_email.isEmpty()) {
+        if (_userName.isEmpty() || _userName.length < 3) {
             _uiState.update {
-                it.copy(isEmailError = true)
+                it.copy(isUserNameError = true)
             }
             return
         }
 
-        if (_password.isEmpty()) {
+        if (_password.isEmpty() || _password.length <= 6) {
             _uiState.update {
                 it.copy(isPasswordError = true)
             }
@@ -76,12 +77,7 @@ class LoginViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
 
-            loginUseCase(
-                _email,
-                _password,
-
-                ).collect { result ->
-
+            loginUseCase(_userName, _password).collect { result ->
                 when (val result = result) {
 
                     is Result.Loading -> {
@@ -136,48 +132,11 @@ class LoginViewModel(
 
     }
 
-    fun onPasswordVisibilityChange() {
-
-        _uiState.update {
-            it.copy(isPasswordShown = !it.isPasswordShown)
-        }
-    }
-
-    fun sendPasswordResetEmail() {
-
-        _uiState.update {
-            it.copy(isSendingPasswordResetDialogShown = true)
-        }
-    }
-
-    fun showPasswordResetDialog() {
-        _uiState.update {
-            it.copy(isSendingPasswordResetDialogShown = true)
-        }
-    }
-
-    fun dismissPasswordResetDialog() {
-        _uiState.update {
-            it.copy(isSendingPasswordResetDialogShown = false)
-        }
-    }
-
-    fun onAgenceMenuDismiss() {
-        _uiState.update {
-            it.copy(isAgenceExpanded = false)
-        }
-    }
-
-    fun onAgenceMenuExpanded() {
-        _uiState.update {
-            it.copy(isAgenceExpanded = true)
-        }
-    }
 }
 
 
 data class SignInUiState(
-    val email: String = "",
+    val userName: String = "",
     val password: String = "",
     val agence: String = "",
     val isLoading: Boolean = false,
@@ -186,13 +145,11 @@ data class SignInUiState(
     val isSendingPasswordResetEmail: Boolean = false,
     val isSigningIn: Boolean = false,
     val isPasswordShown: Boolean = false,
-    val isEmailError: Boolean = false,
+    val isUserNameError: Boolean = false,
     val selectedAgence: Agence? = null,
     val isAgenceExpanded: Boolean = false,
 
-    ) {
-
-}
+    )
 
 sealed class SignInUiEvent {
 

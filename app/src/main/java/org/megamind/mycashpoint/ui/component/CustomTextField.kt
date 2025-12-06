@@ -73,8 +73,10 @@ fun AuthTextField(
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    imeAction: ImeAction = ImeAction.Next
-) {
+    imeAction: ImeAction = ImeAction.Next,
+    keyBordType: KeyboardType = KeyboardType.Text,
+
+    ) {
 
 
     Column() {
@@ -94,6 +96,7 @@ fun AuthTextField(
             isError = isError,
             maxLines = maxLines,
             textStyle = MaterialTheme.typography.bodySmall,
+
             supportingText = {
                 AnimatedVisibility(
                     visible = isError,
@@ -138,10 +141,13 @@ fun AuthTextField(
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
             visualTransformation = visualTransformation,
-            keyboardOptions = KeyboardOptions(imeAction = imeAction)
+            keyboardOptions = KeyboardOptions(
+                imeAction = imeAction,
+                keyboardType = keyBordType
+            ),
 
 
-        )
+            )
     }
 
 
