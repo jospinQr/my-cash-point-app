@@ -20,6 +20,7 @@ koinAndroid = "4.1.1"
 material3WindowSizeClass = "1.4.0"
 adaptive = "1.2.0"
 ktor = "3.3.2"
+threetenabp = "1.4.9"
 
 
 [libraries]
@@ -61,6 +62,7 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinAndroid" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinAndroid" }
+threetenabp = { module = "com.jakewharton.threetenabp:threetenabp", version.ref = "threetenabp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -11,7 +11,7 @@ class GetSoldeByOperateurEtTypeEtDeviseUseCase(
     private val repository: SoldeRepository
 ) {
     operator fun invoke(
-        idOperateur: Int?,
+        idOperateur: Long?,
         devise: String?,
         soldeType: SoldeType?
     ): Flow<Result<Solde?>> = flow {

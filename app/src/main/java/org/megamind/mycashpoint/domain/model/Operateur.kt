@@ -7,7 +7,7 @@ import org.megamind.mycashpoint.R
 
 data class Operateur(
 
-    val id: Int = 0,
+    val id: Long = 0,
     val name: String = "",
     @DrawableRes
     val logo: Int = 0,

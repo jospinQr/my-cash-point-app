@@ -22,7 +22,7 @@ interface SoldeDao {
     """
     )
     suspend fun getSoldeByOperateurEtTypeEtDevise(
-        idOperateur: Int,
+        idOperateur: Long,
         type: SoldeType,
         devise: Constants.Devise
     ): SoldeEntity?
@@ -44,7 +44,7 @@ interface SoldeDao {
     """
     )
     suspend fun updateMontant(
-        idOp: Int,
+        idOp: Long,
         type: SoldeType,
         devise: Constants.Devise,
         nouveauMontant: BigDecimal,
@@ -56,7 +56,7 @@ interface SoldeDao {
 
     @Query("DELETE FROM soldes WHERE idOperateur = :idOperateur AND devise = :devise")
     suspend fun deleteByOperateurEtDevise(
-        idOperateur: Int,
+        idOperateur: Long,
         devise: Constants.Devise
     )
 
@@ -73,7 +73,7 @@ interface SoldeDao {
     """
     )
     suspend fun markAsSynced(
-        idOperateur: Int,
+        idOperateur: Long,
         type: SoldeType,
         devise: Constants.Devise
     )

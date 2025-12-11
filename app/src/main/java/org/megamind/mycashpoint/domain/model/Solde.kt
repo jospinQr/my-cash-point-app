@@ -5,7 +5,7 @@ import java.math.BigDecimal
 
 data class Solde(
 
-    val idOperateur: Int = 0,
+    val idOperateur: Long = 0,
     val montant: BigDecimal = BigDecimal.ZERO,
     val soldeType: SoldeType = SoldeType.PHYSIQUE,
     val devise: Constants.Devise = Constants.Devise.USD,

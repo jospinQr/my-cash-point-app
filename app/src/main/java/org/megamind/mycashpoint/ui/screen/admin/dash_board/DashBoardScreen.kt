@@ -83,7 +83,6 @@ import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.toMontant
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DashBoardScreen(
     modifier: Modifier = Modifier,
@@ -110,7 +109,7 @@ fun DashBoardScreen(
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashBoardScreenContent(
@@ -269,7 +268,6 @@ fun ActionRappide(
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun SoldeSection(
     uiState: DashBoardUiState,
@@ -624,7 +622,6 @@ private fun OperateurSection(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun DashBoardScreenPreview() {

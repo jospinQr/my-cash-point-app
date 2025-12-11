@@ -10,7 +10,7 @@ import java.math.BigDecimal
 @Serializable()
 data class SoldeResponse(
     val id: Long,
-    val operateurId: Int,
+    val operateurId: Long,
     val operateurName: String,
     val soldeType: SoldeType,
     @Serializable(with = BigDecimalSerializer::class)

@@ -70,7 +70,7 @@ interface TransactionDao {
 
     @Query(""" SELECT * FROM flux_caisse WHERE idOperateur = :idOperateur AND device = :device AND isSynced=0 ORDER BY horodatage DESC """)
     suspend fun getTransactionsByOperatorAndDevice(
-        idOperateur: Int,
+        idOperateur: Long,
         device: Constants.Devise
     ): List<TransactionEntity>
 

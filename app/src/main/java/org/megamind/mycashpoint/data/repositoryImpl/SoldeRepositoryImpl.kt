@@ -24,7 +24,7 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
 
     val TAG = "SoldeRepo"
     override fun getSoldeByOperateurEtTypeEtDevise(
-        idOperateur: Int,
+        idOperateur: Long,
         devise: String,
         soldeType: SoldeType
     ): Flow<Result<Solde?>> = flow {
@@ -63,7 +63,7 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
     }
 
     override fun deleteByOperateurEtDevise(
-        idOperateur: Int,
+        idOperateur: Long,
         devise: Constants.Devise
     ): Flow<Result<Unit>> = flow {
         try {

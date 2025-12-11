@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.NavigationRail
@@ -55,7 +56,6 @@ import org.megamind.mycashpoint.ui.navigation.Destination
 import org.megamind.mycashpoint.ui.navigation.MyNavHost
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MyCashPointApp(
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
@@ -180,6 +180,10 @@ fun AgentBottomBar(navController: NavController, currentDestination: NavDestinat
             val selected = currentDestination?.route == item.route
 
             NavigationBarItem(
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .6f)
+                ),
+
                 selected = selected,
                 onClick = {
                     safeNavigate(
@@ -207,13 +211,18 @@ fun AgentBottomBar(navController: NavController, currentDestination: NavDestinat
 fun AdminBottomBar(navController: NavController, currentDestination: NavDestination?) {
 
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .06f)
+        containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .06f),
     ) {
         adminNavBarItem.forEach { item ->
 
             val selected = currentDestination?.route == item.route
 
             NavigationBarItem(
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .6f),
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+
                 selected = selected,
                 onClick = {
                     safeNavigate(
@@ -282,7 +291,6 @@ fun NavigationRailBar(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PermanentDrawer(
     modifier: Modifier,
@@ -295,7 +303,7 @@ fun PermanentDrawer(
 
     PermanentNavigationDrawer(
         drawerContent = {
-            PermanentDrawerSheet (drawerTonalElevation = 4.dp, modifier = Modifier.width(220.dp)){
+            PermanentDrawerSheet(drawerTonalElevation = 4.dp, modifier = Modifier.width(220.dp)) {
                 adminNavBarItem.forEach { item ->
                     val selected = currentDestination?.route == item.route
                     val bgColor by animateColorAsState(

@@ -27,7 +27,7 @@ import java.math.BigDecimal
 )
 data class SoldeEntity(
 
-    val idOperateur: Int,         // ex : "AIRTEL", "ORANGE"
+    val idOperateur: Long,         // ex : "AIRTEL", "ORANGE"
     val montant: BigDecimal,               // Solde actuel en centimes
     val soldeType: SoldeType,
     val devise: Constants.Devise,      // Devise

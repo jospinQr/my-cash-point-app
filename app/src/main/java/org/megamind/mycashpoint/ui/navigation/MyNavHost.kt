@@ -15,7 +15,7 @@ import androidx.window.core.layout.WindowSizeClass
 
 import org.megamind.mycashpoint.ui.screen.agence.AgenceScreen
 import org.megamind.mycashpoint.ui.screen.splash.SplashScreen
-import org.megamind.mycashpoint.ui.screen.admin.AdminRepportScreen
+import org.megamind.mycashpoint.ui.screen.admin.rapport.AdminRepportScreen
 import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardScreen
 import org.megamind.mycashpoint.ui.screen.admin.SettingsScreen
 
@@ -28,7 +28,7 @@ import org.megamind.mycashpoint.ui.screen.operateur.OperateurScreen
 import org.megamind.mycashpoint.ui.screen.transaction.TransactionScreen
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MyNavHost(

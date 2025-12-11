@@ -16,7 +16,7 @@ interface TransactionRepository {
     fun allTransactions(): Flow<Result<List<Transaction>>>
 
     fun getTransactionsByOperatorAndDevice(
-        idOperateur: Int,
+        idOperateur: Long,
         device: Constants.Devise
     ): Flow<Result<List<TransactionEntity>>>
 

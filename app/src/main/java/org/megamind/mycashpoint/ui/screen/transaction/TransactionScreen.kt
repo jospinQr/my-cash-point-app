@@ -84,7 +84,7 @@ import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun TransactionScreen(
@@ -201,7 +201,7 @@ fun TransactionScreenContent(
     onNomBeneFChange: (String) -> Unit,
     onTelephBenefChange: (String) -> Unit,
     onNoteChange: (String) -> Unit,
-    onSave: (Int) -> Unit,
+    onSave: (Long) -> Unit,
     onConfirmDialogDismiss: () -> Unit,
     onConfirmDialogShown: () -> Unit,
     onCommissionChange : (String)->Unit
@@ -247,24 +247,7 @@ fun TransactionScreenContent(
 
                 )
         }, floatingActionButton = {
-            FloatingActionButton(onClick = {
-                val code: String? = when {
 
-                    selectedOperateur?.id == 1 -> "501"
-
-                    selectedOperateur?.id == 2 -> "502"
-
-                    selectedOperateur?.id == 3 -> "1122"
-                    selectedOperateur?.id == 4 -> "2585"
-
-                    else -> null
-                }
-
-
-
-            }) {
-                Icon(imageVector = Icons.Rounded.Phone, contentDescription = "call")
-            }
         }) { innerPadding ->
 
 

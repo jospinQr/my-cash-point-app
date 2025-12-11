@@ -9,7 +9,7 @@ import org.megamind.mycashpoint.utils.Result
 interface SoldeRepository {
 
     fun getSoldeByOperateurEtTypeEtDevise(
-        idOperateur: Int,
+        idOperateur: Long,
         devise: String,
         soldeType: SoldeType
     ): Flow<Result<Solde?>>
@@ -20,7 +20,7 @@ interface SoldeRepository {
 
 
     fun deleteByOperateurEtDevise(
-        idOperateur: Int,
+        idOperateur: Long,
         devise: Constants.Devise
     ): Flow<Result<Unit>>
 

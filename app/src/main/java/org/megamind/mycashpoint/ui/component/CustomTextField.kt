@@ -271,6 +271,7 @@ fun CustomOutlinedTextField(
     modifier: Modifier = Modifier,
     label: String? = null,
     enabled: Boolean = true,
+    readOnly: Boolean = false,
     placeholder: String? = null,
     leadingIcon: (@Composable (() -> Unit))? = null,
     trailingIcon: (@Composable (() -> Unit))? = null,
@@ -300,6 +301,7 @@ fun CustomOutlinedTextField(
 ) {
     Column(modifier = modifier) {
         OutlinedTextField(
+            readOnly = readOnly,
             enabled = enabled,
             value = value,
             onValueChange = {

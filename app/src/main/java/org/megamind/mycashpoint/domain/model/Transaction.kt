@@ -8,7 +8,7 @@ data class Transaction(
 
 
     val id: Long = 0,
-    val idOperateur: Int = 0,             // ex: "AIRTEL"
+    val idOperateur: Long = 0,             // ex: "AIRTEL"
     val transactionCode: String = "",
     val type: TransactionType = TransactionType.DEPOT,                  // Type de mouvement
     val montant: BigDecimal = BigDecimal.ZERO,

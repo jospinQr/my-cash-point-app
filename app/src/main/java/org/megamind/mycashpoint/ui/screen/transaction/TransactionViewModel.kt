@@ -1,5 +1,6 @@
 package org.megamind.mycashpoint.ui.screen.transaction
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -123,7 +124,7 @@ class TransactionViewModel(
     }
 
 
-    fun onSaveClick(operateurId: Int) {
+    fun onSaveClick(operateurId: Long) {
 
         viewModelScope.launch {
             val claims = decodeJwtPayload(storageManager.getToken()!!)
@@ -148,6 +149,7 @@ class TransactionViewModel(
 
                     Result.Loading -> {
                         _uiState.update { it.copy(isLoading = true) }
+                        Log.d("TAG", "onSaveClick: Loading")
                     }
 
                     is Result.Success<*> -> {
@@ -170,10 +172,13 @@ class TransactionViewModel(
                                 claims.optString("name")
                             )
                         )
+                        Log.d("TAG", "onSaveClick: Success")
                     }
 
                     is Result.Error<*> -> {
                         _uiState.update { it.copy(isLoading = false, isFormVisble = false) }
+                        _uiEvent.emit(TransactionUiEvent.ShowErrorMessage(result.e?.message ?: ""))
+                        Log.d("TAG", "onSaveClick: Error ${result.e?.message}")
 
                     }
 

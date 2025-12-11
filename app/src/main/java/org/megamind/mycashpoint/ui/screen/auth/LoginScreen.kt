@@ -400,8 +400,7 @@ private fun SignInEventHandler(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
-@Preview(showBackground = true)
+
 @Composable
 fun LoginScreePreview() {
 

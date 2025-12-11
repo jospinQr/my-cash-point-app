@@ -8,7 +8,7 @@ import java.math.BigDecimal
 @Serializable
 data class TransactionRequest(
 
-    val operateurId: Int,
+    val operateurId: Long,
     val type: TransactionType,
     @Serializable(with = BigDecimalSerializer::class)
     val montant: BigDecimal,

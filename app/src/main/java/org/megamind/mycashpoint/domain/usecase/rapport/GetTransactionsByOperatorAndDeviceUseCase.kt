@@ -10,7 +10,7 @@ class GetTransactionsByOperatorAndDeviceUseCase(private val repository: Transact
 
 
     operator fun invoke(
-        idOperateur: Int,
+        idOperateur: Long,
         device: Constants.Devise
     ): Flow<Result<List<TransactionEntity>>> =
         repository.getTransactionsByOperatorAndDevice(idOperateur, device)

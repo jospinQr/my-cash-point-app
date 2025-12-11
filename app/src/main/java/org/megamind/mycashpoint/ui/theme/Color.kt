@@ -2,113 +2,55 @@ package org.megamind.mycashpoint.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// ============================================
+// PALETTE DE COULEURS - THÈME BORDEAUX MODERNE
+// ============================================
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Couleurs Primaires (Bordeaux)
+val Bordeaux10 = Color(0xFF2D0000)  // Très foncé
+val Bordeaux20 = Color(0xFF4A0000)  // Foncé
+val Bordeaux30 = Color(0xFF6B0000)  // Moyen foncé
+val Bordeaux40 = Color(0xFF8B0000)  // Bordeaux principal
+val Bordeaux80 = Color(0xFFE8B4B8)  // Clair
+val Bordeaux90 = Color(0xFFF5D9DC)  // Très clair
+val Bordeaux95 = Color(0xFFFCF0F1)  // Presque blanc
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
-val blueAccent = Color(0xFF0000ff)
+// Couleurs Secondaires (Beige chaud / Taupe)
+val Taupe10 = Color(0xFF2B1E1A)   // Très foncé
+val Taupe20 = Color(0xFF443530)   // Foncé
+val Taupe30 = Color(0xFF5D4E48)   // Moyen foncé
+val Taupe40 = Color(0xFF776860)   // Principal
+val Taupe80 = Color(0xFFD8C9C1)   // Clair
+val Taupe90 = Color(0xFFEDE4DF)   // Très clair
+val Taupe95 = Color(0xFFF7F2EF)   // Presque blanc
 
-val darkGrenn = Color(0xFF009900)
-//import androidx.compose.material3.darkColorScheme
-//import androidx.compose.material3.lightColorScheme
-//import androidx.compose.ui.graphics.Color
-//// ========================================
-//// PALETTE DE COULEURS - ROUGE DOUX
-//// ========================================
-//// ========================================
-//// PALETTE DE COULEURS - ROUGE DOUX
-//// ========================================
-//
-//// Rouges doux (couleur principale)
-//val CashPointRed10 = Color(0xFF2D0A0A)
-//val CashPointRed20 = Color(0xFF4A1414)
-//val CashPointRed30 = Color(0xFF6B2020)
-//val CashPointRed40 = Color(0xFF8D2D2D)
-//val CashPointRed50 = Color(0xFFB04040) // Rouge doux principal
-//val CashPointRed60 = Color(0xFFC96666)
-//val CashPointRed70 = Color(0xFFDB8A8A)
-//val CashPointRed80 = Color(0xFFEAADAD)
-//val CashPointRed90 = Color(0xFFF5D0D0)
-//val CashPointRed95 = Color(0xFFFAE8E8)
-//val CashPointRed99 = Color(0xFFFFFBFB)
-//
-//// Bleus (informations, navigation)
-//val CashPointBlue10 = Color(0xFF001D36)
-//val CashPointBlue20 = Color(0xFF003258)
-//val CashPointBlue30 = Color(0xFF004B7A)
-//val CashPointBlue40 = Color(0xFF00659E)
-//val CashPointBlue50 = Color(0xFF0080C4)
-//val CashPointBlue60 = Color(0xFF2E96D1)
-//val CashPointBlue70 = Color(0xFF5AAEDD)
-//val CashPointBlue80 = Color(0xFF85C5E9)
-//val CashPointBlue90 = Color(0xFFB1DCF4)
-//val CashPointBlue95 = Color(0xFFD8EEFA)
-//
-//// Oranges (alertes, actions importantes)
-//val AlertOrange10 = Color(0xFF2D1600)
-//val AlertOrange20 = Color(0xFF4A2800)
-//val AlertOrange30 = Color(0xFF6A3B00)
-//val AlertOrange40 = Color(0xFF8C4F00)
-//val AlertOrange50 = Color(0xFFB06400)
-//val AlertOrange60 = Color(0xFFD87C00)
-//val AlertOrange70 = Color(0xFFE69429)
-//val AlertOrange80 = Color(0xFFF2AC52)
-//val AlertOrange90 = Color(0xFFFCC37C)
-//val AlertOrange95 = Color(0xFFFFE0A6)
-//
-//// Corail (erreurs, urgences - plus doux que le rouge vif)
-//val EmergencyCorail10 = Color(0xFF3D1410)
-//val EmergencyCorail20 = Color(0xFF5D1F18)
-//val EmergencyCorail30 = Color(0xFF842B20)
-//val EmergencyCorail40 = Color(0xFFAA3828)
-//val EmergencyCorail50 = Color(0xFFD04630)
-//val EmergencyCorail60 = Color(0xFFE26F5E)
-//val EmergencyCorail70 = Color(0xFFEC9689)
-//val EmergencyCorail80 = Color(0xFFF4BBB2)
-//val EmergencyCorail90 = Color(0xFFFADDD8)
-//val EmergencyCorail95 = Color(0xFFFCEEEC)
-//
-//// Neutres (texte, arrière-plans)
-//val NeutralGrey10 = Color(0xFF191C1D)
-//val NeutralGrey15 = Color(0xFF24272A)
-//val NeutralGrey20 = Color(0xFF2F3133)
-//val NeutralGrey30 = Color(0xFF46474A)
-//val NeutralGrey40 = Color(0xFF5E5E62)
-//val NeutralGrey50 = Color(0xFF77767A)
-//val NeutralGrey60 = Color(0xFF918F94)
-//val NeutralGrey70 = Color(0xFFACA9AE)
-//val NeutralGrey80 = Color(0xFFC8C5CA)
-//val NeutralGrey85 = Color(0xFFD7D4D9)
-//val NeutralGrey90 = Color(0xFFE4E1E6)
-//val NeutralGrey94 = Color(0xFFEDEBEF)
-//val NeutralGrey95 = Color(0xFFF2F0F4)
-//val NeutralGrey96 = Color(0xFFF5F3F7)
-//val NeutralGrey99 = Color(0xFFFFFBFF)
-//
-//// ========================================
-//// COULEURS SÉMANTIQUES SPÉCIFIQUES
-//// ========================================
-//
-//// Succès (transactions réussies, validation)
-//val SuccessGreen = Color(0xFF4CAF50)
-//val SuccessGreenContainer = Color(0xFFC8E6C9)
-//
-//// Attention (stock faible, avertissements)
-//val WarningAmber = AlertOrange60
-//val WarningAmberContainer = AlertOrange90
-//
-//// Erreur (erreurs système, rejets)
-//val ErrorRed = EmergencyCorail50
-//val ErrorRedContainer = EmergencyCorail90
-//
-//// Information (conseils, aide)
-//val InfoBlue = CashPointBlue60
-//val InfoBlueContainer = CashPointBlue90
-//
-//// Transaction (opérations financières)
-//val TransactionPurple = Color(0xFF6750A4)
-//val TransactionPurpleContainer = Color(0xFFEADDFF)
+// Couleurs Tertiaires (Or rose / Cuivre)
+val Copper10 = Color(0xFF2E1510)  // Très foncé
+val Copper20 = Color(0xFF4A2820)  // Foncé
+val Copper30 = Color(0xFF693D32)  // Moyen foncé
+val Copper40 = Color(0xFF8A5545)  // Principal
+val Copper80 = Color(0xFFE6C5B8)  // Clair
+val Copper90 = Color(0xFFF3E2D9)  // Très clair
+val Copper95 = Color(0xFFFAF3EF)  // Presque blanc
+
+// Couleurs d'Erreur
+val Error10 = Color(0xFF410E0B)
+val Error20 = Color(0xFF601410)
+val Error30 = Color(0xFF8C1D18)
+val Error40 = Color(0xFFB3261E)
+val Error80 = Color(0xFFF2B8B5)
+val Error90 = Color(0xFFF9DEDC)
+val Error95 = Color(0xFFFCEEEE)
+
+// Couleurs Neutres
+val Neutral10 = Color(0xFF1C1B1F)
+val Neutral20 = Color(0xFF313033)
+val Neutral90 = Color(0xFFE6E1E5)
+val Neutral95 = Color(0xFFF4EFF4)
+val Neutral99 = Color(0xFFFFFBFE)
+
+val NeutralVariant30 = Color(0xFF49454F)
+val NeutralVariant50 = Color(0xFF79747E)
+val NeutralVariant60 = Color(0xFF938F99)
+val NeutralVariant80 = Color(0xFFCAC4D0)
+val NeutralVariant90 = Color(0xFFE7E0EC)

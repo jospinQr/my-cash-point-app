@@ -58,7 +58,7 @@ class TransactionRepositoryImpl(
     }
 
     override fun getTransactionsByOperatorAndDevice(
-        idOperateur: Int,
+        idOperateur: Long,
         device: Constants.Devise
     ): Flow<Result<List<TransactionEntity>>> = flow {
         try {

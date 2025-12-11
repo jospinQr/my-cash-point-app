@@ -515,7 +515,7 @@ private fun RegisterEventHandler(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.S)
+
 @Preview(showBackground = true)
 @Composable
 fun RegisterScreePreview() {

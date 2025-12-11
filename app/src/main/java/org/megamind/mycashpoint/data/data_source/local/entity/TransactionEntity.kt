@@ -23,7 +23,7 @@ data class TransactionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     val transactionCode: String,
-    val idOperateur: Int,             // ex: "AIRTEL"
+    val idOperateur: Long,             // ex: "AIRTEL"
     val type: TransactionType,                  // Type de mouvement
     val montant: BigDecimal,
     val commission: Float? = null,

@@ -11,6 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.jakewharton.threetenabp.AndroidThreeTen
 import org.megamind.mycashpoint.ui.screen.main.MyCashPointApp
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        AndroidThreeTen.init(application);
 
         enableEdgeToEdge()
         setContent {

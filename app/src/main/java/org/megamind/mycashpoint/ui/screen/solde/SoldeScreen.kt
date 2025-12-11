@@ -77,7 +77,7 @@ import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.toMontant
 import java.math.BigDecimal
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun SoldeScreen(
     modifier: Modifier = Modifier,
@@ -131,11 +131,11 @@ fun SoldeScreen(
         onConfirmDialogShown = viewModel::onConfirmDialogShown,
         onConfirmDialogDismiss = viewModel::onConfirmDialogDismiss,
 
-    )
+        )
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoldeScreenContent(
@@ -156,8 +156,7 @@ fun SoldeScreenContent(
     onConfirmDialogDismiss: () -> Unit,
 
 
-
-) {
+    ) {
 
 
     Scaffold(topBar = {
@@ -171,8 +170,7 @@ fun SoldeScreenContent(
             },
 
 
-
-        )
+            )
     }, floatingActionButton = {
 
         FloatingActionButton(onClick = { onBottomSheetShown() }) {
@@ -607,7 +605,6 @@ fun SoldeScreenContent(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview(showBackground = true, showSystemUi = true)
 fun SoldeScreenPreview() {
@@ -652,6 +649,6 @@ fun SoldeScreenPreview() {
             onConfirmDialogShown = {},
             onConfirmDialogDismiss = {},
 
-        )
+            )
     }
 }

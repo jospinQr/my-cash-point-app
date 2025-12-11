@@ -95,7 +95,7 @@ import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
 import java.math.BigDecimal
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun RapportScreen(
     modifier: Modifier = Modifier,
@@ -194,7 +194,6 @@ fun RapportScreen(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RapportScreenContent(
     uiState: RapportUiState,
@@ -433,7 +432,11 @@ fun RapportScreenContent(
 
                 } else {
 
-                    Column (Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center,horizontalAlignment = Alignment.CenterHorizontally){
+                    Column(
+                        Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
 
                         Text("Aucune transaction non synchronisé")
                         Button(onClick = {}) { Text("Transactions synchronisées") }
@@ -504,7 +507,6 @@ fun RapportScreenContent(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TransactionTable(
     transactions: List<TransactionEntity>,
@@ -536,7 +538,7 @@ fun TransactionTable(
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 private fun TransactionDetailDialog(
     transaction: TransactionEntity,
@@ -678,7 +680,7 @@ private fun DeleteTransactionConfirmationDialog(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 private fun TransactionEditBottomSheet(
     uiState: RapportUiState,
@@ -897,7 +899,6 @@ private fun TransactionEditBottomSheet(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RapportScreenContentPreview() {

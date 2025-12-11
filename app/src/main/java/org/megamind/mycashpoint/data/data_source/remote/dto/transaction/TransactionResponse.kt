@@ -12,7 +12,7 @@ import java.math.BigDecimal
 data class TransactionResponse(
     val id: Long,
     val transactionCode: String,
-    val operateurId: Int,
+    val operateurId: Long,
     val type: TransactionType,
     @Serializable(with = BigDecimalSerializer::class)
     val montant: BigDecimal,
