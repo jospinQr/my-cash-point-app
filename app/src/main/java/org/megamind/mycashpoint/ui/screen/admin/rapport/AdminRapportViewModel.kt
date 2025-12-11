@@ -15,8 +15,10 @@ import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GenerateTransactionReportUseCase
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
-import java.time.LocalDate
-import java.time.LocalDateTime
+import org.threeten.bp.LocalDate
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.ZoneId
+
 
 class AdminRapportViewModel(
     private val getAgencesUseCase: GetAgencesUseCase,
@@ -40,16 +42,45 @@ class AdminRapportViewModel(
             val selectedOperateur = _uiState.value.selectedOperateur ?: return@launch
             val selectedDevise = _uiState.value.selectedDevise
             val selectedType = _uiState.value.selectedType
+            val startDate =
+                _uiState.value.startDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val endDate =
+                _uiState.value.endDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
 
             generateTransactionReport(
                 codeAgence = selectedAgence.codeAgence,
                 operateurId = selectedOperateur.id, deviseCode = selectedDevise.name,
-                type = selectedType, startDate = null, endDate = null
-            ).collect {
+                type = selectedType, startDate = startDate, endDate = endDate
+            ).collect { result ->
+
+                when (result) {
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isPdfLoading = true)
+                        }
+                    }
+
+                    is Result.Success -> {
+
+                        result.data?.let { byte ->
+                            _uiState.update {
+                                it.copy(isPdfLoading = false, pdfToOpen = listOf(byte))
+                            }
+                        }
+
+                        val pdfBytes = result.data  // ByteArray
+                    }
+
+                    is Result.Error -> {
+
+                        _uiState.update {
+                            it.copy(isPdfLoading = false)
+                        }
+                    }
 
 
-
-
+                }
 
 
             }
@@ -160,6 +191,18 @@ class AdminRapportViewModel(
         _uiState.value = uiState.value.copy(endDate = date.atStartOfDay())
     }
 
+    fun onSelectedTransactTypeChange(type: TransactionType) {
+        _uiState.update { it.copy(selectedType = type) }
+
+    }
+
+    fun onTransactTypeDropdownExpanded(expanded: Boolean) {
+        _uiState.update { it.copy(isTransactTypeDropDownExpanded = expanded) }
+    }
+
+    fun clearPdfEvent() {
+        _uiState.update { it.copy(pdfToOpen = null) }
+    }
 
 }
 
@@ -173,9 +216,12 @@ data class AdminRepportUiState(
     val selectedOperateur: Operateur? = operateurs.firstOrNull(),
     val selectedDevise: Constants.Devise = Constants.Devise.USD,
     val selectedType: TransactionType = TransactionType.DEPOT,
+    val pdfToOpen: List<ByteArray>? = null,
+    val isPdfLoading: Boolean = false,
 
     val startDate: LocalDateTime = LocalDateTime.now().minusDays(30),
     val endDate: LocalDateTime = LocalDateTime.now(),
     val isStartDatePickerShown: Boolean = false,
     val isEndDatePickerShown: Boolean = false,
+    val isTransactTypeDropDownExpanded: Boolean = false
 )

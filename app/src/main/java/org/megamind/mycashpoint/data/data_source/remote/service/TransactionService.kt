@@ -59,7 +59,7 @@ class TransactionService(
     ): Result<ByteArray> {
 
         return safeApiCall<ByteArray> {
-            httpClient.get("transaction/agence/${codeAgence}/repport/pdf") {
+            httpClient.get("transaction/agence/${codeAgence}/rapport/pdf") {
                 parameter("operateurId", operateurId)
                 parameter("devise", deviseCode)
                 parameter("type", type.name)

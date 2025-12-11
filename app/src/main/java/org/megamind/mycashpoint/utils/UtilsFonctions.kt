@@ -1,5 +1,11 @@
 package org.megamind.mycashpoint.utils
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.widget.Toast
+import androidx.core.content.FileProvider
+import java.io.File
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -23,6 +29,30 @@ class UtilsFonctions {
         }
 
 
+        fun openPdfFile(context: Context, bytes: ByteArray) {
+            val file = File(context.cacheDir, "report.pdf")
+            file.writeBytes(bytes)
+
+            val uri = FileProvider.getUriForFile(
+                context,
+                context.packageName + ".fileprovider",
+                file
+            )
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/pdf")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            try {
+                context.startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(context, "Aucune application PDF installée", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+
+
     }
 }
 
@@ -36,12 +66,11 @@ fun String.toBigDecimalOrNull(): BigDecimal? {
 }
 
 
-
 fun BigDecimal.toMontant(
     avecDecimales: Boolean = true,
     symboleDevise: String = "",
 
-): String {
+    ): String {
     val symbols = DecimalFormatSymbols().apply {
         groupingSeparator = ' '
     }

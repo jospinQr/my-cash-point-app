@@ -24,9 +24,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.rounded.Print
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DisplayMode
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
@@ -43,10 +47,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,22 +66,34 @@ import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
+import org.megamind.mycashpoint.ui.component.CustomerButton
+import org.megamind.mycashpoint.ui.component.LoadinDialog
 import org.megamind.mycashpoint.ui.component.SkeletonLoadingEffect
 import org.megamind.mycashpoint.ui.component.TextDropdown
+import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardUiState
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 import org.megamind.mycashpoint.utils.Constants
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import org.megamind.mycashpoint.utils.UtilsFonctions.Companion.openPdfFile
+import org.threeten.bp.Instant
+import org.threeten.bp.LocalDate
+import org.threeten.bp.ZoneId
+import org.threeten.bp.format.DateTimeFormatter
+
 
 @Composable
 fun AdminRepportScreen(
-    modifier: Modifier = Modifier,
-    viewModel: AdminRapportViewModel = koinViewModel()
+    modifier: Modifier = Modifier, viewModel: AdminRapportViewModel = koinViewModel()
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    uiState.pdfToOpen?.let { bytes ->
+        LaunchedEffect(bytes) {
+            openPdfFile(context, bytes.first())
+            viewModel.clearPdfEvent() // reset pour ne pas rouvrir
+        }
+    }
     AdminRepportScreenContent(
         uiState = uiState,
         onSelectedDeviseChange = viewModel::onSelectedDeviseChange,
@@ -87,8 +105,15 @@ fun AdminRepportScreen(
         onShowEndDatePicker = viewModel::onShowEndDatePicker,
         onDismissEndDatePicker = viewModel::onDismissEndDatePicker,
         onStartDateChange = viewModel::onStartDateChange,
-        onEndDateChange = viewModel::onEndDateChange
+        onEndDateChange = viewModel::onEndDateChange,
+        onSelectedTransactTypeChange = viewModel::onSelectedTransactTypeChange,
+        onTransactTypeDropdownExpanded = viewModel::onTransactTypeDropdownExpanded,
+        onGenerateReport = viewModel::generateReport
     )
+
+    if (uiState.isPdfLoading) {
+        LoadinDialog()
+    }
 
 }
 
@@ -106,6 +131,9 @@ fun AdminRepportScreenContent(
     onDismissEndDatePicker: () -> Unit = {},
     onStartDateChange: (LocalDate) -> Unit = {},
     onEndDateChange: (LocalDate) -> Unit = {},
+    onSelectedTransactTypeChange: (TransactionType) -> Unit = {},
+    onTransactTypeDropdownExpanded: (Boolean) -> Unit = {},
+    onGenerateReport: () -> Unit = {}
 ) {
     Scaffold(topBar = {
         TopAppBar(
@@ -116,68 +144,111 @@ fun AdminRepportScreenContent(
             ), title = {
 
                 Text("Générer les transaction en pdf")
-            }
-        )
+            })
     }) { it ->
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
-                .padding(horizontal = 2.dp), contentAlignment = Alignment.Center
-        ) {
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp),
 
             ) {
-                AgenceSection(uiState, onSelectedAgence, onAgenceDropdownExpanded)
-                Spacer(modifier = Modifier.height(8.dp))
-                OperateurSection(uiState, onSelectedOperateurChange)
-                Spacer(modifier = Modifier.height(8.dp))
-                DeviseSection(
-                    uiState = uiState,
-                    onSelectedDeviseChange = { onSelectedDeviseChange(it) }
-                )
 
-                TypeTransactionSection(uiState)
-                Spacer(modifier = Modifier.height(8.dp))
-                DateRangeSection(
-                    uiState = uiState,
-                    onShowStartDatePicker = onShowStartDatePicker,
-                    onDismissStartDatePicker = onDismissStartDatePicker,
-                    onShowEndDatePicker = onShowEndDatePicker,
-                    onDismissEndDatePicker = onDismissEndDatePicker,
-                    onStartDateChange = onStartDateChange,
-                    onEndDateChange = onEndDateChange
-                )
+            AgenceSection(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter),
+                uiState,
+                onSelectedAgence,
+                onAgenceDropdownExpanded
+            )
+
+            CustomerButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
+                onClick = {
+                    onGenerateReport()
+                }
+            ) {
+                Row {
+                    Text("Générer Pdf")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(imageVector = Icons.Rounded.Print, contentDescription = null)
+                }
 
             }
 
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center),
+                elevation = CardDefaults.cardElevation(6.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
 
+                ) {
+
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TypeTransactionSection(
+                        uiState = uiState,
+                        onSelectedTransactTypeChange = onSelectedTransactTypeChange,
+                        onTransactTypeDropdownExpanded = onTransactTypeDropdownExpanded
+                    )
+                    OperateurSection(uiState = uiState, onSelectedOperateurChange)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DeviseSection(
+                        uiState = uiState, onSelectedDeviseChange = { onSelectedDeviseChange(it) })
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DateRangeSection(
+                        uiState = uiState,
+                        onShowStartDatePicker = onShowStartDatePicker,
+                        onDismissStartDatePicker = onDismissStartDatePicker,
+                        onShowEndDatePicker = onShowEndDatePicker,
+                        onDismissEndDatePicker = onDismissEndDatePicker,
+                        onStartDateChange = onStartDateChange,
+                        onEndDateChange = onEndDateChange
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+
+                }
+
+
+            }
         }
-
     }
 }
 
 @Composable
-fun TypeTransactionSection(x0: AdminRepportUiState) {
-    Box() {
+fun TypeTransactionSection(
+    uiState: AdminRepportUiState,
+    onSelectedTransactTypeChange: (TransactionType) -> Unit = {},
+    onTransactTypeDropdownExpanded: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .horizontalScroll(rememberScrollState())
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
 
-        LazyVerticalGrid(columns = GridCells.Fixed(2)) {
-
-            items(TransactionType.entries) { type ->
-
-                Text(
-                    text = type.name,
-                    color = if (x0.selectedType == type) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                RadioButton(selected = x0.selectedType == type, onClick = {})
-            }
-        }
+        Text("Type")
+        Spacer(modifier = Modifier.width(4.dp))
+        TextDropdown(
+            items = TransactionType.entries,
+            selectedItem = uiState.selectedType,
+            onItemSelected = onSelectedTransactTypeChange,
+            expanded = uiState.isTransactTypeDropDownExpanded,
+            onExpandedChange = onTransactTypeDropdownExpanded,
+            getText = { it.name })
 
 
     }
@@ -186,11 +257,12 @@ fun TypeTransactionSection(x0: AdminRepportUiState) {
 
 @Composable
 private fun AgenceSection(
+    modifier: Modifier = Modifier,
     uiState: AdminRepportUiState,
     onSelectedAgence: (Agence) -> Unit,
     onAgenceDropdownExpanded: (Boolean) -> Unit
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(
             "Selctionner une agence",
             maxLines = 1,
@@ -216,8 +288,7 @@ private fun AgenceSection(
                 onItemSelected = onSelectedAgence,
                 expanded = uiState.isAgenceDropDownExpanded,
                 onExpandedChange = onAgenceDropdownExpanded,
-                getText = { it.designation }
-            )
+                getText = { it.designation })
         }
 
 
@@ -237,8 +308,7 @@ private fun DeviseSection(
                 .height(32.dp)
                 .padding(horizontal = 12.dp)
 
-        )
-        {
+        ) {
 
             Constants.Devise.entries.forEachIndexed { index, devise ->
 
@@ -262,8 +332,7 @@ private fun DeviseSection(
                     },
                     selected = uiState.selectedDevise == devise,
                     shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = Constants.Devise.entries.size
+                        index = index, count = Constants.Devise.entries.size
                     ),
 
                     )
@@ -278,36 +347,29 @@ private fun DeviseSection(
 
 @Composable
 private fun OperateurSection(
-    uiState: AdminRepportUiState,
-    onSelectedOperateurChange: (Operateur) -> Unit
+    uiState: AdminRepportUiState, onSelectedOperateurChange: (Operateur) -> Unit
 ) {
     Row(
         modifier = Modifier
             .horizontalScroll(rememberScrollState())
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
-    )
-    {
+    ) {
 
         operateurs.forEachIndexed { index, operateur ->
 
             ElevatedFilterChip(
                 elevation = FilterChipDefaults.elevatedFilterChipElevation(
                     elevation = 8.dp
-                ),
-                colors = FilterChipDefaults.elevatedFilterChipColors(
+                ), colors = FilterChipDefaults.elevatedFilterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primary,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
 
-                ),
-                selected = uiState.selectedOperateur == operateur,
-                onClick = {
+                ), selected = uiState.selectedOperateur == operateur, onClick = {
                     onSelectedOperateurChange(operateur)
-                },
-                label = {
+                }, label = {
                     Text(operateur.name)
-                },
-                leadingIcon = {
+                }, leadingIcon = {
                     Image(
 
                         modifier = Modifier
@@ -326,7 +388,6 @@ private fun OperateurSection(
 }
 
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateRangeSection(
@@ -343,30 +404,25 @@ fun DateRangeSection(
     // Start Date Picker Dialog
     if (uiState.isStartDatePickerShown) {
         val startDatePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = uiState.startDate.atZone(ZoneId.systemDefault())
-                .toInstant().toEpochMilli()
+            initialSelectedDateMillis = uiState.startDate.atZone(ZoneId.systemDefault()).toInstant()
+                .toEpochMilli()
         )
-        DatePickerDialog(
-            onDismissRequest = onDismissStartDatePicker,
-            confirmButton = {
-                TextButton(onClick = {
-                    startDatePickerState.selectedDateMillis?.let { millis ->
-                        val selectedDate = Instant.ofEpochMilli(millis)
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate()
-                        onStartDateChange(selectedDate)
-                    }
-                    onDismissStartDatePicker()
-                }) {
-                    Text("OK")
+        DatePickerDialog(onDismissRequest = onDismissStartDatePicker, confirmButton = {
+            TextButton(onClick = {
+                startDatePickerState.selectedDateMillis?.let { millis ->
+                    val selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    onStartDateChange(selectedDate)
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismissStartDatePicker) {
-                    Text("Annuler")
-                }
+                onDismissStartDatePicker()
+            }) {
+                Text("OK")
             }
-        ) {
+        }, dismissButton = {
+            TextButton(onClick = onDismissStartDatePicker) {
+                Text("Annuler")
+            }
+        }) {
             DatePicker(state = startDatePickerState)
         }
     }
@@ -375,30 +431,25 @@ fun DateRangeSection(
     if (uiState.isEndDatePickerShown) {
         val endDatePickerState = rememberDatePickerState(
             initialDisplayMode = DisplayMode.Picker,
-            initialSelectedDateMillis = uiState.endDate.atZone(ZoneId.systemDefault())
-                .toInstant().toEpochMilli()
+            initialSelectedDateMillis = uiState.endDate.atZone(ZoneId.systemDefault()).toInstant()
+                .toEpochMilli()
         )
-        DatePickerDialog(
-            onDismissRequest = onDismissEndDatePicker,
-            confirmButton = {
-                TextButton(onClick = {
-                    endDatePickerState.selectedDateMillis?.let { millis ->
-                        val selectedDate = Instant.ofEpochMilli(millis)
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate()
-                        onEndDateChange(selectedDate)
-                    }
-                    onDismissEndDatePicker()
-                }) {
-                    Text("OK")
+        DatePickerDialog(onDismissRequest = onDismissEndDatePicker, confirmButton = {
+            TextButton(onClick = {
+                endDatePickerState.selectedDateMillis?.let { millis ->
+                    val selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    onEndDateChange(selectedDate)
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismissEndDatePicker) {
-                    Text("Annuler")
-                }
+                onDismissEndDatePicker()
+            }) {
+                Text("OK")
             }
-        ) {
+        }, dismissButton = {
+            TextButton(onClick = onDismissEndDatePicker) {
+                Text("Annuler")
+            }
+        }) {
             DatePicker(state = endDatePickerState)
         }
     }
@@ -420,8 +471,7 @@ fun DateRangeSection(
                     tint = MaterialTheme.colorScheme.primary,
                     contentDescription = null
                 )
-            }
-        )
+            })
         Spacer(modifier = Modifier.width(8.dp))
         CustomOutlinedTextField(
             modifier = Modifier
@@ -439,8 +489,7 @@ fun DateRangeSection(
                     tint = MaterialTheme.colorScheme.primary,
                     contentDescription = null
                 )
-            }
-        )
+            })
     }
 }
 
