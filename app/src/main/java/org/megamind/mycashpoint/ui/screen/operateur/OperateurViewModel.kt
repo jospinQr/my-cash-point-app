@@ -9,9 +9,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.domain.model.Operateur
+import org.megamind.mycashpoint.domain.model.Transaction
+import org.megamind.mycashpoint.domain.usecase.transaction.InsertAllTransactUserCase
 import org.megamind.mycashpoint.utils.DataStorageManager
+import org.megamind.mycashpoint.utils.Result
 
-class OperateurViewModel(private val datastorageManager: DataStorageManager) : ViewModel() {
+class OperateurViewModel(
+    private val datastorageManager: DataStorageManager,
+    private val insertAllTransactUserCase: InsertAllTransactUserCase,
+
+) : ViewModel() {
 
 
     private val _uiSate = MutableStateFlow(OperateurUiState())
@@ -48,13 +55,46 @@ class OperateurViewModel(private val datastorageManager: DataStorageManager) : V
     }
 
 
+    fun insertAllTransaction(transactions: List<Transaction>) {
+        viewModelScope.launch {
+            insertAllTransactUserCase(transactions).collect { result ->
+                when (result) {
+                    is Result.Loading -> {
+                        _uiSate.update {
+                            it.copy(isInsertAllTransactLoading = true)
+                        }
+                    }
+
+                    is Result.Success -> {
+                        _uiSate.update {
+                            it.copy(isInsertAllTransactLoading = false)
+                        }
+                    }
+
+                    is Result.Error<*> -> {
+                        _uiSate.update {
+                            it.copy(
+                                isInsertAllTransactLoading = false,
+                                insertAllTransctError = result.e?.message
+                            )
+                        }
+                    }
+
+                }
+            }
+        }
+
+    }
+
 }
 
 data class OperateurUiState(
     val selectedOperateur: Operateur? = null,
     val isConfirmLogOutDialogShown: Boolean = false,
+    val isInsertAllTransactLoading: Boolean = false,
+    val insertAllTransctError: String? = null
 
-    )
+)
 
 sealed class OperateurUiEvent {
     object NavigateToLogin : OperateurUiEvent()

@@ -50,6 +50,13 @@ class SoldeService(private val httpClient: HttpClient) {
     }
 
 
+    suspend fun getSoldeInRupture(): Result<List<SoldeResponse>> {
+        return safeApiCall<List<SoldeResponse>> {
+            httpClient.get("solde/rupture")
+        }
+    }
+
+
 }
 
 

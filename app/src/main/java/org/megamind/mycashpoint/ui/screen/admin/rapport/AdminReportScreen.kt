@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.rounded.Print
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DisplayMode
@@ -136,14 +137,20 @@ fun AdminRepportScreenContent(
     onGenerateReport: () -> Unit = {}
 ) {
     Scaffold(topBar = {
-        TopAppBar(
+        CenterAlignedTopAppBar(
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary.copy(
                     alpha = .06f
                 )
             ), title = {
 
-                Text("Générer les transaction en pdf")
+                AgenceSection(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    uiState,
+                    onSelectedAgence,
+                    onAgenceDropdownExpanded
+                )
             })
     }) { it ->
 
@@ -155,14 +162,6 @@ fun AdminRepportScreenContent(
 
             ) {
 
-            AgenceSection(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter),
-                uiState,
-                onSelectedAgence,
-                onAgenceDropdownExpanded
-            )
 
             CustomerButton(
                 modifier = Modifier
@@ -262,9 +261,13 @@ private fun AgenceSection(
     onSelectedAgence: (Agence) -> Unit,
     onAgenceDropdownExpanded: (Boolean) -> Unit
 ) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
         Text(
-            "Selctionner une agence",
+            "Agence",
             maxLines = 1,
             overflow = TextOverflow.Clip,
             style = MaterialTheme.typography.titleMedium,

@@ -17,6 +17,7 @@ import org.megamind.mycashpoint.domain.model.TopOperateur
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeFromServerByCreteriaUseCase
+import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeInRutureUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GetTopOperateurUseCase
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
@@ -24,7 +25,8 @@ import org.megamind.mycashpoint.utils.Result
 class DashBoardViewModel(
     private val getAllAgenceUseCase: GetAgencesUseCase,
     private val getSoldeByCriteriaUseCase: GetSoldeFromServerByCreteriaUseCase,
-    private val getTopOperateurUseCase: GetTopOperateurUseCase
+    private val getTopOperateurUseCase: GetTopOperateurUseCase,
+    private val getSoldeInRuptureUseCase: GetSoldeInRutureUseCase
 ) : ViewModel() {
 
 
@@ -42,6 +44,7 @@ class DashBoardViewModel(
     init {
         getAllAgence()
     }
+
     fun getAllAgence() {
 
         viewModelScope.launch {
@@ -150,7 +153,6 @@ class DashBoardViewModel(
         }
     }
 
-
     fun getTopOperateur() {
         val agence = _uiState.value.selectedAgence ?: return
         val devise = _uiState.value.selectedDevise
@@ -199,6 +201,41 @@ class DashBoardViewModel(
 
     }
 
+    fun getSoldeInRupture() {
+        viewModelScope.launch {
+
+            getSoldeInRuptureUseCase().collect { result ->
+                when (result) {
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isSoldeInRuptureLoading = true)
+                        }
+                    }
+
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isSoldeInRuptureLoading = false,
+                                soldeInRupture = result.data ?: emptyList()
+                            )
+                        }
+                    }
+
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isSoldeInRuptureLoading = false,
+                                soldeInRuptureErrorMessage = result.e?.message ?: "Erreur inconnue"
+                            )
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
     fun onSelectedAgence(agence: Agence) {
         _uiState.value =
             _uiState.value.copy(selectedAgence = agence, isAgenceDropDownExpanded = false)
@@ -230,6 +267,16 @@ class DashBoardViewModel(
         getSoldeByCriteria()
     }
 
+    fun onSoldeInRuptureDialogShown() {
+        getSoldeInRupture()
+        _uiState.update { it.copy(isSoldeInRuptureDialogShown = true) }
+
+    }
+
+    fun onSoldeInRuptureDialogDismiss() {
+        _uiState.update { it.copy(isSoldeInRuptureDialogShown = false) }
+    }
+
 
 }
 
@@ -241,18 +288,25 @@ data class DashBoardUiState(
     val isAgenceLoading: Boolean = false,
     val isSoldeLoading: Boolean = false,
     val isTopOperateurLoading: Boolean = false,
+    val isSoldeInRuptureLoading: Boolean = false,
+
 
     val agenceErrorMessage: String? = null,
     val soldeErrorMessage: String? = null,
     val topOperateurErrorMessage: String? = null,
+    val soldeInRuptureErrorMessage: String? = null,
+
     val isAgenceDropDownExpanded: Boolean = false,
 
     val selectedOperateur: Operateur? = operateurs.firstOrNull(),
     val selectedDevise: Constants.Devise = Constants.Devise.USD,
     val selectedSoldeType: SoldeType = SoldeType.PHYSIQUE,
     val currenteSolde: Solde? = null,
-    val topOperateur: List<TopOperateur> = emptyList()
-)
+    val topOperateur: List<TopOperateur> = emptyList(),
+    val soldeInRupture: List<Solde> = emptyList(),
+    val isSoldeInRuptureDialogShown: Boolean = false,
+
+    )
 
 
 sealed class DashBoardUiEvent {

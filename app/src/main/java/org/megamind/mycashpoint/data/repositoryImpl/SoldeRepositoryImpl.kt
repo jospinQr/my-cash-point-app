@@ -4,6 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.serializer
 import org.megamind.mycashpoint.data.data_source.local.dao.SoldeDao
 import org.megamind.mycashpoint.data.data_source.local.mapper.toSolde
 import org.megamind.mycashpoint.data.data_source.local.mapper.toSoldeEntity
@@ -179,6 +180,30 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
     }.catch {
         emit(Error(it))
     }
-}
 
+    override fun getSoldeInRupture(): Flow<Result<List<Solde>>> = flow {
+
+        emit(Loading)
+        try {
+            when (val result = soldeService.getSoldeInRupture()) {
+                is Success -> {
+                    emit(Success(result.data?.map { it.toSolde() }))
+                }
+
+                is Error -> {
+                    emit(Error(result.e ?: Exception("Erreur inconue")))
+
+                }
+
+                else -> {}
+            }
+
+
+        } catch (e: Exception) {
+            emit(Error(e))
+        }
+
+
+    }
+}
 

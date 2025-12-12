@@ -15,10 +15,16 @@ interface TransactionRepository {
 
     fun allTransactions(): Flow<Result<List<Transaction>>>
 
-    fun getTransactionsByOperatorAndDevice(
+    fun getNonSyncTransactByOperatorAndDevise(
         idOperateur: Long,
         device: Constants.Devise
-    ): Flow<Result<List<TransactionEntity>>>
+    ): Flow<Result<List<Transaction>>>
+
+    fun getSyncTransactByOperatorAndDevise(
+        idOperateur: Long,
+        device: Constants.Devise
+    ): Flow<Result<List<Transaction>>>
+
 
     fun getUnSyncedTransaction(): Flow<Result<List<Transaction>>>
 
@@ -27,6 +33,10 @@ interface TransactionRepository {
     fun insertTransactionAndUpdateSoldes(
         transaction: Transaction,
     ): Flow<Result<Transaction>>
+
+
+    fun insertAll(transactions: List<Transaction>): Flow<Result<Unit>>
+
 
     fun updateTransaction(transaction: Transaction): Flow<Result<Unit>>
 

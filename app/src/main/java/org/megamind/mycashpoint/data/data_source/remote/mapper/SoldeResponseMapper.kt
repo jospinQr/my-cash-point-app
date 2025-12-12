@@ -13,6 +13,8 @@ fun SoldeResponse.toSolde(): Solde {
         devise = this.devise,
         dernierMiseAJour = this.dernierMiseAJour,
         seuilAlerte = this.seuilAlerte,
-        misAJourPar = this.misAJourPar
+        misAJourPar = this.misAJourPar,
+        codeAgence = this.codeAgence
+
     )
 }

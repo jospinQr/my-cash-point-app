@@ -44,8 +44,8 @@ val adminNavBarItem = listOf(
 
     MenuItem(
         title = "Tableau de bord",
-        selectedIcon = R.drawable.dash_fill,
-        unSelectedIcon = R.drawable.dash_out,
+        selectedIcon = R.drawable.dash_out,
+        unSelectedIcon = R.drawable.dash_fill,
         route = Destination.DASHBOARD.name
     ),
 

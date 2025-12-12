@@ -1,9 +1,7 @@
 package org.megamind.mycashpoint.ui.screen.rapport
 
 import android.content.Context
-import android.os.Build
 import android.print.PrintManager
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -79,8 +77,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
-import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.domain.model.Operateur
+import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.AuthTextField
@@ -100,11 +98,12 @@ import java.math.BigDecimal
 fun RapportScreen(
     modifier: Modifier = Modifier,
     viewModel: RapportViewModel = koinViewModel(),
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    onNavigateToAllTransactions: () -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val transactions by viewModel.transaction.collectAsStateWithLifecycle()
+    val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
 
@@ -159,7 +158,7 @@ fun RapportScreen(
                 "date" to Constants.formatTimestamp(transaction.horodatage),
                 "motif" to transaction.type.name,
                 "montant" to transaction.montant.toString(),
-                "devise" to transaction.device.symbole,
+                "devise" to transaction.devise.symbole,
                 "nom" to transaction.nomClient.orEmpty(),
                 "agent" to transaction.creePar.toString()
             )
@@ -187,7 +186,8 @@ fun RapportScreen(
         onSyncTransactionDialogShown = viewModel::onSyncTransactConfirmDialog,
         onSyncTransactDialoDismiss = viewModel::onSyncTransactConfirmDialogDismiss,
         onSyncSoldeDialogShown = viewModel::onSyncSoldeConfirmDialog,
-        onSyncSoldeDialogDismiss = viewModel::onSyncSoldeConfirmDialogDismiss
+        onSyncSoldeDialogDismiss = viewModel::onSyncSoldeConfirmDialogDismiss,
+        onNavigateToAllTransactions = onNavigateToAllTransactions
     )
 
 
@@ -197,19 +197,19 @@ fun RapportScreen(
 @Composable
 fun RapportScreenContent(
     uiState: RapportUiState,
-    transactions: List<TransactionEntity>,
+    transactions: List<Transaction>,
     onSelectedDeviseChange: (Constants.Devise) -> Unit,
     onSelectedOperateurChange: (Operateur) -> Unit,
     onSearchClick: () -> Unit,
     onSearchBarDismiss: () -> Unit = {},
     onSearchValueChange: (String) -> Unit = {},
-    onTransactionClick: (TransactionEntity) -> Unit = {},
+    onTransactionClick: (Transaction) -> Unit = {},
     onTransactionDialogDismiss: () -> Unit = {},
-    onTransactionDelete: (TransactionEntity) -> Unit = {},
+    onTransactionDelete: (Transaction) -> Unit = {},
     onDeleteConfirmationConfirm: () -> Unit = {},
     onDeleteConfirmationDismiss: () -> Unit = {},
-    onTransactionEdit: (TransactionEntity) -> Unit = {},
-    onTransactionPrint: (TransactionEntity) -> Unit = {},
+    onTransactionEdit: (Transaction) -> Unit = {},
+    onTransactionPrint: (Transaction) -> Unit = {},
     onEditSheetDismiss: () -> Unit = {},
     onEditMontantChange: (String) -> Unit = {},
     onEditNomClientChange: (String) -> Unit = {},
@@ -229,8 +229,9 @@ fun RapportScreenContent(
     onSyncTransactDialoDismiss: () -> Unit = {},
     onSyncSoldeDialogShown: () -> Unit,
     onSyncSoldeDialogDismiss: () -> Unit = {},
+    onNavigateToAllTransactions: () -> Unit = {}
 
-    ) {
+) {
 
 
     Scaffold(
@@ -310,7 +311,8 @@ fun RapportScreenContent(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
-        ) {
+        )
+        {
 
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -439,7 +441,7 @@ fun RapportScreenContent(
                     ) {
 
                         Text("Aucune transaction non synchronisé")
-                        Button(onClick = {}) { Text("Transactions synchronisées") }
+                        Button(onClick = { onNavigateToAllTransactions() }) { Text("Transactions synchronisées") }
                     }
                 }
 
@@ -509,8 +511,8 @@ fun RapportScreenContent(
 
 @Composable
 fun TransactionTable(
-    transactions: List<TransactionEntity>,
-    onRowClick: (TransactionEntity) -> Unit = {}
+    transactions: List<Transaction>,
+    onRowClick: (Transaction) -> Unit = {}
 ) {
 
 
@@ -541,12 +543,12 @@ fun TransactionTable(
 
 @Composable
 private fun TransactionDetailDialog(
-    transaction: TransactionEntity,
+    transaction: Transaction,
     onDismissRequest: () -> Unit,
-    onDeleteClick: (TransactionEntity) -> Unit,
-    onEditClick: (TransactionEntity) -> Unit,
+    onDeleteClick: (Transaction) -> Unit,
+    onEditClick: (Transaction) -> Unit,
     onSyncClick: () -> Unit,
-    onPrintClick: (TransactionEntity) -> Unit,
+    onPrintClick: (Transaction) -> Unit,
 
     ) {
     AlertDialog(
@@ -638,7 +640,7 @@ private fun TransactionDetailDialog(
                 transaction.numBeneficaire?.takeIf { it.isNotBlank() }?.let {
                     Text("Téléphone bénéficiaire: $it")
                 }
-                Text("Devise: ${transaction.device.name}")
+                Text("Devise: ${transaction.devise.name}")
                 Text("Date: ${Constants.formatTimestamp(transaction.horodatage)}")
                 transaction.note?.takeIf { it.isNotBlank() }?.let {
                     Text("Note: $it")
@@ -650,7 +652,7 @@ private fun TransactionDetailDialog(
 
 @Composable
 private fun DeleteTransactionConfirmationDialog(
-    transaction: TransactionEntity,
+    transaction: Transaction,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -930,14 +932,14 @@ fun RapportScreenContentPreview() {
                 editErrorMessage = ""
             ),
             transactions = listOf(
-                TransactionEntity(
+                Transaction(
                     id = 1,
                     transactionCode = "TXN001",
                     type = TransactionType.DEPOT,
                     montant = BigDecimal(5000.0),
                     soldeAvant = BigDecimal(10000.0),
                     soldeApres = BigDecimal(15000.0),
-                    device = Constants.Devise.USD,
+                    devise = Constants.Devise.USD,
                     nomClient = "Jean Mukendi",
                     numClient = "+243 812 345 678",
                     nomBeneficaire = "Marie Kalala",
@@ -946,18 +948,17 @@ fun RapportScreenContentPreview() {
                     horodatage = System.currentTimeMillis() - 3600000,
                     creePar = 1L,
                     idOperateur = 1,
-                    isSynced = false,
                     reference = "",
-                    codeAgence = ""
-                ),
-                TransactionEntity(
+
+                    ),
+                Transaction(
                     id = 2,
                     transactionCode = "TXN002",
                     type = TransactionType.RETRAIT,
                     montant = BigDecimal(2000.0),
                     soldeAvant = BigDecimal(15000.0),
                     soldeApres = BigDecimal(13000.0),
-                    device = Constants.Devise.CDF,
+                    devise = Constants.Devise.CDF,
                     nomClient = "Pierre Kabila",
                     numClient = "+243 823 456 789",
                     nomBeneficaire = null,
@@ -966,18 +967,18 @@ fun RapportScreenContentPreview() {
                     horodatage = System.currentTimeMillis() - 7200000,
                     creePar = 1L,
                     idOperateur = 1,
-                    isSynced = false,
+
                     reference = "",
-                    codeAgence = ""
-                ),
-                TransactionEntity(
+
+                    ),
+                Transaction(
                     id = 3,
                     transactionCode = "TXN003",
                     type = TransactionType.DEPOT,
                     montant = BigDecimal(10000.0),
                     soldeAvant = BigDecimal(13000.0),
                     soldeApres = BigDecimal(23000.0),
-                    device = Constants.Devise.USD,
+                    devise = Constants.Devise.USD,
                     nomClient = "Alice Mbuyi",
                     numClient = "+243 897 654 321",
                     nomBeneficaire = "Bob Tshisekedi",
@@ -986,10 +987,9 @@ fun RapportScreenContentPreview() {
                     horodatage = System.currentTimeMillis() - 10800000,
                     creePar = 1,
                     idOperateur = 1,
-                    isSynced = false,
                     reference = "",
-                    codeAgence = ""
-                )
+
+                    )
             ),
             onSelectedDeviseChange = {},
             onSelectedOperateurChange = {},

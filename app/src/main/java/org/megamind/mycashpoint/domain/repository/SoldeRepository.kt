@@ -39,4 +39,8 @@ interface SoldeRepository {
         deviseCode: String,
         soldeType: SoldeType
     ): Flow<Result<Solde>>
+
+
+    fun getSoldeInRupture(): Flow<Result<List<Solde>>>
+
 }

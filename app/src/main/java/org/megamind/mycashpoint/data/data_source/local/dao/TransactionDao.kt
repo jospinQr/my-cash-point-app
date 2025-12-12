@@ -20,6 +20,10 @@ interface TransactionDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertAndReturnId(transaction: TransactionEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(transactions: List<TransactionEntity>)
+
+
     @Query("SELECT * FROM flux_caisse WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): TransactionEntity?
 
@@ -69,7 +73,14 @@ interface TransactionDao {
     }
 
     @Query(""" SELECT * FROM flux_caisse WHERE idOperateur = :idOperateur AND device = :device AND isSynced=0 ORDER BY horodatage DESC """)
-    suspend fun getTransactionsByOperatorAndDevice(
+    suspend fun getNonSyncTransactByOperatorAndDevise(
+        idOperateur: Long,
+        device: Constants.Devise
+    ): List<TransactionEntity>
+
+
+    @Query(""" SELECT * FROM flux_caisse WHERE idOperateur = :idOperateur AND device = :device  ORDER BY horodatage DESC """)
+    suspend fun getSyncTransactByOperatorAndDevise(
         idOperateur: Long,
         device: Constants.Devise
     ): List<TransactionEntity>

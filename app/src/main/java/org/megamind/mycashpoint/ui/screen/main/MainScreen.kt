@@ -23,6 +23,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -181,7 +182,9 @@ fun AgentBottomBar(navController: NavController, currentDestination: NavDestinat
 
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .6f)
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f),
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
                 ),
 
                 selected = selected,
@@ -219,8 +222,9 @@ fun AdminBottomBar(navController: NavController, currentDestination: NavDestinat
 
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .6f),
-                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f),
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
                 ),
 
                 selected = selected,
@@ -253,12 +257,17 @@ fun NavigationRailBar(
     snackbarHostState: SnackbarHostState,
 ) {
     Row {
-        NavigationRail {
+        NavigationRail (containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f)){
 
             adminNavBarItem.forEach { item ->
 
                 val selected = currentDestination?.route == item.route
                 NavigationRailItem(
+                    colors = NavigationRailItemDefaults.colors(
+                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f),
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                    ),
+
                     selected = selected,
                     onClick = {
                         safeNavigate(
@@ -324,6 +333,7 @@ fun PermanentDrawer(
                         targetValue = if (selected) 26.dp else 22.dp
                     )
                     NavigationDrawerItem(
+
                         icon = {
                             Icon(
                                 painter = painterResource(

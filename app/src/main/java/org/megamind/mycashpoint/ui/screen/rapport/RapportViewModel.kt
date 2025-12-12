@@ -9,26 +9,22 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
-import org.megamind.mycashpoint.data.data_source.local.mapper.toTransaction
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
-import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
+import org.megamind.mycashpoint.domain.usecase.rapport.GetNonSyncTransactByOperatorAndDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SyncSoldesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
-
 import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SyncTransactionUseCase
-
 import org.megamind.mycashpoint.domain.usecase.transaction.UpdateTransactionUseCase
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
 import java.math.BigDecimal
 
 class RapportViewModel(
-    private val getTransactionByOperateurAndDeviseUseCase: GetTransactionsByOperatorAndDeviceUseCase,
+    private val getNonSyncTransactByOperatorAndDeviseUseCase: GetNonSyncTransactByOperatorAndDeviseUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val sendOneTransactToServerUseCase: SendOneTransactToServerUseCase,
@@ -44,10 +40,10 @@ class RapportViewModel(
     private val _uiEvent = MutableSharedFlow<RapportUiEvent>()
     val uiEvent: SharedFlow<RapportUiEvent> = _uiEvent.asSharedFlow()
 
-    private val _cachedTransactions = MutableStateFlow<List<TransactionEntity>>(emptyList())
-    private val _transactionByOperateurAndDevise =
-        MutableStateFlow<List<TransactionEntity>>(emptyList())
-    val transaction = _transactionByOperateurAndDevise.asStateFlow()
+    private val _cachedTransactions = MutableStateFlow<List<Transaction>>(emptyList())
+    private val _filteredTransactions =
+        MutableStateFlow<List<Transaction>>(emptyList())
+    val filteredTransactions = _filteredTransactions.asStateFlow()
 
     private val _selectedDevise get() = uiState.value.selectedDevise
     private val _selectedOperateur get() = uiState.value.selectedOperateur
@@ -83,7 +79,7 @@ class RapportViewModel(
         gettransactionByOperateurAndDevise()
     }
 
-    fun onTransactionClick(transaction: TransactionEntity) {
+    fun onTransactionClick(transaction: Transaction) {
         _uiState.update {
             it.copy(
                 selectedTransaction = transaction,
@@ -106,7 +102,7 @@ class RapportViewModel(
         }
     }
 
-    fun onDeleteTransactionRequest(transaction: TransactionEntity) {
+    fun onDeleteTransactionRequest(transaction: Transaction) {
         _uiState.update {
             it.copy(
                 selectedTransaction = transaction,
@@ -163,7 +159,7 @@ class RapportViewModel(
         }
     }
 
-    fun onEditTransactionRequest(transaction: TransactionEntity) {
+    fun onEditTransactionRequest(transaction: Transaction) {
         _uiState.update {
             it.copy(
                 selectedTransaction = transaction,
@@ -171,7 +167,7 @@ class RapportViewModel(
                 isDeleteConfirmationVisible = false,
                 isEditSheetVisible = true,
                 editSelectedType = transaction.type,
-                editSelectedDevise = transaction.device,
+                editSelectedDevise = transaction.devise,
                 editMontant = transaction.montant.stripTrailingZeros().toPlainString(),
                 editNomClient = transaction.nomClient.orEmpty(),
                 editTelephoneClient = transaction.numClient.orEmpty(),
@@ -274,7 +270,7 @@ class RapportViewModel(
             return
         }
 
-        val updatedTransaction = transaction.toTransaction().copy(
+        val updatedTransaction = transaction.copy(
             type = currentState.editSelectedType,
             devise = currentState.editSelectedDevise,
             montant = montant,
@@ -331,7 +327,7 @@ class RapportViewModel(
 
         viewModelScope.launch {
 
-            getTransactionByOperateurAndDeviseUseCase(
+            getNonSyncTransactByOperatorAndDeviseUseCase(
                 _selectedOperateur.id,
                 _selectedDevise
             ).collect { result ->
@@ -400,7 +396,7 @@ class RapportViewModel(
 
         val filtered = _cachedTransactions.value.filter { transaction ->
             val matchesOperateur = transaction.idOperateur == selectedOperateurId
-            val matchesDevise = transaction.device == selectedDevise
+            val matchesDevise = transaction.devise == selectedDevise
             val matchesQuery = if (query.isEmpty()) {
                 true
             } else {
@@ -414,7 +410,7 @@ class RapportViewModel(
             matchesOperateur && matchesDevise && matchesQuery
         }
 
-        _transactionByOperateurAndDevise.value = filtered
+        _filteredTransactions.value = filtered
 
         val currentSelection = uiState.value.selectedTransaction
         if (currentSelection != null && filtered.none { it.id == currentSelection.id }) {
@@ -440,7 +436,7 @@ class RapportViewModel(
         val transaction = uiState.value.selectedTransaction ?: return
 
         viewModelScope.launch {
-            sendOneTransactToServerUseCase(transaction.toTransaction()).collect { result ->
+            sendOneTransactToServerUseCase(transaction).collect { result ->
 
                 when (result) {
 
@@ -625,7 +621,7 @@ data class RapportUiState(
     val selectedOperateur: Operateur = operateurs.first(),
     val selectedDevise: Constants.Devise = Constants.Devise.USD,
     val isSearchBarShown: Boolean = false,
-    val selectedTransaction: TransactionEntity? = null,
+    val selectedTransaction: Transaction? = null,
     val isTransactionDialogVisible: Boolean = false,
     val isDeleteConfirmationVisible: Boolean = false,
     val isEditSheetVisible: Boolean = false,

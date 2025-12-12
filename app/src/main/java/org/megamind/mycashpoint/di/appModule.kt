@@ -26,15 +26,18 @@ import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionsByOperateurUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.SaveOrUpdateCommissionUseCase
 import org.megamind.mycashpoint.domain.usecase.commission.SearchCommissionsUseCase
-import org.megamind.mycashpoint.domain.usecase.rapport.GetTransactionsByOperatorAndDeviceUseCase
+import org.megamind.mycashpoint.domain.usecase.rapport.GetNonSyncTransactByOperatorAndDeviseUseCase
+import org.megamind.mycashpoint.domain.usecase.rapport.GetSyncTransactByOperatorAndDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeByOperateurEtTypeEtDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeFromServerByCreteriaUseCase
+import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeInRutureUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SaveOrUpdateSoldeUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SyncSoldesUseCase
 
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GenerateTransactionReportUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GetTopOperateurUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.InsertAllTransactUserCase
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SyncTransactionUseCase
@@ -50,6 +53,7 @@ import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.ui.screen.rapport.RapportViewModel
 import org.megamind.mycashpoint.ui.screen.splash.SplashViewModel
+import org.megamind.mycashpoint.ui.screen.transaction.AllTransactionViewModel
 import org.megamind.mycashpoint.ui.screen.transaction.TransactionViewModel
 
 val appModule = module {
@@ -85,7 +89,7 @@ val appModule = module {
     single { GetSoldeByOperateurEtTypeEtDeviseUseCase(get()) }
     single { SaveOrUpdateSoldeUseCase(get()) }
     single { InsertTransactionAndUpdateSoldesUseCase(get()) }
-    single { GetTransactionsByOperatorAndDeviceUseCase(get()) }
+    single { GetNonSyncTransactByOperatorAndDeviseUseCase(get()) }
     single { GetCommissionUseCase(get()) }
     single { GetCommissionsByOperateurUseCase(get()) }
     single { GetAllCommissionsUseCase(get()) }
@@ -106,6 +110,9 @@ val appModule = module {
     single { GetSoldeFromServerByCreteriaUseCase(get()) }
     single { GetTopOperateurUseCase(get()) }
     single { GenerateTransactionReportUseCase(get()) }
+    single { GetSoldeInRutureUseCase(get()) }
+    single { GetSyncTransactByOperatorAndDeviseUseCase(get()) }
+    single { InsertAllTransactUserCase(get()) }
 
 
 //view models
@@ -122,7 +129,7 @@ val appModule = module {
     }
 
     viewModel {
-        OperateurViewModel(get())
+        OperateurViewModel(get(),get())
     }
     viewModel {
         TransactionViewModel(get(), get())
@@ -146,11 +153,15 @@ val appModule = module {
     }
 
     viewModel {
-        DashBoardViewModel(get(), get(), get())
+        DashBoardViewModel(get(), get(), get(), get())
     }
 
     viewModel {
-        AdminRapportViewModel(get(),get())
+        AdminRapportViewModel(get(), get())
+    }
+
+    viewModel {
+        AllTransactionViewModel(get())
     }
 
 

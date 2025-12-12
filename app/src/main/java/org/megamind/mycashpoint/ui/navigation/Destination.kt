@@ -20,4 +20,6 @@ enum class Destination(route: String) {
     DASHBOARD("dashboard"),
     ADMIN_REPPORT("admin_repport"),
     SETTINGS("settings"),
+
+    SYNCTRSACT("sync_transact")
 }

@@ -17,10 +17,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,7 +32,12 @@ import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Highlight
 import androidx.compose.material.icons.filled.PeopleOutline
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.HomeWork
+import androidx.compose.material.icons.outlined.PeopleOutline
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.HomeWork
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -41,6 +48,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -63,6 +71,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
@@ -92,9 +101,6 @@ fun DashBoardScreen(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-
-
     DashBoardScreenContent(
         uiState = uiState,
         onSelectedAgence = viewModel::onSelectedAgence,
@@ -103,8 +109,16 @@ fun DashBoardScreen(
         onSelectedDeviseChange = viewModel::onSelectedDeviseChange,
         onSelectedSoldeTypeChange = viewModel::onSelectedSoldeTypeChange,
         navigateToCreateAgence = navigateToCreateAgence,
-        navigateToCreateAgent = navigateToCreateAgent
+        navigateToCreateAgent = navigateToCreateAgent,
+        onSoldeInRuptureClick = viewModel::onSoldeInRuptureDialogShown
 
+    )
+
+    SoldeInRuptureDialog(
+        uiState = uiState,
+        isDialogShown = uiState.isSoldeInRuptureDialogShown,
+        onDismiss = viewModel::onSoldeInRuptureDialogDismiss,
+        soldeInRupture = uiState.soldeInRupture
     )
 
 }
@@ -121,6 +135,7 @@ fun DashBoardScreenContent(
     onSelectedSoldeTypeChange: (SoldeType) -> Unit = {},
     navigateToCreateAgence: () -> Unit = {},
     navigateToCreateAgent: () -> Unit = {},
+    onSoldeInRuptureClick: () -> Unit = {},
 ) {
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -131,23 +146,33 @@ fun DashBoardScreenContent(
             ),
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "Agence",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+
 
                     if (uiState.isAgenceLoading) {
+
+                        SkeletonLoadingEffect(
+                            modifier = Modifier
+                                .width(82.dp)
+                                .height(24.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         SkeletonLoadingEffect(
                             modifier = Modifier
                                 .width(102.dp)
                                 .height(24.dp)
                                 .clip(RoundedCornerShape(10.dp))
                         )
+
                     } else if (uiState.agenceErrorMessage != null) {
-                        Text(uiState.agenceErrorMessage)
+
                     } else {
+                        Text(
+                            "Agence",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         TextDropdown(
                             items = uiState.agenceList,
                             selectedItem = uiState.selectedAgence,
@@ -176,7 +201,12 @@ fun DashBoardScreenContent(
                 DashBoardLoadingSkeleton()
             } else if (uiState.agenceErrorMessage != null) {
 
-                Text(uiState.agenceErrorMessage)
+                Text(
+                    uiState.agenceErrorMessage,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
             } else {
                 Column(
                     modifier = Modifier
@@ -199,7 +229,8 @@ fun DashBoardScreenContent(
                     ActionRappide(
                         uiState = uiState,
                         onCreateAgenceClick = navigateToCreateAgence,
-                        onCreateAgentClick = navigateToCreateAgent
+                        onCreateAgentClick = navigateToCreateAgent,
+                        onSoldeInRuptureClick = onSoldeInRuptureClick
                     )
                 }
             }
@@ -208,61 +239,163 @@ fun DashBoardScreenContent(
 }
 
 @Composable
-fun ActionRappide(
-    modifier: Modifier = Modifier,
+private fun OperateurSection(
     uiState: DashBoardUiState,
-    onCreateAgenceClick: () -> Unit,
-    onCreateAgentClick: () -> Unit
+    onSelectedOperateurChange: (Operateur) -> Unit
 ) {
-
-
-    data class Action(val icon: ImageVector, val text: String)
-
-    val actions = listOf(
-        Action(Icons.Rounded.HomeWork, "Créer une agence"),
-        Action(Icons.Default.Highlight, "Agence le plus perfomant"),
-        Action(Icons.Default.PeopleOutline, "Créer un Agent"),
-        Action(Icons.Default.Warning, "Solde en rupture")
-
+    Row(
+        modifier = Modifier
+            .horizontalScroll(rememberScrollState())
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     )
+    {
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp)
-    ) {
+        operateurs.forEachIndexed { index, operateur ->
 
-        LazyVerticalGrid(
-            modifier = Modifier.fillMaxWidth(),
-            columns = GridCells.Fixed(4),
-            userScrollEnabled = false
-        ) {
+            ElevatedFilterChip(
+                elevation = FilterChipDefaults.elevatedFilterChipElevation(
+                    elevation = 8.dp
+                ),
+                colors = FilterChipDefaults.elevatedFilterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
 
-            itemsIndexed(items = actions) { index, item ->
+                ),
+                selected = uiState.selectedOperateur == operateur,
+                onClick = {
+                    onSelectedOperateurChange(operateur)
+                },
+                label = {
+                    Text(operateur.name, style = MaterialTheme.typography.bodySmall)
+                },
+                leadingIcon = {
+                    Image(
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    IconButton(
-                        onClick = {
-                            when (index) {
-                                0 -> onCreateAgenceClick()
-                                2 -> onCreateAgentClick()
-                            }
-                        },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .09f)
+                        modifier = Modifier
+                            .size(32.dp)
+                            .padding(8.dp)
+                            .clip(CircleShape),
+                        painter = painterResource(operateur.logo),
+                        contentDescription = null
+                    )
+                }
+
+            )
+
+        }
+    }
+}
+
+
+@Composable
+private fun DeviseSection(
+    uiState: DashBoardUiState,
+    onSelectedDeviseChange: (Constants.Devise) -> Unit,
+) {
+    Box {
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(32.dp)
+                .padding(horizontal = 12.dp)
+
+        )
+        {
+
+            Constants.Devise.entries.forEachIndexed { index, devise ->
+
+                SegmentedButton(
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = MaterialTheme.colorScheme.primary,
+                        activeBorderColor = MaterialTheme.colorScheme.primary,
+                        activeContentColor = MaterialTheme.colorScheme.onPrimary
+
+
+                    ),
+
+                    label = {
+                        Text(
+                            devise.name,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (uiState.selectedDevise == devise) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
                         )
-                    ) { Icon(imageVector = item.icon, contentDescription = null) }
-                    Text(
-                        item.text,
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodySmall
+                    },
+                    onClick = {
+                        onSelectedDeviseChange(devise)
+                    },
+                    selected = uiState.selectedDevise == devise,
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = Constants.Devise.entries.size
+                    ),
+
+                    )
+
+
+            }
+
+
+        }
+    }
+}
+
+
+@Composable
+private fun PieCharSection(uiState: DashBoardUiState) {
+
+    if (uiState.isTopOperateurLoading) {
+        PieChartSkeleton()
+        return
+    }
+
+    if (uiState.topOperateurErrorMessage != null) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(uiState.topOperateurErrorMessage)
+        }
+    }
+    val colors = listOf(
+
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.inversePrimary,
+        MaterialTheme.colorScheme.tertiary,
+        MaterialTheme.colorScheme.error,
+
+        )
+
+
+    Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+        Card(
+            modifier = Modifier,
+            elevation = CardDefaults.cardElevation(6.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(Modifier.padding(12.dp)) {
+                Text(
+                    "Répartition des transaction par operateur",
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Light),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.height(8.dp))
+                if (uiState.topOperateur.isNotEmpty()) {
+                    AnimatedPieChart(
+                        modifier = Modifier.fillMaxWidth(),
+                        data = uiState.topOperateur
+                            .mapIndexed { index, operateur ->
+                                PieChartData(
+                                    label = operateur.operateurNom,
+                                    value = operateur.nombreTransactions.toFloat(),
+                                    color = colors[index]
+                                )
+                            },
+                        showLegend = true,
+                        centerText = "Top operateur"
                     )
                 }
             }
 
 
         }
-
     }
 
 
@@ -322,7 +455,7 @@ private fun SoldeSection(
 
                         Text(
                             text = "Solde",
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Light),
                             color = MaterialTheme.colorScheme.primary
                         )
                         Box {
@@ -345,6 +478,7 @@ private fun SoldeSection(
                                         label = {
                                             Text(
                                                 soldeType.name,
+                                                style = MaterialTheme.typography.bodySmall,
                                                 color = if (uiState.selectedSoldeType == soldeType) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
                                             )
                                         },
@@ -419,7 +553,7 @@ private fun SoldeSection(
                             verticalAlignment = Alignment.CenterVertically,
 
                             ) {
-                            Text("Solde")
+                            Text("Solde", style = MaterialTheme.typography.bodySmall)
                             Spacer(modifier = Modifier.width(8.dp))
                             Box(
                                 Modifier.background(
@@ -441,12 +575,13 @@ private fun SoldeSection(
                         }
 
                         Spacer(Modifier.height(8.dp))
-                        Row {
-                            Text("Seuil d'alerte")
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Seuil d'alerte", style = MaterialTheme.typography.bodySmall)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 "${solde.seuilAlerte ?: "0"} ${solde.devise.symbole}",
-                                color = Color.Red
+                                color = Color.Red,
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
                     }
@@ -461,164 +596,150 @@ private fun SoldeSection(
     }
 }
 
-@Composable
-private fun PieCharSection(uiState: DashBoardUiState) {
-
-    if (uiState.isTopOperateurLoading) {
-        PieChartSkeleton()
-        return
-    }
-
-    if (uiState.topOperateurErrorMessage != null) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Text(uiState.topOperateurErrorMessage)
-        }
-    }
-    val colors = listOf(
-
-        MaterialTheme.colorScheme.primary,
-        MaterialTheme.colorScheme.inversePrimary,
-        MaterialTheme.colorScheme.tertiary,
-        MaterialTheme.colorScheme.error,
-
-        )
-
-
-    Box(modifier = Modifier.padding(horizontal = 12.dp)) {
-        Card(
-            modifier = Modifier,
-            elevation = CardDefaults.cardElevation(6.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(Modifier.padding(12.dp)) {
-                Text(
-                    "Répartition des transaction par operateur",
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(Modifier.height(8.dp))
-                if (uiState.topOperateur.isNotEmpty()) {
-                    AnimatedPieChart(
-                        modifier = Modifier.fillMaxWidth(),
-                        data = uiState.topOperateur
-                            .mapIndexed { index, operateur ->
-                                PieChartData(
-                                    label = operateur.operateurNom,
-                                    value = operateur.nombreTransactions.toFloat(),
-                                    color = colors[index]
-                                )
-                            },
-                        showLegend = true,
-                        centerText = "Top operateur"
-                    )
-                }
-            }
-
-
-        }
-    }
-
-
-}
 
 @Composable
-private fun DeviseSection(
+fun ActionRappide(
+    modifier: Modifier = Modifier,
     uiState: DashBoardUiState,
-    onSelectedDeviseChange: (Constants.Devise) -> Unit,
+    onCreateAgenceClick: () -> Unit,
+    onCreateAgentClick: () -> Unit,
+    onSoldeInRuptureClick: () -> Unit = {}
 ) {
-    Box {
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(32.dp)
-                .padding(horizontal = 12.dp)
-
-        )
-        {
-
-            Constants.Devise.entries.forEachIndexed { index, devise ->
-
-                SegmentedButton(
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = MaterialTheme.colorScheme.primary,
-                        activeBorderColor = MaterialTheme.colorScheme.primary,
-                        activeContentColor = MaterialTheme.colorScheme.onPrimary
 
 
-                    ),
+    data class Action(val icon: ImageVector, val text: String)
 
-                    label = {
-                        Text(
-                            devise.name,
-                            color = if (uiState.selectedDevise == devise) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
-                        )
-                    },
-                    onClick = {
-                        onSelectedDeviseChange(devise)
-                    },
-                    selected = uiState.selectedDevise == devise,
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = Constants.Devise.entries.size
-                    ),
-
-                    )
-
-
-            }
-
-
-        }
-    }
-}
-
-@Composable
-private fun OperateurSection(
-    uiState: DashBoardUiState,
-    onSelectedOperateurChange: (Operateur) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .horizontalScroll(rememberScrollState())
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    val actions = listOf(
+        Action(Icons.Outlined.HomeWork, "Créer une agence"),
+        Action(Icons.Outlined.BarChart, "Agence le plus perfomant"),
+        Action(Icons.Outlined.PeopleOutline, "Créer un Agent"),
+        Action(Icons.Outlined.Warning, "Solde en rupture")
     )
-    {
 
-        operateurs.forEachIndexed { index, operateur ->
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp)
+    ) {
 
-            ElevatedFilterChip(
-                elevation = FilterChipDefaults.elevatedFilterChipElevation(
-                    elevation = 8.dp
-                ),
-                colors = FilterChipDefaults.elevatedFilterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxWidth(),
+            columns = GridCells.Fixed(4),
+            userScrollEnabled = false
+        ) {
 
-                ),
-                selected = uiState.selectedOperateur == operateur,
-                onClick = {
-                    onSelectedOperateurChange(operateur)
-                },
-                label = {
-                    Text(operateur.name)
-                },
-                leadingIcon = {
-                    Image(
+            itemsIndexed(items = actions) { index, item ->
 
-                        modifier = Modifier
-                            .size(32.dp)
-                            .padding(8.dp)
-                            .clip(CircleShape),
-                        painter = painterResource(operateur.logo),
-                        contentDescription = null
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton(
+                        onClick = {
+                            when (index) {
+                                0 -> onCreateAgenceClick()
+                                2 -> onCreateAgentClick()
+                                3 -> onSoldeInRuptureClick()
+                            }
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .09f)
+                        )
+                    ) { Icon(imageVector = item.icon, contentDescription = null) }
+                    Text(
+                        item.text,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
+            }
 
-            )
 
         }
+
     }
+
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SoldeInRuptureDialog(
+
+    uiState: DashBoardUiState,
+    modifier: Modifier = Modifier,
+    isDialogShown: Boolean,
+    onDismiss: () -> Unit,
+    soldeInRupture: List<Solde>
+) {
+
+
+    if (isDialogShown)
+        AlertDialog(
+            dismissButton = {},
+            confirmButton = {},
+            onDismissRequest = { onDismiss() },
+            title = {
+                Text(
+                    "Solde en rupture",
+
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                )
+
+            }, text = {
+                Box() {
+
+                    Box(
+                        modifier = Modifier
+
+                            .padding(12.dp),
+                    ) {
+
+
+                        if (uiState.isSoldeInRuptureLoading) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                            return@Box
+
+                        }
+                        if (uiState.soldeInRuptureErrorMessage != null) {
+                            Text(
+                                modifier = Modifier.align(Alignment.TopCenter),
+                                text = uiState.soldeInRuptureErrorMessage
+                            )
+                            return@Box
+                        }
+
+                        LazyColumn(
+                            modifier = Modifier.padding(top = 12.dp)
+                        ) {
+
+                            items(soldeInRupture) { solde ->
+
+                                ListItem(
+                                    headlineContent = {
+                                        operateurs.find { it.id == solde.idOperateur }?.name?.let {
+                                            Text(it)
+                                        }
+                                    },
+                                    overlineContent = {
+                                        Text("${solde.montant} ${solde.devise.symbole}")
+                                    },
+                                    trailingContent = {
+
+                                        Text(solde.codeAgence)
+                                    }
+
+                                )
+
+
+                            }
+
+                        }
+
+
+                    }
+                }
+            }
+
+        )
 }
 
 
@@ -678,3 +799,5 @@ fun DashBoardScreenPreview() {
 
     }
 }
+
+

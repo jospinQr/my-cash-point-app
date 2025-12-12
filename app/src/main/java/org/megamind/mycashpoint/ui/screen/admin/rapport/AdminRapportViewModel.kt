@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.domain.model.Operateur
+import org.megamind.mycashpoint.domain.model.Solde
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
@@ -35,60 +36,6 @@ class AdminRapportViewModel(
         getAllAgence()
     }
 
-    fun generateReport() {
-        viewModelScope.launch {
-
-            val selectedAgence = _uiState.value.selectedAgence ?: return@launch
-            val selectedOperateur = _uiState.value.selectedOperateur ?: return@launch
-            val selectedDevise = _uiState.value.selectedDevise
-            val selectedType = _uiState.value.selectedType
-            val startDate =
-                _uiState.value.startDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val endDate =
-                _uiState.value.endDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-
-
-            generateTransactionReport(
-                codeAgence = selectedAgence.codeAgence,
-                operateurId = selectedOperateur.id, deviseCode = selectedDevise.name,
-                type = selectedType, startDate = startDate, endDate = endDate
-            ).collect { result ->
-
-                when (result) {
-                    is Result.Loading -> {
-                        _uiState.update {
-                            it.copy(isPdfLoading = true)
-                        }
-                    }
-
-                    is Result.Success -> {
-
-                        result.data?.let { byte ->
-                            _uiState.update {
-                                it.copy(isPdfLoading = false, pdfToOpen = listOf(byte))
-                            }
-                        }
-
-                        val pdfBytes = result.data  // ByteArray
-                    }
-
-                    is Result.Error -> {
-
-                        _uiState.update {
-                            it.copy(isPdfLoading = false)
-                        }
-                    }
-
-
-                }
-
-
-            }
-
-
-        }
-
-    }
 
     fun getAllAgence() {
 
@@ -144,6 +91,63 @@ class AdminRapportViewModel(
 
         }
     }
+    fun generateReport() {
+        viewModelScope.launch {
+
+            val selectedAgence = _uiState.value.selectedAgence ?: return@launch
+            val selectedOperateur = _uiState.value.selectedOperateur ?: return@launch
+            val selectedDevise = _uiState.value.selectedDevise
+            val selectedType = _uiState.value.selectedType
+            val startDate =
+                _uiState.value.startDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val endDate =
+                _uiState.value.endDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+
+            generateTransactionReport(
+                codeAgence = selectedAgence.codeAgence,
+                operateurId = selectedOperateur.id, deviseCode = selectedDevise.name,
+                type = selectedType, startDate = startDate, endDate = endDate
+            ).collect { result ->
+
+                when (result) {
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isPdfLoading = true)
+                        }
+                    }
+
+                    is Result.Success -> {
+
+                        result.data?.let { byte ->
+                            _uiState.update {
+                                it.copy(isPdfLoading = false, pdfToOpen = listOf(byte))
+                            }
+                        }
+
+                        val pdfBytes = result.data  // ByteArray
+                    }
+
+                    is Result.Error -> {
+
+                        _uiState.update {
+                            it.copy(isPdfLoading = false)
+                        }
+                    }
+
+
+                }
+
+
+            }
+
+
+        }
+
+    }
+
+
+
 
     fun onSelectedAgence(agence: Agence) {
         _uiState.value =
@@ -223,5 +227,6 @@ data class AdminRepportUiState(
     val endDate: LocalDateTime = LocalDateTime.now(),
     val isStartDatePickerShown: Boolean = false,
     val isEndDatePickerShown: Boolean = false,
-    val isTransactTypeDropDownExpanded: Boolean = false
+    val isTransactTypeDropDownExpanded: Boolean = false,
+
 )

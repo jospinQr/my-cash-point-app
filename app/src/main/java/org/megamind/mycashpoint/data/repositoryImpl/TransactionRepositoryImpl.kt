@@ -8,7 +8,6 @@ import org.megamind.mycashpoint.data.data_source.local.dao.TransactionDao
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransaction
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransactionEntity
-import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TopOperateurDto
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.toTopOperateur
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toTransactionRequest
 import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
@@ -47,6 +46,20 @@ class TransactionRepositoryImpl(
         }
     }
 
+    override fun insertAll(transactions: List<Transaction>): Flow<Result<Unit>> = flow {
+
+        emit(Result.Loading)
+        try {
+            val entity = transactions.map { it.toTransactionEntity(isSynced = false) }
+            transactionDao.insertAll(entity)
+            emit(Result.Success(Unit))
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
+
+    }
+
+
     override fun allTransactions(): Flow<Result<List<Transaction>>> = flow {
         try {
             emit(Result.Loading)
@@ -57,14 +70,30 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override fun getTransactionsByOperatorAndDevice(
+    override fun getNonSyncTransactByOperatorAndDevise(
         idOperateur: Long,
         device: Constants.Devise
-    ): Flow<Result<List<TransactionEntity>>> = flow {
+    ): Flow<Result<List<Transaction>>> = flow {
         try {
             emit(Result.Loading)
             val transactions =
-                transactionDao.getTransactionsByOperatorAndDevice(idOperateur, device)
+                transactionDao.getNonSyncTransactByOperatorAndDevise(idOperateur, device)
+                    .map { it.toTransaction() }
+            emit(Result.Success(transactions))
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
+    }
+
+    override fun getSyncTransactByOperatorAndDevise(
+        idOperateur: Long,
+        device: Constants.Devise
+    ): Flow<Result<List<Transaction>>> = flow {
+        try {
+            emit(Result.Loading)
+            val transactions =
+                transactionDao.getSyncTransactByOperatorAndDevise(idOperateur, device)
+                    .map { it.toTransaction() }
             emit(Result.Success(transactions))
         } catch (e: Exception) {
             emit(Result.Error(e))

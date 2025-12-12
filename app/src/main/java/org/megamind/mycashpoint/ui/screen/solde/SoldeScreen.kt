@@ -340,7 +340,7 @@ fun SoldeScreenContent(
 
                                 Column {
                                     Text(
-                                        "${uiState.selectedOperateur.name} ${soldes.soldeType.name.lowercase()} ${soldes.devise.name}",
+                                        "${uiState.selectedOperateur.name} ${uiState.selecteSoldeType.name.lowercase()} ${uiState.selectedDevise.name}",
                                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                                     )
                                     Row {
@@ -379,7 +379,7 @@ fun SoldeScreenContent(
                                 Text("Seuil d'alerte")
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    "${soldes.seuilAlerte ?: "0"} ${soldes.devise.symbole}",
+                                    "${soldes.seuilAlerte ?: "0"} ${uiState.selectedDevise.symbole}",
                                     color = Color.Red
                                 )
                             }

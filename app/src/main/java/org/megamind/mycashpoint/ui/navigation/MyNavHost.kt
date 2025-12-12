@@ -25,8 +25,8 @@ import org.megamind.mycashpoint.ui.screen.solde.SoldeScreen
 
 import org.megamind.mycashpoint.ui.screen.rapport.RapportScreen
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurScreen
+import org.megamind.mycashpoint.ui.screen.transaction.AllTransactionScreen
 import org.megamind.mycashpoint.ui.screen.transaction.TransactionScreen
-
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -133,6 +133,9 @@ fun MyNavHost(
             composable(route = Destination.RAPPORT.name) {
 
                 RapportScreen(
+                    onNavigateToAllTransactions = {
+                        navController.navigate(Destination.SYNCTRSACT.name)
+                    },
                     snackbarHostState = snackbarHostState
                 )
             }
@@ -171,6 +174,15 @@ fun MyNavHost(
             composable(route = Destination.SETTINGS.name) {
 
                 SettingsScreen()
+            }
+
+            composable(route = Destination.SYNCTRSACT.name) {
+
+                AllTransactionScreen(modifier = Modifier, onBack = {navController.popBackStack() })
+
+
+
+
             }
 
 
