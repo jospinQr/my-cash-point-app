@@ -217,37 +217,6 @@ private suspend fun adjustSoldesForTransaction(
             }
         }
 
-        TransactionType.TRANSFERT_ENTRANT -> {
-            val delta = if (undo) -montant else montant
-            val message = if (undo) {
-                "Solde virtuel insuffisant pour annuler ce transfert entrant."
-            } else {
-                "Solde virtuel insuffisant pour effectuer un transfert entrant."
-            }
-            val (avant, apres) = updateSoldeOrThrow(SoldeType.VIRTUEL, delta, message)
-            avant to apres
-        }
 
-        TransactionType.TRANSFERT_SORTANT -> {
-            val delta = if (undo) montant else -montant
-            val message = if (undo) {
-                "Solde virtuel insuffisant pour annuler ce transfert sortant."
-            } else {
-                "Solde virtuel insuffisant pour le transfert sortant."
-            }
-            val (avant, apres) = updateSoldeOrThrow(SoldeType.VIRTUEL, delta, message)
-            avant to apres
-        }
-
-        TransactionType.COMMISSION -> {
-            val delta = if (undo) -montant else montant
-            val message = if (undo) {
-                "Solde physique insuffisant pour annuler cette commission."
-            } else {
-                "Solde physique insuffisant pour enregistrer cette commission."
-            }
-            val (avant, apres) = updateSoldeOrThrow(SoldeType.PHYSIQUE, delta, message)
-            avant to apres
-        }
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -81,8 +82,6 @@ import org.megamind.mycashpoint.ui.screen.operateur.OperateurUiState
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
-
-
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -204,9 +203,9 @@ fun TransactionScreenContent(
     onSave: (Long) -> Unit,
     onConfirmDialogDismiss: () -> Unit,
     onConfirmDialogShown: () -> Unit,
-    onCommissionChange : (String)->Unit
+    onCommissionChange: (String) -> Unit
 
-    ) {
+) {
 
     val selectedOperateur = operateurUiState.selectedOperateur
 
@@ -543,7 +542,9 @@ fun TransactionTypeButton(
 
 
     Card(
-        modifier = Modifier.padding(4.dp),
+        modifier = Modifier
+            .padding(4.dp)
+            .height(82.dp),
         border = BorderStroke(width = 0.8f.dp, color = MaterialTheme.colorScheme.primary),
         onClick = { onClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -554,7 +555,7 @@ fun TransactionTypeButton(
         Row(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 22.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth().fillMaxHeight(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {

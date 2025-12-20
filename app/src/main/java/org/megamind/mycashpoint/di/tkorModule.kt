@@ -40,7 +40,8 @@ val ktorModule = module {
             }
 
             defaultRequest {
-                url("http://192.168.0.101:8084/api/v1/")
+               // url("http://13.53.234.84:8080/api/v1/")
+                url("http://192.168.1.2:8080/api/v1/")
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
                 header("Authorization", "Bearer ${runBlocking { dataStorageManager.getToken() }}")
 

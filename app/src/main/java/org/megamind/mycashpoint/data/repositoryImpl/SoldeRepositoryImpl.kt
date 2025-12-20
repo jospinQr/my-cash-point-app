@@ -4,7 +4,6 @@ import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.serializer
 import org.megamind.mycashpoint.data.data_source.local.dao.SoldeDao
 import org.megamind.mycashpoint.data.data_source.local.mapper.toSolde
 import org.megamind.mycashpoint.data.data_source.local.mapper.toSoldeEntity
@@ -17,10 +16,16 @@ import org.megamind.mycashpoint.domain.model.Solde
 import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.domain.repository.SoldeRepository
 import org.megamind.mycashpoint.utils.Constants
+import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.utils.Result.*
+import org.megamind.mycashpoint.utils.decodeJwtPayload
 
-class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeService: SoldeService) :
+class SoldeRepositoryImpl(
+    private val soldeDao: SoldeDao,
+    private val soldeService: SoldeService,
+    private val dataStorageManager: DataStorageManager
+) :
     SoldeRepository {
 
     val TAG = "SoldeRepo"
@@ -62,6 +67,18 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
             emit(Error(e))
         }
     }
+
+    override fun insertSoldeListLocally(soldes: List<Solde>): Flow<Result<Unit>> = flow {
+        try {
+            emit(Loading)
+            val soldeEntities = soldes.map { it.toSoldeEntity(isSynced = false) }
+            soldeDao.insertAll(soldeEntities)
+            emit(Success(Unit))
+        } catch (e: Exception) {
+            emit(Error(e))
+        }
+    }
+
 
     override fun deleteByOperateurEtDevise(
         idOperateur: Long,
@@ -205,5 +222,92 @@ class SoldeRepositoryImpl(private val soldeDao: SoldeDao, private val soldeServi
 
 
     }
+
+    override fun getSoldeByUserAndAgence(): Flow<Result<List<Solde>>> = flow {
+        emit(Loading)
+
+
+        try {
+            val userId =
+                dataStorageManager.getToken()?.let { decodeJwtPayload(it) }!!.optString("sub")
+            val agenceCode =
+                dataStorageManager.getToken()?.let { decodeJwtPayload(it) }!!
+                    .optString("agence_code")
+            when (val result = soldeService.getSoldeByUserAndAgence(userId.toLong(), agenceCode)) {
+                is Success -> {
+                    emit(Success(result.data?.map { it.toSolde() }))
+                }
+
+                is Error -> {
+                    emit(Error(result.e ?: Exception("Erreur inconue")))
+                }
+
+                else -> {}
+            }
+        } catch (e: Exception) {
+            emit(Error(e))
+        }
+
+    }
+
+    override fun getSoldeForSync(agenceCode: String, lastSyncAt: Long): Flow<Result<List<Solde>>> =
+        flow {
+
+            emit(Loading)
+            try {
+                when (val result = soldeService.getSoldeForSync(agenceCode, lastSyncAt)) {
+                    is Success -> {
+
+                        val soldes = result.data?.soldes?.map { it.toSolde() } ?: emptyList()
+                        val soldeEntities = soldes.map { it.toSoldeEntity(isSynced = true) }
+                        result.data?.serverTime?.let { dataStorageManager.saveLastSoldeSyncAt(it) }
+                        soldeDao.insertAll(soldeEntities)
+                        emit(Success(soldes))
+                    }
+
+                    is Error -> {
+                        emit(Error(result.e ?: Exception("Erreur inconue")))
+                    }
+
+                    else -> {}
+                }
+
+
+            } catch (e: Exception) {
+                emit(Error(e))
+            }
+
+        }
+
+    override fun saveSoldeToServer(solde: Solde): Flow<Result<Unit>> = flow {
+
+        emit(Result.Loading)
+        try {
+            val result = soldeService.save(solde.toSoldeRequestDto())
+            when (result) {
+
+                is Success -> {
+                    emit(Success(Unit))
+                }
+
+                is Error -> {
+
+                    emit(Error(result.e ?: Exception("Erreur inconue")))
+                }
+
+                else -> {
+
+                }
+
+
+            }
+
+        } catch (e: Exception) {
+            emit(Error(e))
+        }
+
+    }
+
+
 }
 

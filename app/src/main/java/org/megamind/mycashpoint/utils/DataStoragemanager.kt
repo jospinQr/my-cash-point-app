@@ -5,9 +5,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -15,6 +18,7 @@ class DataStorageManager(private val context: Context) {
 
     companion object {
         private val TOKEN_KEY = stringPreferencesKey("token")
+        private val LAST_SOLDE_SYNC_AT = longPreferencesKey("last_solde_sync_at")
     }
 
     suspend fun getToken(): String? {
@@ -25,5 +29,15 @@ class DataStorageManager(private val context: Context) {
         context.dataStore.edit { it[TOKEN_KEY] = token }
     }
 
+    suspend fun getLastSoldeSyncAt(): Long {
+        return context.dataStore.data
+            .map { prefs -> prefs[LAST_SOLDE_SYNC_AT] ?: 0L }  // valeur par défaut = 0
+            .first()
+    }
+
+    suspend fun saveLastSoldeSyncAt(lastSyncAt: Long)
+    {
+        context.dataStore.edit { it[LAST_SOLDE_SYNC_AT] = lastSyncAt }
+    }
 
 }

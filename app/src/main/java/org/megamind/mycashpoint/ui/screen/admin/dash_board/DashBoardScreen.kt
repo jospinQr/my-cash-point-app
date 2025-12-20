@@ -1,10 +1,9 @@
 package org.megamind.mycashpoint.ui.screen.admin.dash_board
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,29 +18,29 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.Highlight
-import androidx.compose.material.icons.filled.PeopleOutline
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.outlined.AddAlert
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.HomeWork
+import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.MonetizationOn
 import androidx.compose.material.icons.outlined.PeopleOutline
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material.icons.rounded.HomeWork
+import androidx.compose.material.icons.rounded.AttachMoney
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
@@ -50,14 +49,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,10 +69,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
@@ -82,11 +83,14 @@ import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.domain.model.TopOperateur
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.AnimatedPieChart
+import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
+import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
+import org.megamind.mycashpoint.ui.component.CustomerButton
+import org.megamind.mycashpoint.ui.component.LoadinDialog
 import org.megamind.mycashpoint.ui.component.PieChartData
 import org.megamind.mycashpoint.ui.component.SkeletonLoadingEffect
+import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.component.TextDropdown
-import org.megamind.mycashpoint.ui.component.dynamicPieColor
-import org.megamind.mycashpoint.ui.component.getPieChartColor
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.toMontant
@@ -98,9 +102,15 @@ fun DashBoardScreen(
     viewModel: DashBoardViewModel = koinViewModel(),
     navigateToCreateAgence: () -> Unit,
     navigateToCreateAgent: () -> Unit,
+    snackbarHostState: SnackbarHostState,
+    navigateToLoginScreen: () -> Unit
+
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    HandelUiEvent(viewModel, snackbarHostState, navigateToLoginScreen)
+
     DashBoardScreenContent(
         uiState = uiState,
         onSelectedAgence = viewModel::onSelectedAgence,
@@ -110,7 +120,18 @@ fun DashBoardScreen(
         onSelectedSoldeTypeChange = viewModel::onSelectedSoldeTypeChange,
         navigateToCreateAgence = navigateToCreateAgence,
         navigateToCreateAgent = navigateToCreateAgent,
-        onSoldeInRuptureClick = viewModel::onSoldeInRuptureDialogShown
+        onSoldeInRuptureClick = viewModel::onSoldeInRuptureDialogShown,
+        onInitSoldeClick = viewModel::onInitSoldeClick,
+        onInitSoldeBottomDismiss = viewModel::onInitSoldeBottomDismiss,
+        onInitSoldeTypeChange = viewModel::onInitSoldeTypeChange,
+        onInitSelectedOperateurChange = viewModel::onInitSelectedOperateurChange,
+        onInitSelectedDeviseChange = viewModel::onInitSelectedDeviseChange,
+        onInitOperateurMenuExpanded = viewModel::onInitOperateurMenuExpanded,
+        onInitOperateurMenuDismiss = viewModel::onInitOperateurMenuDismiss,
+        onSoldeChange = viewModel::onSoldeChange,
+        onSeuilChange = viewModel::onSeuilChange,
+        onSaveClick = viewModel::onConfirmDialogShown,
+        onLogOut = viewModel::onLogOut
 
     )
 
@@ -121,8 +142,15 @@ fun DashBoardScreen(
         soldeInRupture = uiState.soldeInRupture
     )
 
-}
+    if (uiState.isSoldeSaveLoading) {
+        LoadinDialog(text = "Enregistrement du solde")
 
+    }
+
+    SaveConfirmationDialog(uiState, viewModel)
+
+
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,6 +164,19 @@ fun DashBoardScreenContent(
     navigateToCreateAgence: () -> Unit = {},
     navigateToCreateAgent: () -> Unit = {},
     onSoldeInRuptureClick: () -> Unit = {},
+    onInitSoldeClick: () -> Unit = {},
+    onInitSoldeBottomDismiss: () -> Unit = {},
+    onInitSoldeTypeChange: (SoldeType) -> Unit = {},
+    onInitSelectedOperateurChange: (Operateur) -> Unit = {},
+    onInitSelectedDeviseChange: (Constants.Devise) -> Unit = {},
+    onInitOperateurMenuExpanded: () -> Unit = {},
+    onInitOperateurMenuDismiss: () -> Unit = {},
+    onSoldeChange: (String) -> Unit = {},
+    onSeuilChange: (String) -> Unit = {},
+    onSaveClick: () -> Unit = {},
+    onLogOut: () -> Unit = {}
+
+
 ) {
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -163,8 +204,6 @@ fun DashBoardScreenContent(
                                 .height(24.dp)
                                 .clip(RoundedCornerShape(10.dp))
                         )
-
-                    } else if (uiState.agenceErrorMessage != null) {
 
                     } else {
                         Text(
@@ -201,12 +240,14 @@ fun DashBoardScreenContent(
                 DashBoardLoadingSkeleton()
             } else if (uiState.agenceErrorMessage != null) {
 
-                Text(
-                    uiState.agenceErrorMessage,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(
+                        uiState.agenceErrorMessage,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             } else {
                 Column(
                     modifier = Modifier
@@ -227,16 +268,36 @@ fun DashBoardScreenContent(
                     )
                     Spacer(Modifier.height(8.dp))
                     ActionRappide(
-                        uiState = uiState,
                         onCreateAgenceClick = navigateToCreateAgence,
                         onCreateAgentClick = navigateToCreateAgent,
-                        onSoldeInRuptureClick = onSoldeInRuptureClick
+                        onSoldeInRuptureClick = onSoldeInRuptureClick,
+                        onInitSoldeClick = onInitSoldeClick,
+                        onLogoutClick = onLogOut
                     )
                 }
             }
         }
+
+
+
+        InitSoldeBottomSheet(
+            uiState = uiState,
+            onInitSoldeBottomDismiss = onInitSoldeBottomDismiss,
+            onSelectedDeviseChange = onInitSelectedDeviseChange,
+            onSelectedOperateurChange = onInitSelectedOperateurChange,
+            onOperateurMenuExpanded = onInitOperateurMenuExpanded,
+            onOperateurMenuDismiss = onInitOperateurMenuDismiss,
+            onConfirmDialogShown = onInitSoldeClick,
+            onSoldeInitialChange = onSoldeChange,
+            onSeuilChange = onSeuilChange,
+            onSelectedTypeSoldeChange = onInitSoldeTypeChange,
+            onSaveClick = onSaveClick
+
+
+        )
     }
 }
+
 
 @Composable
 private fun OperateurSection(
@@ -353,6 +414,19 @@ private fun PieCharSection(uiState: DashBoardUiState) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Text(uiState.topOperateurErrorMessage)
         }
+        return
+    }
+
+    if (uiState.topOperateur.isEmpty()) {
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+
+            Text(
+                "Aucune transaction pour l'instant",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+        return
     }
     val colors = listOf(
 
@@ -409,8 +483,18 @@ private fun SoldeSection(
     ) {
 
     if (uiState.currenteSolde == null) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Text("Aucun solde, verifier vos critères de recherche")
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(22.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "Aucun solde, verifier vos critères de recherche",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
         }
         return
     }
@@ -600,21 +684,26 @@ private fun SoldeSection(
 @Composable
 fun ActionRappide(
     modifier: Modifier = Modifier,
-    uiState: DashBoardUiState,
     onCreateAgenceClick: () -> Unit,
     onCreateAgentClick: () -> Unit,
-    onSoldeInRuptureClick: () -> Unit = {}
-) {
+    onSoldeInRuptureClick: () -> Unit,
+    onInitSoldeClick: () -> Unit,
+    onLogoutClick: () -> Unit,
+
+    ) {
 
 
     data class Action(val icon: ImageVector, val text: String)
 
     val actions = listOf(
         Action(Icons.Outlined.HomeWork, "Créer une agence"),
-        Action(Icons.Outlined.BarChart, "Agence le plus perfomant"),
         Action(Icons.Outlined.PeopleOutline, "Créer un Agent"),
-        Action(Icons.Outlined.Warning, "Solde en rupture")
-    )
+        Action(Icons.Outlined.MonetizationOn, "Initialiser le solde"),
+        Action(Icons.Outlined.BarChart, "Agence le plus perfomant"),
+        Action(Icons.Outlined.Warning, "Solde en rupture"),
+        Action(Icons.Outlined.Logout, "Se deconnecter"),
+
+        )
 
     Box(
         modifier = modifier
@@ -635,8 +724,11 @@ fun ActionRappide(
                         onClick = {
                             when (index) {
                                 0 -> onCreateAgenceClick()
-                                2 -> onCreateAgentClick()
+                                1 -> onCreateAgentClick()
+                                2 -> onInitSoldeClick()
                                 3 -> onSoldeInRuptureClick()
+                                5 -> onLogoutClick()
+
                             }
                         },
                         colors = IconButtonDefaults.iconButtonColors(
@@ -724,7 +816,7 @@ fun SoldeInRuptureDialog(
                                     },
                                     trailingContent = {
 
-                                        Text(solde.codeAgence)
+                                        Text(solde.agenceCode)
                                     }
 
                                 )
@@ -742,6 +834,297 @@ fun SoldeInRuptureDialog(
         )
 }
 
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun InitSoldeBottomSheet(
+    uiState: DashBoardUiState,
+    onInitSoldeBottomDismiss: () -> Unit,
+    onSelectedDeviseChange: (Constants.Devise) -> Unit,
+    onSelectedOperateurChange: (Operateur) -> Unit,
+    onOperateurMenuExpanded: () -> Unit,
+    onOperateurMenuDismiss: () -> Unit,
+    onConfirmDialogShown: () -> Unit,
+    onSoldeInitialChange: (String) -> Unit,
+    onSeuilChange: (String) -> Unit,
+    onSelectedTypeSoldeChange: (SoldeType) -> Unit,
+    onSaveClick: () -> Unit
+
+
+) {
+    if (uiState.isInitSoldeBottomSheetShown) {
+
+        ModalBottomSheet(
+            onDismissRequest = { onInitSoldeBottomDismiss() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+
+            ) {
+
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Text("Initialiser le sole  ")
+                    AnimatedContent(uiState.initSelectedOperateur) { operateur ->
+                        Text(operateur.name)
+                    }
+                    AnimatedContent(uiState.initSelectedDevise) { devise ->
+                        Text(devise.name)
+                    }
+                }
+                Column(
+                    modifier = Modifier.padding(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+                    Column {
+
+                        SingleChoiceSegmentedButtonRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+
+                        )
+                        {
+
+                            SoldeType.entries.forEachIndexed { index, soldeType ->
+
+                                SegmentedButton(
+                                    colors = SegmentedButtonDefaults.colors(
+                                        activeContainerColor = MaterialTheme.colorScheme.primary,
+                                        activeBorderColor = MaterialTheme.colorScheme.primary,
+                                        activeContentColor = MaterialTheme.colorScheme.onPrimary
+
+
+                                    ),
+
+                                    label = {
+                                        Text(soldeType.name)
+                                    },
+                                    onClick = {
+
+                                        onSelectedTypeSoldeChange(soldeType)
+                                    },
+                                    selected = uiState.initSoldeType == soldeType,
+                                    shape = SegmentedButtonDefaults.itemShape(
+                                        index = index,
+                                        count = SoldeType.entries.size
+                                    ),
+
+                                    )
+
+
+                            }
+
+
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+
+                            Text("Devise ")
+                            Constants.Devise.entries.forEachIndexed { index, devise ->
+
+                                RadioButton(
+                                    selected = uiState.initSelectedDevise == devise,
+                                    onClick = {
+                                        onSelectedDeviseChange(devise)
+                                    }
+                                )
+                                Text(devise.name, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        CustomOutlinedTextField(
+                            modifier = Modifier.clickable {
+                                onOperateurMenuExpanded()
+                            },
+                            enabled = false,
+                            value = uiState.initSelectedOperateur.name,
+                            onValueChange = {
+
+                            },
+                            leadingIcon = {
+                                Image(
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clip(CircleShape),
+                                    painter = painterResource(
+                                        uiState.initSelectedOperateur.logo
+                                    ),
+                                    contentDescription = null
+                                )
+                            },
+                            trailingIcon = {
+
+                                IconButton(onClick = { onOperateurMenuExpanded() }) {
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        )
+                        DropdownMenu(
+                            expanded = uiState.isInitOperateurExpanded,
+                            onDismissRequest = { onOperateurMenuDismiss() }
+
+                        ) {
+
+                            operateurs.forEach {
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Image(
+                                                modifier = Modifier
+                                                    .size(30.dp)
+                                                    .clip(CircleShape),
+                                                painter = painterResource(it.logo),
+                                                contentDescription = null
+                                            )
+                                            Text(it.name)
+
+                                        }
+
+                                    }, onClick = {
+                                        onSelectedOperateurChange(it)
+                                        onOperateurMenuDismiss()
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    CustomOutlinedTextField(
+                        value = uiState.solde,
+                        onValueChange = {
+                            onSoldeInitialChange(it)
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.AttachMoney,
+                                tint = MaterialTheme.colorScheme.primary,
+                                contentDescription = null
+                            )
+                        },
+                        label = "Solde initial",
+                        keyboardType = KeyboardType.Decimal,
+                        isError = uiState.isSoldeError,
+                        errorMessage = "Le solde initial doit être supérieur à 0"
+                    )
+                    CustomOutlinedTextField(
+                        value = uiState.seuilAlert ?: "0",
+                        onValueChange = {
+                            onSeuilChange(it)
+                        },
+                        keyboardType = KeyboardType.Decimal,
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.AddAlert,
+                                tint = MaterialTheme.colorScheme.primary,
+                                contentDescription = null
+                            )
+                        },
+                        label = "Sueil d'alert"
+                    )
+                    CustomerButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            onSaveClick()
+                        },
+
+                        ) {
+                        Text("Enregister")
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SaveConfirmationDialog(
+    uiState: DashBoardUiState,
+    viewModel: DashBoardViewModel
+) {
+    if (uiState.isConfirmDialogShown) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onConfirmDialogDismiss() },
+            title = {
+                Text(
+                    "Confirmer l'initialisation",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+            },
+            text = {
+                Column {
+                    Text("Voulez-vous vraiment initialiser ce solde ?")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Opérateur: ${uiState.initSelectedOperateur.name}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        "Type: ${uiState.initSoldeType.name}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        "Devise: ${uiState.initSelectedDevise.name}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        "Montant: ${uiState.solde}",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+            },
+            confirmButton = {
+                CustomerButton(
+                    onClick = {
+                        viewModel.onSaveClick()
+                        viewModel.onConfirmDialogDismiss()
+                    }
+                ) {
+                    Text("Confirmer")
+                }
+            },
+            dismissButton = {
+                CustomerButton(
+                    onClick = { viewModel.onConfirmDialogDismiss() }
+                ) {
+                    Text("Annuler")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun HandelUiEvent(
+    viewModel: DashBoardViewModel,
+    snackbarHostState: SnackbarHostState,
+    navigateToLoginScreen: () -> Unit
+) {
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect {
+
+            when (it) {
+
+                DashBoardUiEvent.NavigateToLogin -> {
+                    navigateToLoginScreen()
+                }
+
+                is DashBoardUiEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(
+                        CustomSnackbarVisuals(it.errorMessage, type = SnackbarType.ERROR)
+                    )
+                }
+
+                is DashBoardUiEvent.ShowSuccesMessage -> {
+                    snackbarHostState.showSnackbar(
+                        CustomSnackbarVisuals(it.successMessage, type = SnackbarType.SUCCESS)
+                    )
+                }
+            }
+
+        }
+
+    }
+}
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -754,7 +1137,6 @@ fun DashBoardScreenPreview() {
             uiState = DashBoardUiState(
                 currenteSolde = Solde(),
                 selectedAgence = Agence("AGO1", "Bbo Centre"),
-                selectedOperateur = operateurs.firstOrNull(),
                 selectedDevise = Constants.Devise.CDF,
                 isAgenceDropDownExpanded = false,
                 agenceErrorMessage = null,
@@ -795,9 +1177,9 @@ fun DashBoardScreenPreview() {
 
 
             )
-
-
     }
 }
+
+
 
 

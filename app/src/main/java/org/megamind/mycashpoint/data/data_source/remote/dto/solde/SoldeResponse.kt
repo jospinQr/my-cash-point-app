@@ -11,7 +11,6 @@ import java.math.BigDecimal
 data class SoldeResponse(
     val id: Long,
     val operateurId: Long,
-    val operateurName: String,
     val soldeType: SoldeType,
     @Serializable(with = BigDecimalSerializer::class)
     val montant: BigDecimal,

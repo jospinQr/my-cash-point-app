@@ -46,3 +46,4 @@ fun PaginateTransactionsResponse.toPaginatedTransaction(): PaginatedTransaction 
         totalMontant = totalMontant
     )
 }
+

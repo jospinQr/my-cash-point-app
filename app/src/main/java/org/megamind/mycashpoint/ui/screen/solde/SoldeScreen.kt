@@ -4,6 +4,18 @@ package org.megamind.mycashpoint.ui.screen.solde
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,10 +62,15 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.LinearGradient
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -118,18 +135,9 @@ fun SoldeScreen(
     SoldeScreenContent(
         uiState = uiState,
         soldes = soldes,
-        onBottomSheetShown = viewModel::onBottomSheetShown,
-        onBottomSheetHide = viewModel::onBottomSheetHide,
-        onOperateurMenuExpanded = viewModel::onOperateurMenuExpanded,
-        onOperateurMenuDismiss = viewModel::onOperateurMenuDismiss,
         onSelectedOperateurChange = viewModel::onOperateurChange,
         onSelectedDeviseChange = viewModel::onDeviseChange,
-        onSaveClick = viewModel::onSaveClick,
-        onSoldeInitialChange = viewModel::onSoldeChange,
-        onSeuilChange = viewModel::onSeuilChange,
         onSelectedTypeSoldeChange = viewModel::onSoldeTypeChange,
-        onConfirmDialogShown = viewModel::onConfirmDialogShown,
-        onConfirmDialogDismiss = viewModel::onConfirmDialogDismiss,
 
         )
 
@@ -142,19 +150,9 @@ fun SoldeScreenContent(
 
     uiState: SoldeUiState,
     soldes: Solde,
-    onBottomSheetShown: () -> Unit,
-    onBottomSheetHide: () -> Unit,
-    onOperateurMenuExpanded: () -> Unit,
-    onOperateurMenuDismiss: () -> Unit,
     onSelectedOperateurChange: (Operateur) -> Unit,
     onSelectedDeviseChange: (Constants.Devise) -> Unit,
-    onSoldeInitialChange: (String) -> Unit,
-    onSeuilChange: (String) -> Unit,
-    onSaveClick: () -> Unit,
     onSelectedTypeSoldeChange: (SoldeType) -> Unit,
-    onConfirmDialogShown: () -> Unit,
-    onConfirmDialogDismiss: () -> Unit,
-
 
     ) {
 
@@ -171,17 +169,6 @@ fun SoldeScreenContent(
 
 
             )
-    }, floatingActionButton = {
-
-        FloatingActionButton(onClick = { onBottomSheetShown() }) {
-
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-        }
     }) { innerPadding ->
 
 
@@ -313,16 +300,35 @@ fun SoldeScreenContent(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
+                    var rotationTrigger by remember { mutableStateOf(0f) }
+
+                    LaunchedEffect(uiState.selectedOperateur.id) {
+                        rotationTrigger += 360f
+                    }
+
+                    val rotationY by animateFloatAsState(
+                        targetValue = rotationTrigger,
+                        animationSpec = tween(
+                            durationMillis = 600,
+                            easing = FastOutSlowInEasing
+                        ),
+                        label = "rotation3d"
+                    )
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .graphicsLayer {
+                                this.rotationY = rotationY
+                                cameraDistance = 12 * density // IMPORTANT pour l’effet 3D
+                            }
                             .border(
                                 width = .8.dp,
                                 color = MaterialTheme.colorScheme.primary,
                                 shape = RoundedCornerShape(16.dp)
                             )
                             .padding(14.dp)
+
 
 
                     )
@@ -359,19 +365,33 @@ fun SoldeScreenContent(
                                 Text("Solde")
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Box(
-                                    Modifier.background(
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = .3f),
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                ) {
-                                    Text(
-                                        "${soldes.montant.toMontant()} ${uiState.selectedDevise.symbole}",
-                                        modifier = Modifier.padding(6.dp),
-                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onBackground
+                                    Modifier
+                                        .background(
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = .3f),
+                                            shape = RoundedCornerShape(8.dp)
                                         )
-                                    )
+                                        .animateContentSize(
+                                            animationSpec = tween()
+                                        )
+                                ) {
+
+                                    AnimatedContent(
+                                        targetState = soldes.montant,
+                                        transitionSpec = {
+                                            // Slide up + fade pour le nouveau chiffre
+                                            slideInVertically { height -> height } + fadeIn() togetherWith
+                                                    slideOutVertically { height -> -height } + fadeOut()
+                                        },
+                                    ) { montant ->
+                                        Text(
+                                            "${montant.toMontant()} ${uiState.selectedDevise.symbole}",
+                                            modifier = Modifier.padding(6.dp),
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onBackground
+                                            )
+                                        )
+                                    }
                                 }
                             }
                             Spacer(Modifier.height(8.dp))
@@ -401,205 +421,205 @@ fun SoldeScreenContent(
     }
 
 
-    if (uiState.isBottomSheetShown) {
-
-        ModalBottomSheet(
-            onDismissRequest = { onBottomSheetHide() },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-
-            ) {
-
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    Text("Initialiser le sole  ")
-                    AnimatedContent(uiState.selectedOperateur) {
-                        Text(it.name)
-                    }
-                    AnimatedContent(uiState.selectedDevise) {
-                        Text(it.name)
-                    }
-                }
-                Column(
-                    modifier = Modifier.padding(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-
-                    Column {
-
-                        SingleChoiceSegmentedButtonRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-
-                        )
-                        {
-
-                            SoldeType.entries.forEachIndexed { index, soldeType ->
-
-                                SegmentedButton(
-                                    colors = SegmentedButtonDefaults.colors(
-                                        activeContainerColor = MaterialTheme.colorScheme.primary,
-                                        activeBorderColor = MaterialTheme.colorScheme.primary,
-                                        activeContentColor = MaterialTheme.colorScheme.onPrimary
-
-
-                                    ),
-
-                                    label = {
-                                        Text(soldeType.name)
-                                    },
-                                    onClick = {
-
-                                        onSelectedTypeSoldeChange(soldeType)
-                                    },
-                                    selected = uiState.selecteSoldeType == soldeType,
-                                    shape = SegmentedButtonDefaults.itemShape(
-                                        index = index,
-                                        count = Constants.Devise.entries.size
-                                    ),
-
-                                    )
-
-
-                            }
-
-
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-
-                            Text("Devise ")
-                            Constants.Devise.entries.forEachIndexed { index, devise ->
-
-                                RadioButton(
-                                    selected = uiState.selectedDevise == devise,
-                                    onClick = {
-                                        onSelectedDeviseChange(devise)
-                                    }
-                                )
-                                Text(devise.name, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        CustomOutlinedTextField(
-                            modifier = Modifier.clickable {
-                                onOperateurMenuExpanded()
-                            },
-                            enabled = false,
-                            value = uiState.selectedOperateur.name,
-                            onValueChange = {
-
-                            },
-                            leadingIcon = {
-                                Image(
-                                    modifier = Modifier
-                                        .size(30.dp)
-                                        .clip(CircleShape),
-                                    painter = painterResource(
-                                        uiState.selectedOperateur.logo
-                                    ),
-                                    contentDescription = null
-                                )
-                            },
-                            trailingIcon = {
-
-                                IconButton(onClick = { onOperateurMenuExpanded() }) {
-                                    Icon(
-                                        imageVector = Icons.Default.ArrowDropDown,
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-                        )
-                        DropdownMenu(
-                            expanded = uiState.isOperateurExpanded,
-                            onDismissRequest = { onOperateurMenuDismiss() }
-
-                        ) {
-
-                            operateurs.forEach {
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Image(
-                                                modifier = Modifier
-                                                    .size(30.dp)
-                                                    .clip(CircleShape),
-                                                painter = painterResource(it.logo),
-                                                contentDescription = null
-                                            )
-                                            Text(it.name)
-
-                                        }
-
-                                    }, onClick = {
-                                        onSelectedOperateurChange(it)
-                                        onOperateurMenuDismiss()
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    CustomOutlinedTextField(
-                        value = uiState.solde,
-                        onValueChange = {
-                            onSoldeInitialChange(it)
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Rounded.AttachMoney,
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = null
-                            )
-                        },
-                        label = "Solde initial",
-                        keyboardType = KeyboardType.Decimal,
-                        isError = uiState.isSoldeError,
-                        errorMessage = "Le solde initial doit être supérieur à 0"
-                    )
-                    CustomOutlinedTextField(
-                        value = uiState.seuilAlert ?: "0",
-                        onValueChange = {
-                            onSeuilChange(it)
-                        },
-                        keyboardType = KeyboardType.Decimal,
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Outlined.AddAlert,
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = null
-                            )
-                        },
-                        label = "Sueil d'alert"
-                    )
-                    CustomerButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            onConfirmDialogShown()
-                        },
-
-                        ) {
-                        Text("Enregister")
-                    }
-
-                }
-            }
-        }
-    }
+//    if (uiState.isBottomSheetShown) {
+//
+//        ModalBottomSheet(
+//            onDismissRequest = { onBottomSheetHide() },
+//            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+//
+//            ) {
+//
+//            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+//                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+//                    Text("Initialiser le sole  ")
+//                    AnimatedContent(uiState.selectedOperateur) {
+//                        Text(it.name)
+//                    }
+//                    AnimatedContent(uiState.selectedDevise) {
+//                        Text(it.name)
+//                    }
+//                }
+//                Column(
+//                    modifier = Modifier.padding(6.dp),
+//                    verticalArrangement = Arrangement.spacedBy(12.dp)
+//                ) {
+//
+//                    Column {
+//
+//                        SingleChoiceSegmentedButtonRow(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//
+//                        )
+//                        {
+//
+//                            SoldeType.entries.forEachIndexed { index, soldeType ->
+//
+//                                SegmentedButton(
+//                                    colors = SegmentedButtonDefaults.colors(
+//                                        activeContainerColor = MaterialTheme.colorScheme.primary,
+//                                        activeBorderColor = MaterialTheme.colorScheme.primary,
+//                                        activeContentColor = MaterialTheme.colorScheme.onPrimary
+//
+//
+//                                    ),
+//
+//                                    label = {
+//                                        Text(soldeType.name)
+//                                    },
+//                                    onClick = {
+//
+//                                        onSelectedTypeSoldeChange(soldeType)
+//                                    },
+//                                    selected = uiState.selecteSoldeType == soldeType,
+//                                    shape = SegmentedButtonDefaults.itemShape(
+//                                        index = index,
+//                                        count = Constants.Devise.entries.size
+//                                    ),
+//
+//                                    )
+//
+//
+//                            }
+//
+//
+//                        }
+//                        Row(verticalAlignment = Alignment.CenterVertically) {
+//
+//                            Text("Devise ")
+//                            Constants.Devise.entries.forEachIndexed { index, devise ->
+//
+//                                RadioButton(
+//                                    selected = uiState.selectedDevise == devise,
+//                                    onClick = {
+//                                        onSelectedDeviseChange(devise)
+//                                    }
+//                                )
+//                                Text(devise.name, fontWeight = FontWeight.Bold)
+//                            }
+//                        }
+//                        CustomOutlinedTextField(
+//                            modifier = Modifier.clickable {
+//                                onOperateurMenuExpanded()
+//                            },
+//                            enabled = false,
+//                            value = uiState.selectedOperateur.name,
+//                            onValueChange = {
+//
+//                            },
+//                            leadingIcon = {
+//                                Image(
+//                                    modifier = Modifier
+//                                        .size(30.dp)
+//                                        .clip(CircleShape),
+//                                    painter = painterResource(
+//                                        uiState.selectedOperateur.logo
+//                                    ),
+//                                    contentDescription = null
+//                                )
+//                            },
+//                            trailingIcon = {
+//
+//                                IconButton(onClick = { onOperateurMenuExpanded() }) {
+//                                    Icon(
+//                                        imageVector = Icons.Default.ArrowDropDown,
+//                                        contentDescription = null
+//                                    )
+//                                }
+//                            }
+//                        )
+//                        DropdownMenu(
+//                            expanded = uiState.isOperateurExpanded,
+//                            onDismissRequest = { onOperateurMenuDismiss() }
+//
+//                        ) {
+//
+//                            operateurs.forEach {
+//                                DropdownMenuItem(
+//                                    text = {
+//                                        Row(verticalAlignment = Alignment.CenterVertically) {
+//                                            Image(
+//                                                modifier = Modifier
+//                                                    .size(30.dp)
+//                                                    .clip(CircleShape),
+//                                                painter = painterResource(it.logo),
+//                                                contentDescription = null
+//                                            )
+//                                            Text(it.name)
+//
+//                                        }
+//
+//                                    }, onClick = {
+//                                        onSelectedOperateurChange(it)
+//                                        onOperateurMenuDismiss()
+//                                    }
+//                                )
+//                            }
+//                        }
+//                    }
+//
+//                    CustomOutlinedTextField(
+//                        value = uiState.solde,
+//                        onValueChange = {
+//                            onSoldeInitialChange(it)
+//                        },
+//                        leadingIcon = {
+//                            Icon(
+//                                imageVector = Icons.Rounded.AttachMoney,
+//                                tint = MaterialTheme.colorScheme.primary,
+//                                contentDescription = null
+//                            )
+//                        },
+//                        label = "Solde initial",
+//                        keyboardType = KeyboardType.Decimal,
+//                        isError = uiState.isSoldeError,
+//                        errorMessage = "Le solde initial doit être supérieur à 0"
+//                    )
+//                    CustomOutlinedTextField(
+//                        value = uiState.seuilAlert ?: "0",
+//                        onValueChange = {
+//                            onSeuilChange(it)
+//                        },
+//                        keyboardType = KeyboardType.Decimal,
+//                        leadingIcon = {
+//                            Icon(
+//                                imageVector = Icons.Outlined.AddAlert,
+//                                tint = MaterialTheme.colorScheme.primary,
+//                                contentDescription = null
+//                            )
+//                        },
+//                        label = "Sueil d'alert"
+//                    )
+//                    CustomerButton(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        onClick = {
+//                            onConfirmDialogShown()
+//                        },
+//
+//                        ) {
+//                        Text("Enregister")
+//                    }
+//
+//                }
+//            }
+//        }
+//    }
     if (uiState.isLoading) {
         LoadinDialog()
     }
 
-    ConfirmDialog(
-
-
-        visible = uiState.isConfirmDialogShown,
-        message = "Etes-vous sûr(e) de vouloir enregistrer ce solde ?",
-        onConfirm = {
-            onSaveClick()
-            onBottomSheetHide()
-            onConfirmDialogDismiss()
-        },
-        onDismiss = { onConfirmDialogDismiss() }
-    )
+//    ConfirmDialog(
+//
+//
+//        visible = uiState.isConfirmDialogShown,
+//        message = "Etes-vous sûr(e) de vouloir enregistrer ce solde ?",
+//        onConfirm = {
+//            onSaveClick()
+//            onBottomSheetHide()
+//            onConfirmDialogDismiss()
+//        },
+//        onDismiss = { onConfirmDialogDismiss() }
+//    )
 
 
 }
@@ -636,18 +656,12 @@ fun SoldeScreenPreview() {
         SoldeScreenContent(
             uiState = mockUiState,
             soldes = mockSoldes,
-            onBottomSheetShown = {},
-            onBottomSheetHide = {},
-            onOperateurMenuExpanded = {},
-            onOperateurMenuDismiss = {},
+
             onSelectedOperateurChange = {},
             onSelectedDeviseChange = {},
-            onSoldeInitialChange = {},
-            onSeuilChange = {},
-            onSaveClick = {},
+
             onSelectedTypeSoldeChange = {},
-            onConfirmDialogShown = {},
-            onConfirmDialogDismiss = {},
+
 
             )
     }

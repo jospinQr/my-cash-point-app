@@ -120,8 +120,9 @@ fun MyNavHost(
 
                         }
                     },
+                    snackBarHostState = snackbarHostState,
                     navigateToTransactionScreen = {
-                        navController.navigate(Destination.TRANSACTION.name)
+                        navController.navigate(Destination.TRANSACTION.name,)
                     })
             }
 
@@ -157,12 +158,21 @@ fun MyNavHost(
 
             composable(route = Destination.DASHBOARD.name) {
                 DashBoardScreen(
+                    navigateToLoginScreen = {
+                        navController.navigate(Destination.LOGIN.name){
+                            popUpTo(0){
+                                inclusive=true
+                            }
+                        }
+                    },
+
                     navigateToCreateAgence = {
                         navController.navigate(Destination.AGENCE.name)
                     },
                     navigateToCreateAgent = {
                         navController.navigate(Destination.REGISTER.name)
-                    }
+                    },
+                    snackbarHostState = snackbarHostState
                 )
             }
 

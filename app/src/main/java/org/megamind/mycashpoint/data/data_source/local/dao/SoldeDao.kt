@@ -30,6 +30,9 @@ interface SoldeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(solde: SoldeEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(soldes: List<SoldeEntity>)
+
 
     @Query(
         """

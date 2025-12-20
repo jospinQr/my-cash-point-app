@@ -1,8 +1,6 @@
 package org.megamind.mycashpoint.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
-import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TopOperateurDto
 import org.megamind.mycashpoint.domain.model.PaginatedTransaction
 import org.megamind.mycashpoint.domain.model.TopOperateur
 import org.megamind.mycashpoint.domain.model.Transaction
@@ -35,7 +33,7 @@ interface TransactionRepository {
     ): Flow<Result<Transaction>>
 
 
-    fun insertAll(transactions: List<Transaction>): Flow<Result<Unit>>
+    fun insertTransactionListLocally(transactions: List<Transaction>): Flow<Result<Unit>>
 
 
     fun updateTransaction(transaction: Transaction): Flow<Result<Unit>>
@@ -69,5 +67,17 @@ interface TransactionRepository {
         codeAgence: String,
         devise: Constants.Devise
     ): Flow<Result<List<TopOperateur>>>
+
+
+    fun getAllTransactionFromServer(
+        page: Int = 0,
+        size: Int = 50000
+    ): Flow<Result<List<Transaction>>>
+
+
+    fun getRemoteTransactionsByAgenceAndUser(
+    ): Flow<Result<List<Transaction>>>
+
+
 }
 

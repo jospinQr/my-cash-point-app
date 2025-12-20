@@ -1,5 +1,6 @@
 package org.megamind.mycashpoint.domain.usecase.solde
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.megamind.mycashpoint.domain.model.Solde
@@ -9,19 +10,24 @@ import org.megamind.mycashpoint.utils.Result
 class SaveOrUpdateSoldeUseCase(
     private val repository: SoldeRepository
 ) {
+
+    val TAG = "SaveOrUpDateSolde"
     operator fun invoke(solde: Solde): Flow<Result<Unit>> = flow {
         if (solde.idOperateur <= 0) {
             emit(Result.Error(SoldeValidationException.FieldRequired(SoldeField.OPERATEUR)))
+            Log.e(TAG,"Ne peut etre <=0 d")
             return@flow
         }
         // Rejeter montant à 0 ou négatif: champ vide côté UI devient 0
         if (solde.montant <= java.math.BigDecimal.ZERO) {
             emit(Result.Error(SoldeValidationException.InvalidAmount))
+            Log.e(TAG,"Ne peut etre <=0 e")
             return@flow
         }
         // Seuil (si fourni) ne doit pas être négatif
         if (solde.seuilAlerte != null && solde.seuilAlerte < 0) {
             emit(Result.Error(SoldeValidationException.InvalidThreshold))
+            Log.e(TAG,"Ne peut etre <=0 q")
             return@flow
         }
 
@@ -32,7 +38,9 @@ class SaveOrUpdateSoldeUseCase(
 enum class SoldeField { OPERATEUR, DEVISE, SOLDE_TYPE }
 
 sealed class SoldeValidationException(message: String) : IllegalArgumentException(message) {
-    class FieldRequired(val field: SoldeField) : SoldeValidationException("FIELD_REQUIRED:${'$'}field")
+    class FieldRequired(val field: SoldeField) :
+        SoldeValidationException("FIELD_REQUIRED:${'$'}field")
+
     data object InvalidAmount : SoldeValidationException("INVALID_AMOUNT")
     data object InvalidThreshold : SoldeValidationException("INVALID_THRESHOLD")
 }

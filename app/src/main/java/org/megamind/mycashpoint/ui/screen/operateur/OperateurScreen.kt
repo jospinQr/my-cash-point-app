@@ -23,11 +23,15 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -45,6 +49,10 @@ import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.operateurs
 import androidx.compose.runtime.getValue
 import org.megamind.mycashpoint.ui.component.ConfirmDialog
+import org.megamind.mycashpoint.ui.component.CustomSnackbar
+import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
+import org.megamind.mycashpoint.ui.component.LoadinDialog
+import org.megamind.mycashpoint.ui.component.SnackbarType
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -54,7 +62,8 @@ fun OperateurScreen(
     navigateToTransactionScreen: () -> Unit,
     navigateToSignIn: () -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    snackBarHostState: SnackbarHostState
 
 ) {
 
@@ -66,6 +75,15 @@ fun OperateurScreen(
             when (it) {
                 OperateurUiEvent.NavigateToLogin -> {
                     navigateToSignIn()
+                }
+
+                is OperateurUiEvent.ShowError -> {
+                    snackBarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            it.message,
+                            SnackbarType.ERROR
+                        )
+                    )
                 }
             }
         }
@@ -80,8 +98,29 @@ fun OperateurScreen(
         animatedVisibilityScope = animatedVisibilityScope,
         onLogoutClick = viewModel::onLogOut,
         onIsConfirmLogOutDialogDismiss = viewModel::onConfirmLogOutDialogDismiss,
-        onIsConfirmLogOutDialogShown = viewModel::onConfirmLogOutDialogShown
+        onIsConfirmLogOutDialogShown = viewModel::onConfirmLogOutDialogShown,
+        onMainMenuHidden = viewModel::onMainMenuHidden,
+        onMainMenuExpanded = viewModel::onMainMenuExpanded,
+        onIsConfirmDownLoadDialogShown = viewModel::onConfirmDownLoadDialogShown,
+        onIsConfirmDownLoadDialogHidden = viewModel::onConfirmDownLoadDialogHidden,
+        downloadAllData = viewModel::getAllSoldeFromServerAndInsertInLocaldb
+
     )
+
+    if (uiState.isGetAllSoldeLoading) {
+        LoadinDialog(text = "Téléchargement solde en cours")
+    }
+    if (uiState.isGetAllTransactLoading) {
+        LoadinDialog(text = "Téléchargement des transactions en cours")
+    }
+    if (uiState.isInsertAllSoldeLoading) {
+        LoadinDialog(text = "Insertion des soldes en cours")
+    }
+
+    if (uiState.isInsertAllTransactLoading) {
+        LoadinDialog(text = "Insertion des transactions en cours")
+    }
+
 
 }
 
@@ -96,34 +135,64 @@ private fun OperateurScreenContent(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onIsConfirmLogOutDialogShown: () -> Unit,
     onIsConfirmLogOutDialogDismiss: () -> Unit,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    onMainMenuExpanded: () -> Unit,
+    onMainMenuHidden: () -> Unit,
+    onIsConfirmDownLoadDialogShown: () -> Unit,
+    onIsConfirmDownLoadDialogHidden: () -> Unit,
+    downloadAllData: () -> Unit
+
 
 ) {
 
 
     Scaffold(topBar = {
-        TopAppBar(
-            title = {
-                Text(
-                    "Choisissez un opérateur",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+        TopAppBar(title = {
+            Text(
+                "Choisissez un opérateur",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        }, actions = {
+            IconButton(onClick = { onMainMenuExpanded() }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert, contentDescription = null
                 )
-            },
-            actions = {
-                IconButton(onClick = { onIsConfirmLogOutDialogShown() }) {
-                    Icon(
-                        imageVector = Icons.Default.Logout,
-                        contentDescription = null
+            }
+
+            DropdownMenu(
+                expanded = uiState.isMainMenuExpanded, onDismissRequest = { onMainMenuHidden() }) {
+
+                mainMenu.forEachIndexed { index, label ->
+                    DropdownMenuItem(
+                        text = { Text(text = label) },
+                        onClick = {
+                            when (index) {
+                                0 -> {
+                                    onIsConfirmDownLoadDialogShown()
+                                }
+
+                                1 -> {
+                                    onIsConfirmLogOutDialogShown()
+                                }
+                            }
+                        }
                     )
+
+
                 }
-            })
+
+
+            }
+
+        }
+
+        )
     }) { innerPadding ->
 
         Box(
             Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
+                .padding(innerPadding), contentAlignment = Alignment.Center
         ) {
             LazyHorizontalGrid(
                 modifier = Modifier.fillMaxWidth(),
@@ -168,6 +237,19 @@ private fun OperateurScreenContent(
         },
     )
 
+    ConfirmDialog(
+        title = "Voulez-vous télécharger les transactions ?",
+        visible = uiState.isConfirmDownloadDialogShown,
+        onDismiss = {
+            onIsConfirmDownLoadDialogHidden()
+        },
+        onConfirm = {
+            downloadAllData()
+            onIsConfirmDownLoadDialogHidden()
+
+        }
+    )
+
 
 }
 
@@ -192,9 +274,7 @@ fun OperateurItem(
                 .clickable {
                     onOperateurSelected(operateur)
                 }
-                .padding(12.dp),
-            contentAlignment = Alignment.Center
-        ) {
+                .padding(12.dp), contentAlignment = Alignment.Center) {
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -211,11 +291,9 @@ fun OperateurItem(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    modifier = Modifier
-                        .sharedElement(
-                            rememberSharedContentState(key = operateur.id),
-                            animatedVisibilityScope
-                        ),
+                    modifier = Modifier.sharedElement(
+                        rememberSharedContentState(key = operateur.id), animatedVisibilityScope
+                    ),
                     text = operateur.name,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
@@ -225,3 +303,8 @@ fun OperateurItem(
 
     }
 }
+
+
+private val mainMenu = listOf(
+    "Télécharger dépuis le serveur", "Se deconnecter"
+)

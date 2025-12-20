@@ -8,6 +8,7 @@ import org.megamind.mycashpoint.data.data_source.local.dao.TransactionDao
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransaction
 import org.megamind.mycashpoint.data.data_source.local.mapper.toTransactionEntity
+import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionPageResponseDTO
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.toTopOperateur
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toTransactionRequest
 import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
@@ -17,13 +18,17 @@ import org.megamind.mycashpoint.domain.repository.TransactionRepository
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toPaginatedTransaction
+import org.megamind.mycashpoint.data.data_source.remote.mapper.toTransaction
 import org.megamind.mycashpoint.domain.model.PaginatedTransaction
 import org.megamind.mycashpoint.domain.model.TopOperateur
+import org.megamind.mycashpoint.utils.DataStorageManager
+import org.megamind.mycashpoint.utils.decodeJwtPayload
 
 class TransactionRepositoryImpl(
     private val transactionService: TransactionService,
     private val transactionDao: TransactionDao,
-    private val soldeDao: SoldeDao
+    private val soldeDao: SoldeDao,
+    private val dataStoreManager: DataStorageManager
 ) : TransactionRepository {
 
 
@@ -46,18 +51,19 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override fun insertAll(transactions: List<Transaction>): Flow<Result<Unit>> = flow {
+    override fun insertTransactionListLocally(transactions: List<Transaction>): Flow<Result<Unit>> =
+        flow {
 
-        emit(Result.Loading)
-        try {
-            val entity = transactions.map { it.toTransactionEntity(isSynced = false) }
-            transactionDao.insertAll(entity)
-            emit(Result.Success(Unit))
-        } catch (e: Exception) {
-            emit(Result.Error(e))
+            emit(Result.Loading)
+            try {
+                val entity = transactions.map { it.toTransactionEntity(isSynced = true) }
+                transactionDao.insertAll(entity)
+                emit(Result.Success(Unit))
+            } catch (e: Exception) {
+                emit(Result.Error(e))
+            }
+
         }
-
-    }
 
 
     override fun allTransactions(): Flow<Result<List<Transaction>>> = flow {
@@ -71,8 +77,7 @@ class TransactionRepositoryImpl(
     }
 
     override fun getNonSyncTransactByOperatorAndDevise(
-        idOperateur: Long,
-        device: Constants.Devise
+        idOperateur: Long, device: Constants.Devise
     ): Flow<Result<List<Transaction>>> = flow {
         try {
             emit(Result.Loading)
@@ -86,8 +91,7 @@ class TransactionRepositoryImpl(
     }
 
     override fun getSyncTransactByOperatorAndDevise(
-        idOperateur: Long,
-        device: Constants.Devise
+        idOperateur: Long, device: Constants.Devise
     ): Flow<Result<List<Transaction>>> = flow {
         try {
             emit(Result.Loading)
@@ -100,17 +104,15 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override fun getUnSyncedTransaction(): Flow<Result<List<Transaction>>> =
-        flow {
-            try {
-                emit(Result.Loading)
-                val transactions =
-                    transactionDao.getUnSyncedTransaction().map { it.toTransaction() }
-                emit(Result.Success(transactions))
-            } catch (e: Exception) {
-                emit(Result.Error(e))
-            }
+    override fun getUnSyncedTransaction(): Flow<Result<List<Transaction>>> = flow {
+        try {
+            emit(Result.Loading)
+            val transactions = transactionDao.getUnSyncedTransaction().map { it.toTransaction() }
+            emit(Result.Success(transactions))
+        } catch (e: Exception) {
+            emit(Result.Error(e))
         }
+    }
 
     override fun deleteTransactionById(id: Long): Flow<Result<Unit>> = flow {
         try {
@@ -292,8 +294,7 @@ class TransactionRepositoryImpl(
     }
 
     override fun getTopTransactionByOperateur(
-        codeAgence: String,
-        devise: Constants.Devise
+        codeAgence: String, devise: Constants.Devise
     ): Flow<Result<List<TopOperateur>>> = flow {
 
         emit(Result.Loading)
@@ -317,6 +318,70 @@ class TransactionRepositoryImpl(
 
         } catch (e: Exception) {
             emit(Result.Error(e))
+        }
+
+
+    }
+
+    override fun getAllTransactionFromServer(
+        page: Int, size: Int
+    ): Flow<Result<List<Transaction>>> = flow {
+
+        emit(Result.Loading)
+        try {
+
+            when (val result = transactionService.getAllTransaction(page, size)) {
+                is Result.Success -> {
+                    emit(Result.Success(result.data?.map { it.toTransaction() }))
+                }
+
+                is Result.Error -> {
+                    emit(Result.Error(result.e ?: Exception("Erreur inconue")))
+                }
+
+                else -> {}
+
+            }
+
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
+
+
+    }
+
+    override fun getRemoteTransactionsByAgenceAndUser(
+
+    ): Flow<Result<List<Transaction>>> = flow {
+
+        emit(Result.Loading)
+        try {
+
+            val userId =
+                dataStoreManager.getToken()?.let { decodeJwtPayload(it) }!!.optString("sub")
+            val agenceCode =
+                dataStoreManager.getToken()?.let { decodeJwtPayload(it) }!!.optString("agence_code")
+            when (val result = transactionService.getTransactionByAgenceCodeAndUserId(
+                agenceCode, userId.toLong()
+            )) {
+                is Result.Success -> {
+
+                    emit(Result.Success(result.data?.content?.map { it.toTransaction() }))
+                    Log.i(TAG, result.data?.content.toString())
+                }
+
+                is Result.Error -> {
+                    emit(Result.Error(result.e ?: Exception("Erreur inconue")))
+                    Log.e(TAG, result.e?.message ?: "Erreur inconue")
+                }
+
+                else -> {}
+
+
+            }
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+            Log.e(TAG, e.message.toString())
         }
 
 

@@ -14,7 +14,7 @@ fun SoldeResponse.toSolde(): Solde {
         dernierMiseAJour = this.dernierMiseAJour,
         seuilAlerte = this.seuilAlerte,
         misAJourPar = this.misAJourPar,
-        codeAgence = this.codeAgence
+        agenceCode = this.codeAgence
 
     )
 }

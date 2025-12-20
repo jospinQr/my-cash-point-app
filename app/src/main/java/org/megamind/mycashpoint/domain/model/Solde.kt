@@ -12,7 +12,7 @@ data class Solde(
     val dernierMiseAJour: Long = System.currentTimeMillis(),
     val seuilAlerte: Double? = null,
     val misAJourPar: Long = 0,
-    val codeAgence: String = ""
+    val agenceCode: String = ""
 
 )
 

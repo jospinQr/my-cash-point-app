@@ -5,7 +5,7 @@ import org.megamind.mycashpoint.domain.model.Solde
 
 fun Solde.toSoldeUpdateAmountRequestDto(): SoldeUpdateAmountRequestDto {
     return SoldeUpdateAmountRequestDto(
-        codeAgence = codeAgence,
+        codeAgence = agenceCode,
         soldeType = soldeType.name,
         deviseCode = devise.name,
         montant = montant.toDouble(),

@@ -2,12 +2,14 @@ package org.megamind.mycashpoint.data.data_source.remote.service
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import org.megamind.mycashpoint.data.data_source.remote.dto.solde.SoldeRequestDto
 import org.megamind.mycashpoint.data.data_source.remote.dto.solde.SoldeResponse
 import org.megamind.mycashpoint.data.data_source.remote.dto.solde.SoldeUpdateAmountRequestDto
+import org.megamind.mycashpoint.data.data_source.remote.dto.solde.SyncedSoldeResponse
 import org.megamind.mycashpoint.data.data_source.remote.safeApiCall
 import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.utils.Result
@@ -57,6 +59,30 @@ class SoldeService(private val httpClient: HttpClient) {
     }
 
 
+    suspend fun getSoldeByUserAndAgence(
+        userId: Long,
+        codeAgence: String
+    ): Result<List<SoldeResponse>> {
+
+        return safeApiCall<List<SoldeResponse>> {
+            httpClient.get("solde/agence/$codeAgence/updated-by/$userId")
+
+        }
+
+
+    }
+
+
+    suspend fun getSoldeForSync(agenceCode: String, lastSyncAt: Long): Result<SyncedSoldeResponse> {
+
+        return safeApiCall<SyncedSoldeResponse> {
+            httpClient.get("solde/sync") {
+                parameter("agenceCode", agenceCode)
+                parameter("lastSyncAt", lastSyncAt)
+            }
+        }
+
+    }
 }
 
 

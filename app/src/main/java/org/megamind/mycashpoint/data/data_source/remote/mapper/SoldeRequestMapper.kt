@@ -12,6 +12,6 @@ fun Solde.toSoldeRequestDto(): SoldeRequestDto {
         seuilAlerte = seuilAlerte,
         misAJourPar = misAJourPar,
         dernierMiseAJour = dernierMiseAJour,
-        codeAgence = codeAgence
+        codeAgence = agenceCode
     )
 }

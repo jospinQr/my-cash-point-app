@@ -25,7 +25,7 @@ data class Transaction(
     val soldeApres: BigDecimal? = null,
 
     val devise: Constants.Devise,
-    val reference: String? = null,       // Ex: reçu opérateur
+    val reference: String? = null,
     val note: String? = null,
     val horodatage: Long = System.currentTimeMillis(),
     val creePar: Long = 0,
@@ -34,11 +34,9 @@ data class Transaction(
     )
 
 
-enum class TransactionType(val icon: Int) {
-    DEPOT(R.drawable.depot),
-    RETRAIT(R.drawable.retrait),
-    TRANSFERT_ENTRANT(R.drawable.trans_entrant),
-    TRANSFERT_SORTANT(R.drawable.trans_sortie),
-    COMMISSION(R.drawable.transaction_out)
+enum class TransactionType(val icon: Int, val label: String) {
+    DEPOT(R.drawable.depot, "DEPOT"),
+    RETRAIT(R.drawable.retrait, "RETRAIT"),
+
 }
 

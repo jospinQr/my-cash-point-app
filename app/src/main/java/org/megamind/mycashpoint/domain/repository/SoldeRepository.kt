@@ -9,19 +9,18 @@ import org.megamind.mycashpoint.utils.Result
 interface SoldeRepository {
 
     fun getSoldeByOperateurEtTypeEtDevise(
-        idOperateur: Long,
-        devise: String,
-        soldeType: SoldeType
+        idOperateur: Long, devise: String, soldeType: SoldeType
     ): Flow<Result<Solde?>>
 
     fun getAll(): Flow<Result<List<Solde>>>
 
     fun insertOrUpdate(solde: Solde): Flow<Result<Unit>>
 
+    fun insertSoldeListLocally(soldes: List<Solde>): Flow<Result<Unit>>
+
 
     fun deleteByOperateurEtDevise(
-        idOperateur: Long,
-        devise: Constants.Devise
+        idOperateur: Long, devise: Constants.Devise
     ): Flow<Result<Unit>>
 
     fun getUnsyncedSoldes(): Flow<Result<List<Solde>>>
@@ -34,13 +33,19 @@ interface SoldeRepository {
 
 
     fun getSoldeFromServerByCriteria(
-        codeAgence: String,
-        operateurId: Long,
-        deviseCode: String,
-        soldeType: SoldeType
+        codeAgence: String, operateurId: Long, deviseCode: String, soldeType: SoldeType
     ): Flow<Result<Solde>>
 
 
     fun getSoldeInRupture(): Flow<Result<List<Solde>>>
+
+
+    fun getSoldeByUserAndAgence(): Flow<Result<List<Solde>>>
+
+    fun getSoldeForSync(agenceCode: String, lastSyncAt: Long): Flow<Result<List<Solde>>>
+
+
+    fun saveSoldeToServer(solde: Solde):Flow<Result<Unit>>
+
 
 }

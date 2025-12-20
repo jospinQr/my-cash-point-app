@@ -7,9 +7,11 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.PaginateTransactionsResponse
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TopOperateurDto
+import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionPageResponseDTO
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionRequest
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionResponse
 import org.megamind.mycashpoint.data.data_source.remote.safeApiCall
+import org.megamind.mycashpoint.domain.model.PaginatedTransaction
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.Result
@@ -86,5 +88,30 @@ class TransactionService(
 
     }
 
+
+    suspend fun getAllTransaction(
+        page: Int = 0,
+        size: Int = 50000
+    ): Result<List<TransactionResponse>> {
+        return safeApiCall<List<TransactionResponse>> {
+            httpClient.get("transaction") {
+                parameter("page", page)
+                parameter("size", size)
+
+            }
+        }
+
+    }
+
+
+    suspend fun getTransactionByAgenceCodeAndUserId(
+        agenceCode: String,
+        userId: Long
+    ): Result<TransactionPageResponseDTO> {
+        return safeApiCall {
+            httpClient.get("transaction/agence/$agenceCode/user/$userId")
+
+        }
+    }
 
 }

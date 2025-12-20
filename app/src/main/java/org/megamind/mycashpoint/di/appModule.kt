@@ -1,5 +1,6 @@
 package org.megamind.mycashpoint.di
 
+import io.ktor.utils.io.core.Sink
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -28,16 +29,22 @@ import org.megamind.mycashpoint.domain.usecase.commission.SaveOrUpdateCommission
 import org.megamind.mycashpoint.domain.usecase.commission.SearchCommissionsUseCase
 import org.megamind.mycashpoint.domain.usecase.rapport.GetNonSyncTransactByOperatorAndDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.rapport.GetSyncTransactByOperatorAndDeviseUseCase
+import org.megamind.mycashpoint.domain.usecase.solde.AdminSaveSoldeUseCase
+import org.megamind.mycashpoint.domain.usecase.solde.GetRemoteSoldesByAgenceAndUserUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeByOperateurEtTypeEtDeviseUseCase
+import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeForSyncUsecas
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeFromServerByCreteriaUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeInRutureUseCase
+import org.megamind.mycashpoint.domain.usecase.solde.InsertSoldeListLocallyUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SaveOrUpdateSoldeUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SyncSoldesUseCase
 
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GenerateTransactionReportUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.GetAllTransactionFromServerUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GetTopOperateurUseCase
-import org.megamind.mycashpoint.domain.usecase.transaction.InsertAllTransactUserCase
+import org.megamind.mycashpoint.domain.usecase.transaction.GetRemoteTransactionsByAgenceAndUserUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionListLocallyUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SyncTransactionUseCase
@@ -68,11 +75,11 @@ val appModule = module {
     }
 
     single<SoldeRepository> {
-        SoldeRepositoryImpl(get(), get())
+        SoldeRepositoryImpl(get(), get(), get())
     }
 
     single<TransactionRepository> {
-        TransactionRepositoryImpl(get(), get(), get())
+        TransactionRepositoryImpl(get(), get(), get(), get())
     }
 
     single<AgenceRepository> {
@@ -112,7 +119,13 @@ val appModule = module {
     single { GenerateTransactionReportUseCase(get()) }
     single { GetSoldeInRutureUseCase(get()) }
     single { GetSyncTransactByOperatorAndDeviseUseCase(get()) }
-    single { InsertAllTransactUserCase(get()) }
+    single { InsertTransactionListLocallyUseCase(get()) }
+    single { InsertSoldeListLocallyUseCase(get()) }
+    single { GetAllTransactionFromServerUseCase(get()) }
+    single { GetRemoteTransactionsByAgenceAndUserUseCase(get()) }
+    single { GetRemoteSoldesByAgenceAndUserUseCase(get()) }
+    single { GetSoldeForSyncUsecas(get()) }
+    single{ AdminSaveSoldeUseCase(get()) }
 
 
 //view models
@@ -129,7 +142,7 @@ val appModule = module {
     }
 
     viewModel {
-        OperateurViewModel(get(),get())
+        OperateurViewModel(get(), get(), get(), get(), get())
     }
     viewModel {
         TransactionViewModel(get(), get())
@@ -153,7 +166,7 @@ val appModule = module {
     }
 
     viewModel {
-        DashBoardViewModel(get(), get(), get(), get())
+        DashBoardViewModel(get(), get(), get(), get(), get(), get())
     }
 
     viewModel {

@@ -83,8 +83,9 @@ fun MyCashPointApp(
     val adminBottomBarRoutes = listOf(
         Destination.DASHBOARD.name,
         Destination.ADMIN_REPPORT.name,
-        Destination.SETTINGS.name
-    )
+        Destination.SETTINGS.name,
+
+        )
 
 
     val currentRoute = currentDestination?.route
@@ -138,11 +139,15 @@ fun MyCashPointApp(
                 currentDestination = currentDestination,
                 windowSizeClass = windowSizeClass,
                 snackbarHostState = snackbarHostState,
+                showAdminBottomBar = showAdminBottomBar,
+                showAgentBottomBar = showAgentBottomBar,
+
 
                 )
 
 
         } else if (isMedium && isAdmin) {
+
             NavigationRailBar(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -151,7 +156,10 @@ fun MyCashPointApp(
                 currentDestination = currentDestination,
                 windowSizeClass = windowSizeClass,
                 snackbarHostState = snackbarHostState,
-            )
+                showAdminBottomBar = showAdminBottomBar,
+                showAgentBottomBar = showAgentBottomBar,
+
+                )
         } else {
 
 
@@ -247,7 +255,7 @@ fun AdminBottomBar(navController: NavController, currentDestination: NavDestinat
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun NavigationRailBar(
     modifier: Modifier,
@@ -255,38 +263,42 @@ fun NavigationRailBar(
     currentDestination: NavDestination?,
     windowSizeClass: WindowSizeClass,
     snackbarHostState: SnackbarHostState,
+    showAdminBottomBar: Boolean,
+    showAgentBottomBar: Boolean,
 ) {
     Row {
-        NavigationRail (containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f)){
+        if (showAdminBottomBar || showAgentBottomBar) {
+            NavigationRail(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f)) {
 
-            adminNavBarItem.forEach { item ->
+                adminNavBarItem.forEach { item ->
 
-                val selected = currentDestination?.route == item.route
-                NavigationRailItem(
-                    colors = NavigationRailItemDefaults.colors(
-                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f),
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                    ),
+                    val selected = currentDestination?.route == item.route
+                    NavigationRailItem(
+                        colors = NavigationRailItemDefaults.colors(
+                            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = .06f),
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                        ),
 
-                    selected = selected,
-                    onClick = {
-                        safeNavigate(
-                            navController = navController,
-                            currentRoute = currentDestination?.route,
-                            targetRoute = item.route
-                        )
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(
-                                if (selected) item.selectedIcon else item.unSelectedIcon
-                            ),
-                            contentDescription = null
-                        )
-                    },
-                    label = { Text(item.title) },
-                    alwaysShowLabel = false
-                )
+                        selected = selected,
+                        onClick = {
+                            safeNavigate(
+                                navController = navController,
+                                currentRoute = currentDestination?.route,
+                                targetRoute = item.route
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(
+                                    if (selected) item.selectedIcon else item.unSelectedIcon
+                                ),
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text(item.title) },
+                        alwaysShowLabel = false
+                    )
+                }
             }
         }
         MyNavHost(
@@ -307,65 +319,71 @@ fun PermanentDrawer(
     currentDestination: NavDestination?,
     windowSizeClass: WindowSizeClass,
     snackbarHostState: SnackbarHostState,
+    showAdminBottomBar: Boolean,
+    showAgentBottomBar: Boolean,
 
     ) {
 
     PermanentNavigationDrawer(
         drawerContent = {
-            PermanentDrawerSheet(drawerTonalElevation = 4.dp, modifier = Modifier.width(220.dp)) {
-                adminNavBarItem.forEach { item ->
-                    val selected = currentDestination?.route == item.route
-                    val bgColor by animateColorAsState(
-                        targetValue = if (selected)
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                        else
-                            Color.Transparent
-                    )
-                    val iconColor by animateColorAsState(
-                        targetValue = if (selected)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurface
-                    )
+            if (showAdminBottomBar || showAgentBottomBar)
+                PermanentDrawerSheet(
+                    drawerTonalElevation = 4.dp,
+                    modifier = Modifier.width(220.dp)
+                ) {
+                    adminNavBarItem.forEach { item ->
+                        val selected = currentDestination?.route == item.route
+                        val bgColor by animateColorAsState(
+                            targetValue = if (selected)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            else
+                                Color.Transparent
+                        )
+                        val iconColor by animateColorAsState(
+                            targetValue = if (selected)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurface
+                        )
 
-                    // Animation taille icône
-                    val iconSize by animateDpAsState(
-                        targetValue = if (selected) 26.dp else 22.dp
-                    )
-                    NavigationDrawerItem(
+                        // Animation taille icône
+                        val iconSize by animateDpAsState(
+                            targetValue = if (selected) 26.dp else 22.dp
+                        )
+                        NavigationDrawerItem(
 
-                        icon = {
-                            Icon(
-                                painter = painterResource(
-                                    if (selected) item.selectedIcon else item.unSelectedIcon
-                                ),
-                                tint = iconColor,
-                                modifier = Modifier.size(iconSize),
-                                contentDescription = null
-                            )
-                        },
-                        label = { Text(item.title, color = iconColor) },
-                        selected = currentDestination?.route == item.route,
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = bgColor,
-                            unselectedContainerColor = Color.Transparent
-                        ),
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        onClick = {
-                            safeNavigate(
-                                navController = navController,
-                                currentRoute = currentDestination?.route,
-                                targetRoute = item.route
-                            )
-                        }
+                            icon = {
+                                Icon(
+                                    painter = painterResource(
+                                        if (selected) item.selectedIcon else item.unSelectedIcon
+                                    ),
+                                    tint = iconColor,
+                                    modifier = Modifier.size(iconSize),
+                                    contentDescription = null
+                                )
+                            },
+                            label = { Text(item.title, color = iconColor) },
+                            selected = currentDestination?.route == item.route,
+                            colors = NavigationDrawerItemDefaults.colors(
+                                selectedContainerColor = bgColor,
+                                unselectedContainerColor = Color.Transparent
+                            ),
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            onClick = {
+                                safeNavigate(
+                                    navController = navController,
+                                    currentRoute = currentDestination?.route,
+                                    targetRoute = item.route
+                                )
+                            }
 
-                    )
+                        )
+
+                    }
 
                 }
-
-            }
         }
     ) {
         MyNavHost(

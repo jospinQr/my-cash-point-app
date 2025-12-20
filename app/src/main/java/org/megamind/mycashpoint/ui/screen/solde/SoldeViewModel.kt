@@ -77,11 +77,7 @@ class SoldeViewModel(
         }
     }
 
-    fun onSeuilChange(seuil: String) {
-        _uiState.update {
-            it.copy(seuilAlert = seuil, isSeuilError = false)
-        }
-    }
+
 
 
     fun getSoldes() {
@@ -122,68 +118,7 @@ class SoldeViewModel(
 
     }
 
-    fun onSaveClick() {
 
-
-        viewModelScope.launch {
-
-            val claims = decodeJwtPayload(storageManager.getToken()!!)
-            val solde = Solde(
-                idOperateur = uiState.value.selectedOperateur.id,
-                montant = uiState.value.solde.toBigDecimalOrNull() ?: BigDecimal(0),
-                devise = uiState.value.selectedDevise,
-                seuilAlerte = uiState.value.seuilAlert?.toDouble(),
-                dernierMiseAJour = System.currentTimeMillis(),
-                misAJourPar = claims.optString("sub").toLong(),
-                soldeType = uiState.value.selecteSoldeType,
-                codeAgence = claims.optString("agence_code")
-
-            )
-            saveOrUpdateSolde(solde).collect { result ->
-
-                when (result) {
-
-                    Result.Loading -> {
-                        _uiState.update {
-                            it.copy(isLoading = true)
-                        }
-                    }
-
-                    is Result.Success -> {
-                        _uiState.update {
-                            it.copy(isLoading = false)
-                        }
-                        _uiEvent.emit(SoldeUiEvent.ShowSuccesMessage("Solde enregistré avec succès"))
-                        getSoldes()
-                    }
-
-                    is Result.Error<*> -> {
-                        _uiState.update { it.copy(isLoading = false) }
-                        when (result.e) {
-                            is SoldeValidationException.InvalidAmount -> {
-                                _uiState.update { it.copy(isSoldeError = true) }
-                            }
-
-                            is SoldeValidationException.InvalidThreshold -> {
-                                _uiState.update { it.copy(isSeuilError = true) }
-                            }
-
-                            else -> {
-                                _uiEvent.emit(
-                                    SoldeUiEvent.SoldeError(
-                                        result.e?.message ?: "Erreur inconnue"
-                                    )
-                                )
-                            }
-                        }
-                    }
-
-
-                }
-            }
-        }
-
-    }
 
     fun onBottomSheetShown() {
         _uiState.update {
@@ -197,38 +132,7 @@ class SoldeViewModel(
         }
     }
 
-    fun onOperateurMenuExpanded() {
-        _uiState.update {
-            it.copy(isOperateurExpanded = true)
-        }
-    }
 
-    fun onOperateurMenuDismiss() {
-        _uiState.update {
-            it.copy(isOperateurExpanded = false)
-        }
-    }
-
-    fun onConfirmDialogShown() {
-
-        if (uiState.value.solde.isEmpty()) {
-            _uiState.update {
-                it.copy(isSoldeError = true)
-            }
-            return
-        }
-        _uiState.update {
-            it.copy(isConfirmDialogShown = true)
-        }
-
-    }
-
-    fun onConfirmDialogDismiss() {
-        _uiState.update {
-            it.copy(isConfirmDialogShown = false)
-
-        }
-    }
 
 
 }
