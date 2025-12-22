@@ -4,10 +4,12 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import org.megamind.mycashpoint.data.data_source.local.dao.AgenceDao
+import org.megamind.mycashpoint.data.data_source.local.dao.EtablissementDao
 import org.megamind.mycashpoint.data.data_source.local.dao.SoldeDao
 import org.megamind.mycashpoint.data.data_source.local.dao.TransactionDao
 import org.megamind.mycashpoint.data.data_source.local.dao.UserDao
 import org.megamind.mycashpoint.data.data_source.local.entity.AgenceEntity
+import org.megamind.mycashpoint.data.data_source.local.entity.EtablissementEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.SoldeEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.TransactionEntity
 import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
@@ -15,7 +17,7 @@ import org.megamind.mycashpoint.utils.EnumConverters
 
 
 @Database(
-    entities = [UserEntity::class, SoldeEntity::class, TransactionEntity::class, AgenceEntity::class],
+    entities = [UserEntity::class, SoldeEntity::class, TransactionEntity::class, AgenceEntity::class, EtablissementEntity::class],
     version = 3,
     exportSchema = false
 )
@@ -27,5 +29,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
 
     abstract fun agenceDao(): AgenceDao
+
+    abstract fun etablissementDao(): EtablissementDao
+
 
 }

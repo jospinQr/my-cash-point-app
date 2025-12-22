@@ -5,17 +5,22 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import org.megamind.mycashpoint.data.repositoryImpl.AgenceRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.AnalyticsRepositryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.CommissionRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.EtablissementRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.SoldeRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.TransactionRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.UserRepositoryImpl
 import org.megamind.mycashpoint.domain.repository.AgenceRepository
+import org.megamind.mycashpoint.domain.repository.AnalyticsRepository
 import org.megamind.mycashpoint.domain.repository.CommissionRepository
+import org.megamind.mycashpoint.domain.repository.EtablissementRepository
 import org.megamind.mycashpoint.domain.repository.SoldeRepository
 import org.megamind.mycashpoint.domain.repository.TransactionRepository
 import org.megamind.mycashpoint.domain.repository.UserRepository
 import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
 import org.megamind.mycashpoint.domain.usecase.agence.SaveOrUpdateAgenceUseCase
+import org.megamind.mycashpoint.domain.usecase.analytics.GetAgenceAnalyticsUseCase
 import org.megamind.mycashpoint.domain.usecase.auth.GetUserByIdUseCase
 import org.megamind.mycashpoint.domain.usecase.auth.LoginUseCase
 import org.megamind.mycashpoint.domain.usecase.auth.RegisterUseCase
@@ -38,6 +43,10 @@ import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeInRutureUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.InsertSoldeListLocallyUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SaveOrUpdateSoldeUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SyncSoldesUseCase
+import org.megamind.mycashpoint.domain.usecase.etablissement.GetEtablissementFromServerUseCase
+import org.megamind.mycashpoint.domain.usecase.etablissement.GetEtablissementFromLocalUseCase
+import org.megamind.mycashpoint.domain.usecase.etablissement.UpdateEtablissementUseCase
+import org.megamind.mycashpoint.domain.usecase.etablissement.GetEtablissementFromServerAndInsertLocalyUseCase
 
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GenerateTransactionReportUseCase
@@ -54,6 +63,7 @@ import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardViewModel
 import org.megamind.mycashpoint.ui.screen.admin.rapport.AdminRapportViewModel
 import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
 import org.megamind.mycashpoint.ui.screen.auth.LoginViewModel
+import org.megamind.mycashpoint.ui.screen.admin.etablissement.EtablissementViewModel
 import org.megamind.mycashpoint.ui.screen.solde.SoldeViewModel
 import org.megamind.mycashpoint.ui.screen.main.MainViewModel
 import org.megamind.mycashpoint.utils.DataStorageManager
@@ -88,6 +98,14 @@ val appModule = module {
 
     single<CommissionRepository> {
         CommissionRepositoryImpl(get())
+    }
+
+    single<AnalyticsRepository> {
+        AnalyticsRepositryImpl(get())
+    }
+
+    single<EtablissementRepository> {
+        EtablissementRepositoryImpl(get(), get())
     }
 
     // Use cases
@@ -125,7 +143,13 @@ val appModule = module {
     single { GetRemoteTransactionsByAgenceAndUserUseCase(get()) }
     single { GetRemoteSoldesByAgenceAndUserUseCase(get()) }
     single { GetSoldeForSyncUsecas(get()) }
-    single{ AdminSaveSoldeUseCase(get()) }
+    single { AdminSaveSoldeUseCase(get()) }
+    single { GetAgenceAnalyticsUseCase(get()) }
+
+    single { GetEtablissementFromServerUseCase(get()) }
+    single { GetEtablissementFromLocalUseCase(get()) }
+    single { UpdateEtablissementUseCase(get()) }
+    single { GetEtablissementFromServerAndInsertLocalyUseCase(get()) }
 
 
 //view models
@@ -166,7 +190,7 @@ val appModule = module {
     }
 
     viewModel {
-        DashBoardViewModel(get(), get(), get(), get(), get(), get())
+        DashBoardViewModel(get(), get(), get(), get(), get(), get(), get())
     }
 
     viewModel {
@@ -175,6 +199,10 @@ val appModule = module {
 
     viewModel {
         AllTransactionViewModel(get())
+    }
+
+    viewModel {
+        EtablissementViewModel(get(), get())
     }
 
 

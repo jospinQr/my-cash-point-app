@@ -12,12 +12,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.Dispatcher
 import org.megamind.mycashpoint.domain.model.Agence
+import org.megamind.mycashpoint.domain.model.Analytics
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.Solde
 import org.megamind.mycashpoint.domain.model.SoldeType
 import org.megamind.mycashpoint.domain.model.TopOperateur
 import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
+import org.megamind.mycashpoint.domain.usecase.analytics.GetAgenceAnalyticsUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.AdminSaveSoldeUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeFromServerByCreteriaUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeInRutureUseCase
@@ -37,7 +39,8 @@ class DashBoardViewModel(
     private val getTopOperateurUseCase: GetTopOperateurUseCase,
     private val getSoldeInRuptureUseCase: GetSoldeInRutureUseCase,
     private val dataStorageManager: DataStorageManager,
-    private val saveOrUpdateSolde: AdminSaveSoldeUseCase
+    private val saveOrUpdateSolde: AdminSaveSoldeUseCase,
+    private val analyticsUseCase: GetAgenceAnalyticsUseCase
 ) : ViewModel() {
 
 
@@ -279,9 +282,9 @@ class DashBoardViewModel(
     }
 
     fun onSoldeInRuptureDialogShown() {
-        getSoldeInRupture()
-        _uiState.update { it.copy(isSoldeInRuptureDialogShown = true) }
-
+        viewModelScope.launch {
+            _uiEvent.emit(DashBoardUiEvent.NavigateToEtablissement)
+        }
     }
 
     fun onSoldeInRuptureDialogDismiss() {
@@ -460,6 +463,61 @@ class DashBoardViewModel(
     }
 
 
+    fun getAnalytics() {
+
+        viewModelScope.launch {
+            analyticsUseCase(_uiState.value.selectedAgence?.codeAgence!!).collect { result ->
+
+                when (result) {
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(isAnalyticsLoading = true)
+                        }
+
+                    }
+
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                currentAgenceAnalytics = result.data,
+                                isAnalyticsLoading = false
+                            )
+                        }
+
+                    }
+
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                analyticsErrorMessage = result.e?.message ?: "Erreur inconnue",
+                                isAnalyticsLoading = false
+                            )
+
+                        }
+                    }
+
+                }
+            }
+        }
+
+
+    }
+
+
+    fun onAnalyticsDialogShown() {
+        getAnalytics()
+        _uiState.update {
+            it.copy(isAnalyticsDialogShown = true)
+        }
+    }
+
+
+    fun onAnalyticsDialogDismiss() {
+        _uiState.update {
+            it.copy(isAnalyticsDialogShown = false)
+        }
+    }
+
 }
 
 
@@ -501,8 +559,13 @@ data class DashBoardUiState(
 
     val isSoldeSaveLoading: Boolean = false,
 
+    val isAnalyticsDialogShown: Boolean = false,
+    val currentAgenceAnalytics: Analytics? = null,
+    val isAnalyticsLoading: Boolean = false,
+    val analyticsErrorMessage: String? = null
 
-    )
+
+)
 
 
 sealed class DashBoardUiEvent {
@@ -513,6 +576,8 @@ sealed class DashBoardUiEvent {
     data class ShowSuccesMessage(val successMessage: String) : DashBoardUiEvent()
 
     data class ShowError(val errorMessage: String) : DashBoardUiEvent()
+
+    object NavigateToEtablissement : DashBoardUiEvent()
 
 
 }

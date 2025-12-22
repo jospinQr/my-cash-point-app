@@ -16,7 +16,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 import org.megamind.mycashpoint.data.data_source.remote.service.AgenceService
+import org.megamind.mycashpoint.data.data_source.remote.service.AnalyticsService
 import org.megamind.mycashpoint.data.data_source.remote.service.AuthService
+import org.megamind.mycashpoint.data.data_source.remote.service.EtablissementService
 import org.megamind.mycashpoint.data.data_source.remote.service.SoldeService
 import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
 import org.megamind.mycashpoint.utils.DataStorageManager
@@ -40,8 +42,8 @@ val ktorModule = module {
             }
 
             defaultRequest {
-               // url("http://13.53.234.84:8080/api/v1/")
-                url("http://192.168.1.2:8080/api/v1/")
+                url("http://16.16.94.113:8080/api/v1/")
+                // url("http://192.168.1.2:8080/api/v1/")
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
                 header("Authorization", "Bearer ${runBlocking { dataStorageManager.getToken() }}")
 
@@ -66,6 +68,12 @@ val ktorModule = module {
 
     single {
         AgenceService(get())
+    }
+    single {
+        AnalyticsService(get())
+    }
+    single {
+        EtablissementService(get())
     }
 
 }

@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,10 +26,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.AddAlert
 import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.HomeWork
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.MonetizationOn
@@ -103,13 +108,14 @@ fun DashBoardScreen(
     navigateToCreateAgence: () -> Unit,
     navigateToCreateAgent: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    navigateToLoginScreen: () -> Unit
+    navigateToLoginScreen: () -> Unit,
+    navigateToEtablissement: () -> Unit
 
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    HandelUiEvent(viewModel, snackbarHostState, navigateToLoginScreen)
+    HandelUiEvent(viewModel, snackbarHostState, navigateToLoginScreen, navigateToEtablissement)
 
     DashBoardScreenContent(
         uiState = uiState,
@@ -131,7 +137,8 @@ fun DashBoardScreen(
         onSoldeChange = viewModel::onSoldeChange,
         onSeuilChange = viewModel::onSeuilChange,
         onSaveClick = viewModel::onConfirmDialogShown,
-        onLogOut = viewModel::onLogOut
+        onLogOut = viewModel::onLogOut,
+        onAnalyticsClick = viewModel::onAnalyticsDialogShown
 
     )
 
@@ -149,6 +156,10 @@ fun DashBoardScreen(
 
     SaveConfirmationDialog(uiState, viewModel)
 
+    AnalyticsDialog(
+        uiState = uiState,
+        onDismiss = viewModel::onAnalyticsDialogDismiss
+    )
 
 }
 
@@ -174,7 +185,8 @@ fun DashBoardScreenContent(
     onSoldeChange: (String) -> Unit = {},
     onSeuilChange: (String) -> Unit = {},
     onSaveClick: () -> Unit = {},
-    onLogOut: () -> Unit = {}
+    onLogOut: () -> Unit = {},
+    onAnalyticsClick: () -> Unit = {}
 
 
 ) {
@@ -253,6 +265,7 @@ fun DashBoardScreenContent(
                     modifier = Modifier
                         .fillMaxSize()
 
+
                 ) {
                     OperateurSection(uiState, onSelectedOperateurChange)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -272,7 +285,8 @@ fun DashBoardScreenContent(
                         onCreateAgentClick = navigateToCreateAgent,
                         onSoldeInRuptureClick = onSoldeInRuptureClick,
                         onInitSoldeClick = onInitSoldeClick,
-                        onLogoutClick = onLogOut
+                        onLogoutClick = onLogOut,
+                        onAnalyticsClick = onAnalyticsClick
                     )
                 }
             }
@@ -689,6 +703,7 @@ fun ActionRappide(
     onSoldeInRuptureClick: () -> Unit,
     onInitSoldeClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onAnalyticsClick: () -> Unit,
 
     ) {
 
@@ -701,7 +716,8 @@ fun ActionRappide(
         Action(Icons.Outlined.MonetizationOn, "Initialiser le solde"),
         Action(Icons.Outlined.BarChart, "Agence le plus perfomant"),
         Action(Icons.Outlined.Warning, "Solde en rupture"),
-        Action(Icons.Outlined.Logout, "Se deconnecter"),
+        Action(Icons.Outlined.Business, "Info de l'entreprise"),
+        Action(Icons.AutoMirrored.Outlined.Logout, "Se deconnecter"),
 
         )
 
@@ -714,7 +730,7 @@ fun ActionRappide(
         LazyVerticalGrid(
             modifier = Modifier.fillMaxWidth(),
             columns = GridCells.Fixed(4),
-            userScrollEnabled = false
+            userScrollEnabled = true
         ) {
 
             itemsIndexed(items = actions) { index, item ->
@@ -726,8 +742,10 @@ fun ActionRappide(
                                 0 -> onCreateAgenceClick()
                                 1 -> onCreateAgentClick()
                                 2 -> onInitSoldeClick()
-                                3 -> onSoldeInRuptureClick()
-                                5 -> onLogoutClick()
+                                3 -> onAnalyticsClick()
+                                4 -> onSoldeInRuptureClick()
+                                5 -> onSoldeInRuptureClick()
+                                6 -> onLogoutClick()
 
                             }
                         },
@@ -833,6 +851,428 @@ fun SoldeInRuptureDialog(
 
         )
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AnalyticsDialog(
+    uiState: DashBoardUiState,
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit
+) {
+    if (uiState.isAnalyticsDialogShown) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            confirmButton = {
+                CustomerButton(onClick = { onDismiss() }) {
+                    Text("Fermer")
+                }
+            },
+            title = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.BarChart,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Analyse de Performance",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+            },
+            text = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    if (uiState.isAnalyticsLoading) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(48.dp),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "Chargement des données...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        return@Box
+                    }
+
+                    if (uiState.analyticsErrorMessage != null) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                uiState.analyticsErrorMessage,
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        return@Box
+                    }
+
+                    uiState.currentAgenceAnalytics?.let { analytics ->
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Agency Info Header
+                            item {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                                    ),
+                                    elevation = CardDefaults.cardElevation(4.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.HomeWork,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column {
+                                            Text(
+                                                "Agence: ${analytics.agenceCode}",
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = FontWeight.Bold
+                                                ),
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                            Text(
+                                                "Période: ${Constants.formatTimestamp(analytics.periodStart)} - ${
+                                                    Constants.formatTimestamp(
+                                                        analytics.periodEnd
+                                                    )
+                                                }",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                    alpha = 0.8f
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Summary Stats
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // Total Volume Card
+                                    Card(
+                                        modifier = Modifier.weight(1f),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                        ),
+                                        elevation = CardDefaults.cardElevation(4.dp)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.AttachMoney,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                modifier = Modifier.size(28.dp)
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                "Volume Total",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(
+                                                    alpha = 0.8f
+                                                ),
+                                                textAlign = TextAlign.Center
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                analytics.totalVolume.toMontant(),
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = FontWeight.Bold
+                                                ),
+                                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
+                                    }
+
+                                    // Transaction Count Card
+                                    Card(
+                                        modifier = Modifier.weight(1f),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                        ),
+                                        elevation = CardDefaults.cardElevation(4.dp)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.BarChart,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                modifier = Modifier.size(28.dp)
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                "Transactions",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(
+                                                    alpha = 0.8f
+                                                ),
+                                                textAlign = TextAlign.Center
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                "${analytics.transactionCount}",
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = FontWeight.Bold
+                                                ),
+                                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Volume by Type
+                            item {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    ),
+                                    elevation = CardDefaults.cardElevation(4.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp)
+                                    ) {
+                                        Text(
+                                            "Volume par Type de Transaction",
+                                            style = MaterialTheme.typography.titleSmall.copy(
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        analytics.volumeByType.forEach { (type, volume) ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 6.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(type.icon),
+                                                        contentDescription = null,
+                                                        tint = if (type == org.megamind.mycashpoint.domain.model.TransactionType.DEPOT)
+                                                            MaterialTheme.colorScheme.primary
+                                                        else
+                                                            MaterialTheme.colorScheme.tertiary,
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text(
+                                                        type.label,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.Medium
+                                                    )
+                                                }
+                                                Text(
+                                                    volume.toMontant(),
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Count by Type
+                            item {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    ),
+                                    elevation = CardDefaults.cardElevation(4.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp)
+                                    ) {
+                                        Text(
+                                            "Nombre de Transactions par Type",
+                                            style = MaterialTheme.typography.titleSmall.copy(
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        analytics.countByType.forEach { (type, count) ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 6.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(type.icon),
+                                                        contentDescription = null,
+                                                        tint = if (type == org.megamind.mycashpoint.domain.model.TransactionType.DEPOT)
+                                                            MaterialTheme.colorScheme.primary
+                                                        else
+                                                            MaterialTheme.colorScheme.tertiary,
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text(
+                                                        type.label,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.Medium
+                                                    )
+                                                }
+                                                Box(
+                                                    modifier = Modifier
+                                                        .background(
+                                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                                            shape = RoundedCornerShape(8.dp)
+                                                        )
+                                                        .padding(
+                                                            horizontal = 12.dp,
+                                                            vertical = 4.dp
+                                                        )
+                                                ) {
+                                                    Text(
+                                                        "$count",
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            fontWeight = FontWeight.Bold
+                                                        ),
+                                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Top Operator
+                            analytics.topOperateur?.let { topOp ->
+                                item {
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                                        ),
+                                        elevation = CardDefaults.cardElevation(4.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(48.dp)
+                                                    .background(
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        shape = CircleShape
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    "🏆",
+                                                    style = MaterialTheme.typography.titleLarge
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(16.dp))
+                                            Column {
+                                                Text(
+                                                    "Opérateur le Plus Performant",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                        alpha = 0.8f
+                                                    )
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    topOp,
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        )
+    }
+}
+
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1097,7 +1537,8 @@ private fun SaveConfirmationDialog(
 private fun HandelUiEvent(
     viewModel: DashBoardViewModel,
     snackbarHostState: SnackbarHostState,
-    navigateToLoginScreen: () -> Unit
+    navigateToLoginScreen: () -> Unit,
+    navigateToEtablissement: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect {
@@ -1118,6 +1559,10 @@ private fun HandelUiEvent(
                     snackbarHostState.showSnackbar(
                         CustomSnackbarVisuals(it.successMessage, type = SnackbarType.SUCCESS)
                     )
+                }
+
+                DashBoardUiEvent.NavigateToEtablissement -> {
+                    navigateToEtablissement()
                 }
             }
 

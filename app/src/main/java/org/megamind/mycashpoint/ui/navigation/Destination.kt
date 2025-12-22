@@ -21,5 +21,6 @@ enum class Destination(route: String) {
     ADMIN_REPPORT("admin_repport"),
     SETTINGS("settings"),
 
-    SYNCTRSACT("sync_transact")
+    SYNCTRSACT("sync_transact"),
+    ETABLISSEMENT("etablissement")
 }

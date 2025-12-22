@@ -23,6 +23,7 @@ val roomModule = module {
     single { get<AppDatabase>().soldeDao() }
     single { get<AppDatabase>().transactionDao() }
     single { get<AppDatabase>().agenceDao() }
+    single {get<AppDatabase>().etablissementDao()}
 
 
 }

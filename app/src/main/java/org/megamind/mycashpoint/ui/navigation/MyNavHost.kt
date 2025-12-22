@@ -4,6 +4,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
@@ -18,6 +22,7 @@ import org.megamind.mycashpoint.ui.screen.splash.SplashScreen
 import org.megamind.mycashpoint.ui.screen.admin.rapport.AdminRepportScreen
 import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardScreen
 import org.megamind.mycashpoint.ui.screen.admin.SettingsScreen
+import org.megamind.mycashpoint.ui.screen.admin.etablissement.EtablissementScreen
 
 import org.megamind.mycashpoint.ui.screen.auth.LoginInScreen
 import org.megamind.mycashpoint.ui.screen.auth.RegisterScreen
@@ -43,7 +48,13 @@ fun MyNavHost(
 
     SharedTransitionLayout {
         NavHost(
-            startDestination = startDestination, navController = navController, modifier = modifier
+            startDestination = startDestination,
+            navController = navController,
+            modifier = modifier,
+            enterTransition = { fadeIn() + slideInHorizontally() },
+            popExitTransition = {
+                fadeOut() + slideOutHorizontally()
+            }
         ) {
             composable(route = Destination.SPLASH.name) {
                 SplashScreen(
@@ -122,7 +133,7 @@ fun MyNavHost(
                     },
                     snackBarHostState = snackbarHostState,
                     navigateToTransactionScreen = {
-                        navController.navigate(Destination.TRANSACTION.name,)
+                        navController.navigate(Destination.TRANSACTION.name)
                     })
             }
 
@@ -159,9 +170,9 @@ fun MyNavHost(
             composable(route = Destination.DASHBOARD.name) {
                 DashBoardScreen(
                     navigateToLoginScreen = {
-                        navController.navigate(Destination.LOGIN.name){
-                            popUpTo(0){
-                                inclusive=true
+                        navController.navigate(Destination.LOGIN.name) {
+                            popUpTo(0) {
+                                inclusive = true
                             }
                         }
                     },
@@ -172,7 +183,17 @@ fun MyNavHost(
                     navigateToCreateAgent = {
                         navController.navigate(Destination.REGISTER.name)
                     },
-                    snackbarHostState = snackbarHostState
+                    snackbarHostState = snackbarHostState,
+                    navigateToEtablissement = {
+                        navController.navigate(Destination.ETABLISSEMENT.name)
+                    }
+                )
+            }
+
+            composable(route = Destination.ETABLISSEMENT.name) {
+                EtablissementScreen(
+                    snackbarHostState = snackbarHostState,
+                    onBack = { navController.popBackStack() }
                 )
             }
 
@@ -188,9 +209,7 @@ fun MyNavHost(
 
             composable(route = Destination.SYNCTRSACT.name) {
 
-                AllTransactionScreen(modifier = Modifier, onBack = {navController.popBackStack() })
-
-
+                AllTransactionScreen(modifier = Modifier, onBack = { navController.popBackStack() })
 
 
             }
