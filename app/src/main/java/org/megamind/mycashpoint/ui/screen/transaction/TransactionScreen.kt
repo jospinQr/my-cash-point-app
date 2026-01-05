@@ -126,6 +126,13 @@ fun TransactionScreen(
                     val printManager =
                         context.getSystemService(Context.PRINT_SERVICE) as PrintManager
                     val jobName = "${context.getString(R.string.app_name)} Doc"
+
+                    val nom = when (transaction.type) {
+
+                        TransactionType.DEPOT -> "${transaction.nomClient} ${transaction.numClient} \n depot vers \n ${transaction.nomBeneficaire} ${transaction.numBeneficaire}"
+                        TransactionType.RETRAIT -> "${transaction.nomClient} ${transaction.numClient} "
+
+                    }
                     printManager.print(
                         jobName,
                         MyPrintDocumentAdapter(
@@ -138,10 +145,11 @@ fun TransactionScreen(
                                 "motif" to transaction.type.name,
                                 "montant" to "${transaction.montant}",
                                 "devise" to transaction.devise.symbole,
-                                "nom" to transaction.nomClient.toString(),
                                 "agent" to userName,
+                                "nom" to nom,
 
-                                )
+                                ),
+                            etablissement = it.etablissement
                         ),
                         null
                     )
@@ -555,7 +563,8 @@ fun TransactionTypeButton(
         Row(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 22.dp)
-                .fillMaxWidth().fillMaxHeight(),
+                .fillMaxWidth()
+                .fillMaxHeight(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {

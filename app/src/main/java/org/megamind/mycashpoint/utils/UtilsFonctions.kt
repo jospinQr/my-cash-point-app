@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import org.threeten.bp.Instant
+import org.threeten.bp.LocalDate
+import org.threeten.bp.ZoneId
 import java.io.File
 import java.math.BigDecimal
 import java.text.DecimalFormat
@@ -52,6 +55,35 @@ class UtilsFonctions {
             }
         }
 
+        /**
+         * Opens an Excel file from ByteArray
+         * @param context The context
+         * @param bytes The Excel file content as ByteArray
+         * @param fileName Optional file name (default: "report.xlsx")
+         */
+        fun openExcelFile(context: Context, bytes: ByteArray, fileName: String = "report.xlsx") {
+            val file = File(context.cacheDir, fileName)
+            file.writeBytes(bytes)
+
+            val uri = FileProvider.getUriForFile(
+                context,
+                context.packageName + ".fileprovider",
+                file
+            )
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            try {
+                context.startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(context, "Aucune application Excel installée", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+
 
     }
 }
@@ -84,4 +116,13 @@ fun BigDecimal.toMontant(
     } else {
         montantFormate
     }
+}
+
+
+fun Long.toLocalDate(
+    zoneId: ZoneId = ZoneId.systemDefault()
+): LocalDate {
+    return Instant.ofEpochMilli(this)
+        .atZone(zoneId)
+        .toLocalDate()
 }

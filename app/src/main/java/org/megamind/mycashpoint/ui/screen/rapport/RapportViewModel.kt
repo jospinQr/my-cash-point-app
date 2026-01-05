@@ -9,10 +9,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.megamind.mycashpoint.domain.model.Etablissement
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.model.TransactionType
 import org.megamind.mycashpoint.domain.model.operateurs
+import org.megamind.mycashpoint.domain.usecase.etablissement.GetEtablissementFromLocalUseCase
 import org.megamind.mycashpoint.domain.usecase.rapport.GetNonSyncTransactByOperatorAndDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.SyncSoldesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
@@ -29,7 +31,8 @@ class RapportViewModel(
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val sendOneTransactToServerUseCase: SendOneTransactToServerUseCase,
     private val syncTransactionUseCase: SyncTransactionUseCase,
-    private val syncSoldesUseCase: SyncSoldesUseCase
+    private val syncSoldesUseCase: SyncSoldesUseCase,
+    private val getEtablissementFromLocalUseCase: GetEtablissementFromLocalUseCase
 
 ) : ViewModel() {
 
@@ -51,6 +54,17 @@ class RapportViewModel(
 
     init {
         gettransactionByOperateurAndDevise()
+        getEtablissement()
+    }
+
+    private fun getEtablissement() {
+        viewModelScope.launch {
+            getEtablissementFromLocalUseCase().collect { result ->
+                if (result is Result.Success) {
+                    _uiState.update { it.copy(etablissement = result.data) }
+                }
+            }
+        }
     }
 
     fun onSearchValueChange(value: String) {
@@ -641,7 +655,8 @@ data class RapportUiState(
     val editErrorMessage: String = "",
     val isActionMenuVisible: Boolean = false,
     val isSyncTransactConformDialogShown: Boolean = false,
-    val isSyncSoldeConformDialogShown: Boolean = false
+    val isSyncSoldeConformDialogShown: Boolean = false,
+    val etablissement: Etablissement? = null
 
 ) {
 

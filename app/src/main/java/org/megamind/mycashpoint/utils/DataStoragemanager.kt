@@ -19,6 +19,8 @@ class DataStorageManager(private val context: Context) {
     companion object {
         private val TOKEN_KEY = stringPreferencesKey("token")
         private val LAST_SOLDE_SYNC_AT = longPreferencesKey("last_solde_sync_at")
+
+        private val LAST_TRANSACTION_SYNC_AT = longPreferencesKey("last_transaction_sync_at")
     }
 
     suspend fun getToken(): String? {
@@ -35,9 +37,22 @@ class DataStorageManager(private val context: Context) {
             .first()
     }
 
-    suspend fun saveLastSoldeSyncAt(lastSyncAt: Long)
-    {
+    suspend fun saveLastSoldeSyncAt(lastSyncAt: Long) {
         context.dataStore.edit { it[LAST_SOLDE_SYNC_AT] = lastSyncAt }
     }
+
+    suspend fun getLastTransactionSyncAt(): Long {
+        return context.dataStore.data.map { prefs ->
+            prefs[LAST_TRANSACTION_SYNC_AT] ?: 0L
+        }.first()
+
+    }
+
+
+    suspend fun saveLastTransactionSyncAt(lastSyncAt: Long) {
+        context.dataStore.edit { it[LAST_TRANSACTION_SYNC_AT] = lastSyncAt }
+
+    }
+
 
 }

@@ -95,6 +95,7 @@ import org.megamind.mycashpoint.ui.component.LoadinDialog
 import org.megamind.mycashpoint.ui.component.PieChartData
 import org.megamind.mycashpoint.ui.component.SkeletonLoadingEffect
 import org.megamind.mycashpoint.ui.component.SnackbarType
+import org.megamind.mycashpoint.ui.component.StyledTopAppBar
 import org.megamind.mycashpoint.ui.component.TextDropdown
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 import org.megamind.mycashpoint.utils.Constants
@@ -109,7 +110,8 @@ fun DashBoardScreen(
     navigateToCreateAgent: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToLoginScreen: () -> Unit,
-    navigateToEtablissement: () -> Unit
+    navigateToEtablissement: () -> Unit,
+    navigateToOperationCaisse: () -> Unit
 
 ) {
 
@@ -138,7 +140,8 @@ fun DashBoardScreen(
         onSeuilChange = viewModel::onSeuilChange,
         onSaveClick = viewModel::onConfirmDialogShown,
         onLogOut = viewModel::onLogOut,
-        onAnalyticsClick = viewModel::onAnalyticsDialogShown
+        onAnalyticsClick = viewModel::onAnalyticsDialogShown,
+        navigateToOperationCaisse = navigateToOperationCaisse
 
     )
 
@@ -186,57 +189,31 @@ fun DashBoardScreenContent(
     onSeuilChange: (String) -> Unit = {},
     onSaveClick: () -> Unit = {},
     onLogOut: () -> Unit = {},
-    onAnalyticsClick: () -> Unit = {}
+    onAnalyticsClick: () -> Unit = {},
+    navigateToOperationCaisse: () -> Unit = {}
 
 
 ) {
     Scaffold(topBar = {
-        CenterAlignedTopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary.copy(
-                    alpha = .06f
+        StyledTopAppBar(
+            title = "Dashboard",
+            customTitleContent = {
+                Text(
+                    "Table de bord agence",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
-            ),
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-
-
-                    if (uiState.isAgenceLoading) {
-
-                        SkeletonLoadingEffect(
-                            modifier = Modifier
-                                .width(82.dp)
-                                .height(24.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        SkeletonLoadingEffect(
-                            modifier = Modifier
-                                .width(102.dp)
-                                .height(24.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                        )
-
-                    } else {
-                        Text(
-                            "Agence",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        TextDropdown(
-                            items = uiState.agenceList,
-                            selectedItem = uiState.selectedAgence,
-                            onItemSelected = onSelectedAgence,
-                            expanded = uiState.isAgenceDropDownExpanded,
-                            onExpandedChange = onAgenceDropdownExpanded,
-                            getText = { it.designation }
-                        )
-                    }
-
-
-                }
-            })
+                Spacer(modifier = Modifier.width(2.dp))
+                TextDropdown(
+                    items = uiState.agenceList,
+                    selectedItem = uiState.selectedAgence,
+                    onItemSelected = onSelectedAgence,
+                    expanded = uiState.isAgenceDropDownExpanded,
+                    onExpandedChange = onAgenceDropdownExpanded,
+                    getText = { it.designation }
+                )
+            }
+        )
     }) {
 
         Box(
@@ -286,7 +263,8 @@ fun DashBoardScreenContent(
                         onSoldeInRuptureClick = onSoldeInRuptureClick,
                         onInitSoldeClick = onInitSoldeClick,
                         onLogoutClick = onLogOut,
-                        onAnalyticsClick = onAnalyticsClick
+                        onAnalyticsClick = onAnalyticsClick,
+                        onOperationCaisseClick = navigateToOperationCaisse
                     )
                 }
             }
@@ -704,6 +682,7 @@ fun ActionRappide(
     onInitSoldeClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onAnalyticsClick: () -> Unit,
+    onOperationCaisseClick: () -> Unit
 
     ) {
 
@@ -717,6 +696,7 @@ fun ActionRappide(
         Action(Icons.Outlined.BarChart, "Agence le plus perfomant"),
         Action(Icons.Outlined.Warning, "Solde en rupture"),
         Action(Icons.Outlined.Business, "Info de l'entreprise"),
+        Action(Icons.Outlined.MonetizationOn, "Opérations Caisse"),
         Action(Icons.AutoMirrored.Outlined.Logout, "Se deconnecter"),
 
         )
@@ -745,7 +725,8 @@ fun ActionRappide(
                                 3 -> onAnalyticsClick()
                                 4 -> onSoldeInRuptureClick()
                                 5 -> onSoldeInRuptureClick()
-                                6 -> onLogoutClick()
+                                6 -> onOperationCaisseClick()
+                                7 -> onLogoutClick()
 
                             }
                         },

@@ -17,6 +17,7 @@ import android.print.PrintDocumentAdapter
 import android.print.PrintDocumentInfo
 import android.print.pdf.PrintedPdfDocument
 import org.megamind.mycashpoint.R
+import org.megamind.mycashpoint.domain.model.Etablissement
 
 
 import java.io.FileOutputStream
@@ -26,7 +27,8 @@ import androidx.core.graphics.scale
 class MyPrintDocumentAdapter(
     val context: Context,
     val title: String,
-    val data: Map<String, Any>
+    val data: Map<String, Any>,
+    val etablissement: Etablissement? = null
 ) : PrintDocumentAdapter() {
 
 
@@ -142,31 +144,36 @@ class MyPrintDocumentAdapter(
             )
             titleBaseLine = drawTextWithSpacing(
                 this,
-                "MY CASH POINT",
+                (etablissement?.name ?: "MY CASH POINT").uppercase(),
                 leftMargin,
                 titleBaseLine,
                 titlePaint,
                 pageWidth
             )
+
+            etablissement?.rccm?.let { rccm ->
+                titleBaseLine = drawTextWithSpacing(
+                    this,
+                    "RCCM : $rccm",
+                    leftMargin,
+                    titleBaseLine,
+                    bodyPainter,
+                    pageWidth
+                )
+            }
+
             titleBaseLine = drawTextWithSpacing(
                 this,
-                "Email : mycashpoint@gmail.com",
+                "Contact : ${etablissement?.contat ?: "+243 000 000 000"}",
                 leftMargin,
                 titleBaseLine,
                 bodyPainter,
                 pageWidth
             )
+
             titleBaseLine = drawTextWithSpacing(
                 this,
-                "Adresse : Butembo, Rue Kinshasa",
-                leftMargin,
-                titleBaseLine,
-                bodyPainter,
-                pageWidth
-            )
-            titleBaseLine = drawTextWithSpacing(
-                this,
-                "Contact : +243 991 102 195",
+                "Adresse : ${etablissement?.addrees ?: "Butembo, Rue Kinshasa"}",
                 leftMargin,
                 titleBaseLine,
                 bodyPainter,

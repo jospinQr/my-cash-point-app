@@ -1,7 +1,5 @@
 package org.megamind.mycashpoint.ui.navigation
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
@@ -21,8 +19,10 @@ import org.megamind.mycashpoint.ui.screen.agence.AgenceScreen
 import org.megamind.mycashpoint.ui.screen.splash.SplashScreen
 import org.megamind.mycashpoint.ui.screen.admin.rapport.AdminRepportScreen
 import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardScreen
-import org.megamind.mycashpoint.ui.screen.admin.SettingsScreen
+import org.megamind.mycashpoint.ui.screen.admin.caisse_mouvement.CaisseMouvementScreen
 import org.megamind.mycashpoint.ui.screen.admin.etablissement.EtablissementScreen
+import org.megamind.mycashpoint.ui.screen.admin.transaction.AdminTransactionScreen
+import org.megamind.mycashpoint.ui.screen.admin.operation.OperationCaisseScreen
 
 import org.megamind.mycashpoint.ui.screen.auth.LoginInScreen
 import org.megamind.mycashpoint.ui.screen.auth.RegisterScreen
@@ -186,6 +186,9 @@ fun MyNavHost(
                     snackbarHostState = snackbarHostState,
                     navigateToEtablissement = {
                         navController.navigate(Destination.ETABLISSEMENT.name)
+                    },
+                    navigateToOperationCaisse = {
+                        navController.navigate(Destination.OPERATION_CAISSE.name)
                     }
                 )
             }
@@ -202,9 +205,9 @@ fun MyNavHost(
                 AdminRepportScreen()
             }
 
-            composable(route = Destination.SETTINGS.name) {
+            composable(route = Destination.MOUVEMENT.name) {
 
-                SettingsScreen()
+                CaisseMouvementScreen()
             }
 
             composable(route = Destination.SYNCTRSACT.name) {
@@ -212,6 +215,14 @@ fun MyNavHost(
                 AllTransactionScreen(modifier = Modifier, onBack = { navController.popBackStack() })
 
 
+            }
+
+            composable(route = Destination.ADMIN_TRANSACT.name) {
+                AdminTransactionScreen()
+            }
+
+            composable(route = Destination.OPERATION_CAISSE.name) {
+                OperationCaisseScreen(navController = navController)
             }
 
 

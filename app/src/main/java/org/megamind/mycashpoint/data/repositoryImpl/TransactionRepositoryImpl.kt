@@ -21,6 +21,7 @@ import org.megamind.mycashpoint.data.data_source.remote.mapper.toPaginatedTransa
 import org.megamind.mycashpoint.data.data_source.remote.mapper.toTransaction
 import org.megamind.mycashpoint.domain.model.PaginatedTransaction
 import org.megamind.mycashpoint.domain.model.TopOperateur
+import org.megamind.mycashpoint.ui.screen.auth.LogoSection
 import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.decodeJwtPayload
 
@@ -213,15 +214,16 @@ class TransactionRepositoryImpl(
 
     override fun getFromServerByCriteria(
         codeAgence: String,
-        operateurId: Long,
-        deviseCode: String,
-        type: TransactionType,
+        operateurId: Long?,
+        deviseCode: String?,
+        type: TransactionType?,
         page: Int,
         size: Int,
-    ): Flow<Result<PaginatedTransaction>> = flow {
-
+    ): Flow<Result<List<Transaction>>> = flow {
+        emit(Result.Loading)
+        Log.i(TAG, "Transact by criteria loading")
         try {
-            emit(Result.Loading)
+
             val result = transactionService.findByCriteria(
                 codeAgence = codeAgence,
                 operateurId = operateurId,
@@ -233,15 +235,19 @@ class TransactionRepositoryImpl(
 
             when (result) {
                 is Result.Success -> {
-                    emit(Result.Success(result.data?.toPaginatedTransaction()))
+
+                    emit(Result.Success(result.data?.transactions?.content?.map { it.toTransaction() }))
+                    Log.i(TAG, result.data.toString())
                 }
 
                 is Result.Error -> {
                     emit(Result.Error(result.e ?: Exception("Erreur inconnue")))
+                    Log.e(TAG, "${result.e?.message}")
+
                 }
 
-                is Result.Loading -> {
-                    emit(Result.Loading)
+                else -> {
+                    Log.e(TAG, "${result.e?.message}")
                 }
             }
 
@@ -384,6 +390,76 @@ class TransactionRepositoryImpl(
             Log.e(TAG, e.message.toString())
         }
 
+
+    }
+
+    override fun getTransactionForSync(
+        agenceCode: String, lastSyncAt: Long, userId: Long
+    ): Flow<Result<List<Transaction>>> = flow {
+
+        emit(Result.Loading)
+        try {
+
+            val result = transactionService.getTransctionForSync(agenceCode, lastSyncAt, userId)
+            when (result) {
+                is Result.Success -> {
+                    val transactions = result.data?.transactions?.map { it.toTransaction() }
+                    val transactionEntity =
+                        transactions?.map { it.toTransactionEntity(isSynced = true) }
+
+                    result.data?.serverTime?.let {
+                        dataStoreManager.saveLastTransactionSyncAt(it)
+                    }
+                    transactionDao.insertAll(transactionEntity!!)
+                    emit(Result.Success(transactions))
+
+                    Log.i(TAG, transactions.toString())
+
+
+                }
+
+                is Result.Error -> {
+                    emit(Result.Error(result.e ?: Exception("Erreur inconue")))
+                }
+
+                else -> {}
+
+            }
+
+
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
+
+
+    }
+
+
+    override fun getTransactionByAgence(
+        codeAgence: String, page: Int, size: Int
+    ): Flow<Result<List<Transaction>>> = flow {
+
+        emit(Result.Loading)
+        Log.e(TAG, "get by agence loading")
+        try {
+            when (val result = transactionService.getTransactionByAgence(codeAgence, page, size)) {
+                is Result.Success -> {
+                    emit(Result.Success(result.data?.transactions?.content?.map { it.toTransaction() }))
+                    Log.i(TAG, result.data.toString())
+                }
+
+                is Result.Error<*> -> {
+                    emit(Result.Error(result.e ?: Exception("Erreur inconue")))
+                    Log.e(TAG, result.e?.message ?: "Erreur inconue")
+                }
+
+                else -> {
+
+                }
+            }
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
 
     }
 

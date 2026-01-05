@@ -103,7 +103,8 @@ fun OperateurScreen(
         onMainMenuExpanded = viewModel::onMainMenuExpanded,
         onIsConfirmDownLoadDialogShown = viewModel::onConfirmDownLoadDialogShown,
         onIsConfirmDownLoadDialogHidden = viewModel::onConfirmDownLoadDialogHidden,
-        downloadAllData = viewModel::getAllSoldeFromServerAndInsertInLocaldb
+        downloadAllData = viewModel::getAllSoldeFromServerAndInsertInLocaldb,
+        getEtsInfo = viewModel::getEtablissement
 
     )
 
@@ -140,7 +141,8 @@ private fun OperateurScreenContent(
     onMainMenuHidden: () -> Unit,
     onIsConfirmDownLoadDialogShown: () -> Unit,
     onIsConfirmDownLoadDialogHidden: () -> Unit,
-    downloadAllData: () -> Unit
+    downloadAllData: () -> Unit,
+    getEtsInfo: () -> Unit
 
 
 ) {
@@ -172,8 +174,15 @@ private fun OperateurScreenContent(
                                 }
 
                                 1 -> {
+                                    getEtsInfo()
+
+                                }
+
+                                2 -> {
                                     onIsConfirmLogOutDialogShown()
                                 }
+
+
                             }
                         }
                     )
@@ -306,5 +315,5 @@ fun OperateurItem(
 
 
 private val mainMenu = listOf(
-    "Télécharger dépuis le serveur", "Se deconnecter"
+    "Premier sync", "Actualiser Ets Info", "Se deconnecter"
 )

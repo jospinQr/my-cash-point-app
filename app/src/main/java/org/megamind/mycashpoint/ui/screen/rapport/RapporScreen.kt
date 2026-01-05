@@ -164,7 +164,7 @@ fun RapportScreen(
             )
             printManager.print(
                 jobName,
-                MyPrintDocumentAdapter(context, jobName, data),
+                MyPrintDocumentAdapter(context, jobName, data, uiState.etablissement),
                 null
             )
         },
@@ -512,7 +512,12 @@ fun RapportScreenContent(
 @Composable
 fun TransactionTable(
     transactions: List<Transaction>,
-    onRowClick: (Transaction) -> Unit = {}
+    onRowClick: (Transaction) -> Unit = {}, headers: List<String> = listOf(
+        "Type",
+        "Montant", "Avant", "Apres", "Client", "Telephone", "date"
+    )
+
+
 ) {
 
 

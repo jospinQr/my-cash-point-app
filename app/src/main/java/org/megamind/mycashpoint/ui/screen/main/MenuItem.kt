@@ -7,8 +7,7 @@ import org.megamind.mycashpoint.ui.navigation.Destination
 data class MenuItem(
 
     val title: String,
-    @DrawableRes
-    val selectedIcon: Int,
+    @DrawableRes val selectedIcon: Int,
     val unSelectedIcon: Int,
     val route: String,
 )
@@ -48,20 +47,29 @@ val adminNavBarItem = listOf(
         unSelectedIcon = R.drawable.dash_fill,
         route = Destination.DASHBOARD.name
     ),
+//
+//    MenuItem(
+//        title = "Transactions",
+//        selectedIcon = R.drawable.transaction_fill,
+//        unSelectedIcon = R.drawable.transaction_out,
+//        route = Destination.ADMIN_TRANSACT.name
+//    ),
+//
+//    MenuItem(
+//        title = "Mouvements caisse",
+//        selectedIcon = R.drawable.depot,
+//        unSelectedIcon = R.drawable.depot,
+//        route = Destination.MOUVEMENT.name
+//    ),
+
 
     MenuItem(
         title = "Rapport",
         selectedIcon = R.drawable.rapport_fill,
         unSelectedIcon = R.drawable.rapport_out,
         route = Destination.ADMIN_REPPORT.name
-    ),
+    )
 
 
-    MenuItem(
-        title = "Paramètres",
-        selectedIcon = R.drawable.parameter_out,
-        unSelectedIcon = R.drawable.parmeter_fill,
-        route = Destination.SETTINGS.name
-    ),
 )
 

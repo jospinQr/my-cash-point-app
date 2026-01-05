@@ -19,6 +19,8 @@ import org.megamind.mycashpoint.data.data_source.remote.service.AgenceService
 import org.megamind.mycashpoint.data.data_source.remote.service.AnalyticsService
 import org.megamind.mycashpoint.data.data_source.remote.service.AuthService
 import org.megamind.mycashpoint.data.data_source.remote.service.EtablissementService
+import org.megamind.mycashpoint.data.data_source.remote.service.ExcelService
+import org.megamind.mycashpoint.data.data_source.remote.service.OperationCaisseService
 import org.megamind.mycashpoint.data.data_source.remote.service.SoldeService
 import org.megamind.mycashpoint.data.data_source.remote.service.TransactionService
 import org.megamind.mycashpoint.utils.DataStorageManager
@@ -42,12 +44,10 @@ val ktorModule = module {
             }
 
             defaultRequest {
-                url("http://16.16.94.113:8080/api/v1/")
+                url("http://16.170.164.95:8080/api/v1/")
                 // url("http://192.168.1.2:8080/api/v1/")
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
                 header("Authorization", "Bearer ${runBlocking { dataStorageManager.getToken() }}")
-
-
             }
         }
     }
@@ -75,6 +75,14 @@ val ktorModule = module {
     single {
         EtablissementService(get())
     }
+    single {
+        ExcelService(get())
+    }
+
+    single {
+        OperationCaisseService(get())
+    }
+
 
 }
 

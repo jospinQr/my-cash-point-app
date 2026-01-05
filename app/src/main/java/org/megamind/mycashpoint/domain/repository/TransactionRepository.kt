@@ -46,12 +46,12 @@ interface TransactionRepository {
 
     fun getFromServerByCriteria(
         codeAgence: String,
-        operateurId: Long,
-        deviseCode: String,
-        type: TransactionType,
+        operateurId: Long?=null,
+        deviseCode: String?=null,
+        type: TransactionType?=null,
         page: Int,
         size: Int,
-    ): Flow<Result<PaginatedTransaction>>
+    ): Flow<Result<List<Transaction>>>
 
     fun generateTransactionRepport(
         codeAgence: String,
@@ -79,5 +79,16 @@ interface TransactionRepository {
     ): Flow<Result<List<Transaction>>>
 
 
+    fun getTransactionForSync(
+        agenceCode: String,
+        lastSyncAt: Long,
+        userId: Long
+    ): Flow<Result<List<Transaction>>>
+
+    fun getTransactionByAgence(
+        codeAgence: String,
+        page: Int,
+        size: Int
+    ): Flow<Result<List<Transaction>>>
 }
 

@@ -1,6 +1,5 @@
 package org.megamind.mycashpoint.di
 
-import io.ktor.utils.io.core.Sink
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -8,6 +7,9 @@ import org.megamind.mycashpoint.data.repositoryImpl.AgenceRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.AnalyticsRepositryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.CommissionRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.EtablissementRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.ExcelReportRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.OperationCaisseRepositoryImpl
+import org.megamind.mycashpoint.data.repositoryImpl.SoldeMouvementRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.SoldeRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.TransactionRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.UserRepositoryImpl
@@ -15,9 +17,12 @@ import org.megamind.mycashpoint.domain.repository.AgenceRepository
 import org.megamind.mycashpoint.domain.repository.AnalyticsRepository
 import org.megamind.mycashpoint.domain.repository.CommissionRepository
 import org.megamind.mycashpoint.domain.repository.EtablissementRepository
+import org.megamind.mycashpoint.domain.repository.ExcelReportRepository
+import org.megamind.mycashpoint.domain.repository.SoldeMouvementRepository
 import org.megamind.mycashpoint.domain.repository.SoldeRepository
 import org.megamind.mycashpoint.domain.repository.TransactionRepository
 import org.megamind.mycashpoint.domain.repository.UserRepository
+import org.megamind.mycashpoint.domain.repository.OperationCaisseRepository
 import org.megamind.mycashpoint.domain.usecase.agence.GetAgencesUseCase
 import org.megamind.mycashpoint.domain.usecase.agence.SaveOrUpdateAgenceUseCase
 import org.megamind.mycashpoint.domain.usecase.analytics.GetAgenceAnalyticsUseCase
@@ -47,12 +52,21 @@ import org.megamind.mycashpoint.domain.usecase.etablissement.GetEtablissementFro
 import org.megamind.mycashpoint.domain.usecase.etablissement.GetEtablissementFromLocalUseCase
 import org.megamind.mycashpoint.domain.usecase.etablissement.UpdateEtablissementUseCase
 import org.megamind.mycashpoint.domain.usecase.etablissement.GetEtablissementFromServerAndInsertLocalyUseCase
+import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeMouvementUseCase
+import org.megamind.mycashpoint.domain.usecase.excel.GetGrandLivreExcelUseCase
+import org.megamind.mycashpoint.domain.usecase.excel.GetJournalTransactionExcelUseCase
+import org.megamind.mycashpoint.domain.usecase.excel.GetJournalOperationInterneExcelUseCase
+
+import org.megamind.mycashpoint.domain.usecase.operation.SaveOperationCaisseUseCase
 
 import org.megamind.mycashpoint.domain.usecase.transaction.DeleteTransactionUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GenerateTransactionReportUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GetAllTransactionFromServerUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GetTopOperateurUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GetRemoteTransactionsByAgenceAndUserUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.GetTransactionByAgenceFromServerUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.GetTransactionForSynUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.GetTransactionsByCriteriaUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionListLocallyUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.SendOneTransactToServerUseCase
@@ -64,6 +78,8 @@ import org.megamind.mycashpoint.ui.screen.admin.rapport.AdminRapportViewModel
 import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
 import org.megamind.mycashpoint.ui.screen.auth.LoginViewModel
 import org.megamind.mycashpoint.ui.screen.admin.etablissement.EtablissementViewModel
+import org.megamind.mycashpoint.ui.screen.admin.caisse_mouvement.CaisseMouvementViewModel
+import org.megamind.mycashpoint.ui.screen.admin.operation.OperationCaisseViewModel
 import org.megamind.mycashpoint.ui.screen.solde.SoldeViewModel
 import org.megamind.mycashpoint.ui.screen.main.MainViewModel
 import org.megamind.mycashpoint.utils.DataStorageManager
@@ -107,6 +123,9 @@ val appModule = module {
     single<EtablissementRepository> {
         EtablissementRepositoryImpl(get(), get())
     }
+    single<SoldeMouvementRepository> { SoldeMouvementRepositoryImpl(get()) }
+    single<ExcelReportRepository> { ExcelReportRepositoryImpl(get()) }
+    single<OperationCaisseRepository> { OperationCaisseRepositoryImpl(get()) }
 
     // Use cases
     single { GetAgencesUseCase(get()) }
@@ -143,13 +162,22 @@ val appModule = module {
     single { GetRemoteTransactionsByAgenceAndUserUseCase(get()) }
     single { GetRemoteSoldesByAgenceAndUserUseCase(get()) }
     single { GetSoldeForSyncUsecas(get()) }
+    single { GetTransactionForSynUseCase(get()) }
     single { AdminSaveSoldeUseCase(get()) }
     single { GetAgenceAnalyticsUseCase(get()) }
-
     single { GetEtablissementFromServerUseCase(get()) }
     single { GetEtablissementFromLocalUseCase(get()) }
     single { UpdateEtablissementUseCase(get()) }
     single { GetEtablissementFromServerAndInsertLocalyUseCase(get()) }
+    single { GetTransactionByAgenceFromServerUseCase(get()) }
+    single { GetTransactionsByCriteriaUseCase(get()) }
+    single { GetSoldeMouvementUseCase(get()) }
+    single { SaveOperationCaisseUseCase(get(), get()) }
+
+    // Excel use cases
+    single { GetGrandLivreExcelUseCase(get()) }
+    single { GetJournalTransactionExcelUseCase(get()) }
+    single { GetJournalOperationInterneExcelUseCase(get()) }
 
 
 //view models
@@ -166,10 +194,10 @@ val appModule = module {
     }
 
     viewModel {
-        OperateurViewModel(get(), get(), get(), get(), get())
+        OperateurViewModel(get(), get(), get(), get(), get(), get())
     }
     viewModel {
-        TransactionViewModel(get(), get())
+        TransactionViewModel(get(), get(), get())
     }
 
     viewModel {
@@ -182,7 +210,7 @@ val appModule = module {
     }
 
     viewModel {
-        RapportViewModel(get(), get(), get(), get(), get(), get())
+        RapportViewModel(get(), get(), get(), get(), get(), get(), get())
     }
 
     viewModel {
@@ -194,7 +222,7 @@ val appModule = module {
     }
 
     viewModel {
-        AdminRapportViewModel(get(), get())
+        AdminRapportViewModel(get(), get(), get(), get(), get())
     }
 
     viewModel {
@@ -203,6 +231,14 @@ val appModule = module {
 
     viewModel {
         EtablissementViewModel(get(), get())
+    }
+
+    viewModel {
+        CaisseMouvementViewModel(get())
+    }
+
+    viewModel {
+        OperationCaisseViewModel(get(), get())
     }
 
 

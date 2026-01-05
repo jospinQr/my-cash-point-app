@@ -1,5 +1,6 @@
 package org.megamind.mycashpoint.domain.model
 
+import kotlinx.serialization.Serializable
 import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.utils.Constants
 import java.math.BigDecimal
@@ -34,6 +35,7 @@ data class Transaction(
     )
 
 
+@Serializable
 enum class TransactionType(val icon: Int, val label: String) {
     DEPOT(R.drawable.depot, "DEPOT"),
     RETRAIT(R.drawable.retrait, "RETRAIT"),

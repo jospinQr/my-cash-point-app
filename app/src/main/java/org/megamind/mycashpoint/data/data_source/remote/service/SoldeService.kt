@@ -6,6 +6,8 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import org.megamind.mycashpoint.data.data_source.remote.dto.solde.PaginateSoldeMouvementResponse
+import org.megamind.mycashpoint.data.data_source.remote.dto.solde.SoldeMouvementDto
 import org.megamind.mycashpoint.data.data_source.remote.dto.solde.SoldeRequestDto
 import org.megamind.mycashpoint.data.data_source.remote.dto.solde.SoldeResponse
 import org.megamind.mycashpoint.data.data_source.remote.dto.solde.SoldeUpdateAmountRequestDto
@@ -69,7 +71,6 @@ class SoldeService(private val httpClient: HttpClient) {
 
         }
 
-
     }
 
 
@@ -83,6 +84,42 @@ class SoldeService(private val httpClient: HttpClient) {
         }
 
     }
-}
 
+
+    suspend fun getSoldeMouvements(
+        agenceCode: String,
+        page: Int,
+        size: Int
+    ): Result<PaginateSoldeMouvementResponse> {
+
+        return safeApiCall<PaginateSoldeMouvementResponse> {
+            httpClient.get("mouvements-solde/agence") {
+                parameter("agenceCode", agenceCode)
+                parameter("page", page)
+                parameter("size", size)
+            }
+        }
+
+    }
+
+    /**
+     * Récupère le rapport Excel Grand Livre pour une agence
+     * @param codeAgence Le code de l'agence
+     * @param startDate Date de début (optionnel, en millisecondes)
+     * @param endDate Date de fin (optionnel, en millisecondes)
+     * @return ByteArray contenant le fichier Excel
+     */
+    suspend fun getGrandLivreExcelReport(
+        codeAgence: String,
+        startDate: Long? = null,
+        endDate: Long? = null
+    ): Result<ByteArray> {
+        return safeApiCall<ByteArray> {
+            httpClient.get("mouvements-solde/agence/$codeAgence/rapport/excel") {
+                startDate?.let { parameter("startDate", it) }
+                endDate?.let { parameter("endDate", it) }
+            }
+        }
+    }
+}
 

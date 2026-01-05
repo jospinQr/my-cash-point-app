@@ -6,10 +6,13 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.PaginateTransactionsResponse
+import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.SyncTransactResponse
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TopOperateurDto
+import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionPageResponse
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionPageResponseDTO
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionRequest
 import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionResponse
+import org.megamind.mycashpoint.data.data_source.remote.dto.transaction.TransactionsResponseDto
 import org.megamind.mycashpoint.data.data_source.remote.safeApiCall
 import org.megamind.mycashpoint.domain.model.PaginatedTransaction
 import org.megamind.mycashpoint.domain.model.TransactionType
@@ -32,18 +35,18 @@ class TransactionService(
 
     suspend fun findByCriteria(
         codeAgence: String,
-        operateurId: Long,
-        deviseCode: String,
-        type: TransactionType,
+        operateurId: Long? = null,
+        deviseCode: String? = null,
+        type: TransactionType? = null,
         page: Int = 0,
-        size: Int = 100,
-    ): Result<PaginateTransactionsResponse> {
+        size: Int = 1000,
+    ): Result<TransactionsResponseDto> {
 
-        return safeApiCall<PaginateTransactionsResponse> {
-            httpClient.get("transaction/agence/$codeAgence/filter") {
+        return safeApiCall<TransactionsResponseDto> {
+            httpClient.get("transaction/agence/$codeAgence/filtre") {
                 parameter("operateurId", operateurId)
-                parameter("deviseCode", deviseCode)
-                parameter("type", type.name)
+                parameter("devise", deviseCode)
+                parameter("type", type?.name)
                 parameter("page", page)
                 parameter("size", size)
             }
@@ -113,5 +116,40 @@ class TransactionService(
 
         }
     }
+
+
+    suspend fun getTransctionForSync(
+        agenceCode: String,
+        lastSyncAt: Long,
+        userId: Long
+    ): Result<SyncTransactResponse> {
+
+        return safeApiCall<SyncTransactResponse> {
+            httpClient.get("transaction/sync") {
+                parameter("agenceCode", agenceCode)
+                parameter("lastSyncAt", lastSyncAt)
+                parameter("userId", userId)
+            }
+        }
+
+    }
+
+
+    suspend fun getTransactionByAgence(
+        codeAgence: String,
+        page: Int,
+        size: Int
+    ): Result<TransactionsResponseDto> {
+
+        return safeApiCall<TransactionsResponseDto> {
+            httpClient.get("transaction/agence/$codeAgence") {
+                parameter("page", page)
+                parameter("size", size)
+            }
+        }
+
+
+    }
+
 
 }

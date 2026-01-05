@@ -1,6 +1,7 @@
 package org.megamind.mycashpoint.ui.screen.operateur
 
 import android.util.Log
+import androidx.compose.ui.util.fastMaxOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -12,10 +13,12 @@ import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.Solde
 import org.megamind.mycashpoint.domain.model.Transaction
+import org.megamind.mycashpoint.domain.usecase.etablissement.GetEtablissementFromServerAndInsertLocalyUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetRemoteSoldesByAgenceAndUserUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.GetSoldeForSyncUsecas
 import org.megamind.mycashpoint.domain.usecase.solde.InsertSoldeListLocallyUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.GetRemoteTransactionsByAgenceAndUserUseCase
+import org.megamind.mycashpoint.domain.usecase.transaction.GetTransactionForSynUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionListLocallyUseCase
 import org.megamind.mycashpoint.utils.DataStorageManager
 import org.megamind.mycashpoint.utils.Result
@@ -25,8 +28,9 @@ class OperateurViewModel(
     private val datastorageManager: DataStorageManager,
     private val getRemoteTransactionsByAgenceAndUserUseCase: GetRemoteTransactionsByAgenceAndUserUseCase,
     private val getSoldeForSyncUsecas: GetSoldeForSyncUsecas,
+    private val getTransactionForSyncUseCase: GetTransactionForSynUseCase,
     private val insertTransactionListLocalyUseCase: InsertTransactionListLocallyUseCase,
-    private val insertSoldeListLocallyUserCase: InsertSoldeListLocallyUseCase,
+    private val getAndInsertEtablissementUseCase: GetEtablissementFromServerAndInsertLocalyUseCase
 ) : ViewModel() {
 
 
@@ -104,89 +108,6 @@ class OperateurViewModel(
     }
 
 
-    private fun insertSoldeLocaly(listSolde: List<Solde>) {
-        viewModelScope.launch {
-            insertSoldeListLocallyUserCase(listSolde).collect { result ->
-                when (result) {
-                    is Result.Loading -> {
-                        _uiSate.update {
-                            it.copy(isInsertAllSoldeLoading = true)
-                        }
-
-                    }
-
-                    is Result.Success -> {
-                        _uiSate.update {
-                            it.copy(isInsertAllSoldeLoading = false)
-                        }
-
-                    }
-
-                    is Result.Error<*> -> {
-                        _uiSate.update {
-                            it.copy(
-                                isInsertAllSoldeLoading = false,
-                                insertAllSoldeError = result.e?.message
-                            )
-                        }
-                        _uiEvent.emit(
-                            OperateurUiEvent.ShowError(
-                                result.e?.message ?: "Erreur inconnue"
-                            )
-                        )
-                    }
-
-
-                }
-
-            }
-
-        }
-    }
-
-    private fun getAllTransactFromServerAndInsertInLocaldb() {
-        viewModelScope.launch {
-            getRemoteTransactionsByAgenceAndUserUseCase().collect { result ->
-                when (val result = result) {
-                    is Result.Loading -> {
-
-                        _uiSate.update {
-                            it.copy(isGetAllTransactLoading = true)
-                        }
-                        Log.i(TAG, "Loading")
-                    }
-
-                    is Result.Success -> {
-                        _uiSate.update {
-                            it.copy(isGetAllTransactLoading = false)
-                        }
-                        result.data?.let { insertTransactionsLocaly(it) }
-                        Log.i(TAG, "Success")
-                    }
-
-                    is Result.Error<*> -> {
-                        _uiSate.update {
-                            it.copy(
-                                getAllTransactError = result.e?.message,
-                                isGetAllTransactLoading = false
-                            )
-                        }
-
-                        _uiEvent.emit(
-                            OperateurUiEvent.ShowError(
-                                result.e?.message
-                                    ?: "Erreur inconnue lors téléchargement des données"
-                            )
-                        )
-                        Log.e(TAG, "Error ${result.e?.message}")
-                    }
-
-                }
-            }
-        }
-    }
-
-
     fun getAllSoldeFromServerAndInsertInLocaldb() {
         viewModelScope.launch {
             val lastSyncAt = datastorageManager.getLastSoldeSyncAt()
@@ -209,6 +130,8 @@ class OperateurViewModel(
                         _uiSate.update {
                             it.copy(isGetAllSoldeLoading = false)
                         }
+                        getAllTransactFromServerAndInsertInLocaldb()
+
 
                     }
 
@@ -228,6 +151,63 @@ class OperateurViewModel(
                         Log.e(TAG, "Error ${result.e?.message}")
 
 
+                    }
+
+
+                }
+
+
+            }
+
+        }
+
+    }
+
+    fun getAllTransactFromServerAndInsertInLocaldb() {
+        viewModelScope.launch {
+            val lastSyncAt = datastorageManager.getLastTransactionSyncAt()
+            val agenceCode = datastorageManager.getToken()?.let { decodeJwtPayload(it) }!!
+                .optString("agence_code")
+
+
+            val token = datastorageManager.getToken()
+            val userId = decodeJwtPayload(token!!).optString("sub")
+            getTransactionForSyncUseCase(
+                lastSyncAt = lastSyncAt,
+                agenceCode = agenceCode,
+                userId = userId.toLong()
+            ).collect { result ->
+
+                when (val result = result) {
+                    is Result.Loading -> {
+                        _uiSate.update {
+                            it.copy(isGetAllTransactLoading = true)
+                        }
+
+                    }
+
+                    is Result.Success -> {
+                        _uiSate.update {
+                            it.copy(isGetAllTransactLoading = false)
+                        }
+
+                    }
+
+                    is Result.Error<*> -> {
+                        _uiSate.update {
+                            it.copy(
+                                getAllTransactError = result.e?.message,
+                                isGetAllTransactLoading = false
+                            )
+                        }
+                        _uiEvent.emit(
+                            OperateurUiEvent.ShowError(
+                                result.e?.message
+                                    ?: "Erreur inconnue lors téléchargement des données"
+                            )
+                        )
+                        Log.e(TAG, "Error ${result.e?.message}")
+
 
                     }
 
@@ -240,6 +220,7 @@ class OperateurViewModel(
         }
 
     }
+
 
     fun onMainMenuExpanded() {
         _uiSate.update {
@@ -266,7 +247,41 @@ class OperateurViewModel(
         }
     }
 
+    fun getEtablissement() {
+
+        viewModelScope.launch {
+            getAndInsertEtablissementUseCase().collect { result ->
+                when (result) {
+                    is Result.Loading -> {
+                        _uiSate.update {
+                            it.copy(isGetAllSoldeLoading = true)
+                        }
+                    }
+
+                    is Result.Error<*> -> {
+                        _uiSate.update {
+                            it.copy(
+                                getAllSoldeError = result.e?.message,
+                                isGetAllSoldeLoading = false
+                            )
+                        }
+
+                    }
+
+                    is Result.Success -> {
+                        _uiSate.update {
+                            it.copy(isGetAllSoldeLoading = false)
+                        }
+                    }
+                }
+            }
+
+        }
+
+    }
+
 }
+
 
 data class OperateurUiState(
     val selectedOperateur: Operateur? = null,

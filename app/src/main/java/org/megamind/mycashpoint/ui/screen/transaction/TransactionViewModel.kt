@@ -9,8 +9,10 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.megamind.mycashpoint.domain.model.Etablissement
 import org.megamind.mycashpoint.domain.model.Transaction
 import org.megamind.mycashpoint.domain.model.TransactionType
+import org.megamind.mycashpoint.domain.usecase.etablissement.GetEtablissementFromLocalUseCase
 import org.megamind.mycashpoint.domain.usecase.transaction.InsertTransactionAndUpdateSoldesUseCase
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.DataStorageManager
@@ -20,7 +22,7 @@ import java.math.BigDecimal
 
 class TransactionViewModel(
     private val insertTransactionAndUpdateSoldes: InsertTransactionAndUpdateSoldesUseCase,
-
+    private val getEtablissementFromLocalUseCase: GetEtablissementFromLocalUseCase,
     private val storageManager: DataStorageManager,
 
     ) : ViewModel() {
@@ -39,6 +41,20 @@ class TransactionViewModel(
     private val _note get() = _uiState.value.note
     private val _devise get() = _uiState.value.selectedDevise
     private val _typeTransact get() = _uiState.value.selectedType
+
+    init {
+        getEtablissement()
+    }
+
+    private fun getEtablissement() {
+        viewModelScope.launch {
+            getEtablissementFromLocalUseCase().collect { result ->
+                if (result is Result.Success) {
+                    _uiState.update { it.copy(etablissement = result.data) }
+                }
+            }
+        }
+    }
 
 
     fun onMontantChange(montant: String) {
@@ -169,7 +185,8 @@ class TransactionViewModel(
                         _uiEvent.emit(
                             TransactionUiEvent.ReprintReceipt(
                                 result.data!!,
-                                claims.optString("name")
+                                claims.optString("name"),
+                                _uiState.value.etablissement
                             )
                         )
                         Log.d("TAG", "onSaveClick: Success")
@@ -262,8 +279,8 @@ data class TransactionUiState(
     val isNomBenefError: Boolean = false,
     val isTelephBenefError: Boolean = false,
     val solde: BigDecimal = BigDecimal(0),
-    val isConfirmDialogShown: Boolean = false
-
+    val isConfirmDialogShown: Boolean = false,
+    val etablissement: Etablissement? = null
 
 )
 
@@ -274,7 +291,11 @@ sealed class TransactionUiEvent() {
     data class ShowSuccessMessage(val successMessage: String) : TransactionUiEvent()
     data class ShowErrorMessage(val errorMessage: String) : TransactionUiEvent()
 
-    data class ReprintReceipt(val transaction: Transaction, val user: String) :
+    data class ReprintReceipt(
+        val transaction: Transaction,
+        val user: String,
+        val etablissement: Etablissement? = null
+    ) :
         TransactionUiEvent()
 
 }
