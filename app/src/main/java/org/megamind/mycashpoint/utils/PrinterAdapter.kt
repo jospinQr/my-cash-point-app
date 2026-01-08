@@ -214,6 +214,15 @@ class MyPrintDocumentAdapter(
             )
 
             titleBaseLine = drawTextWithSpacing(
+                this,
+                "Operateur : ${data.get("operateur")}",
+                60F,
+                titleBaseLine + 10,
+                linePainter,
+                pageWidth
+            )
+
+            titleBaseLine = drawTextWithSpacing(
                 this, "${data.get("motif")} par / ${data.get("nom")}",
                 60F,
                 titleBaseLine,

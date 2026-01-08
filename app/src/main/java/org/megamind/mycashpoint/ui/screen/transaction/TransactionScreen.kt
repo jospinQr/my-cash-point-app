@@ -71,6 +71,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.megamind.mycashpoint.R
 import org.megamind.mycashpoint.domain.model.Operateur
 import org.megamind.mycashpoint.domain.model.TransactionType
+import org.megamind.mycashpoint.domain.model.operateurs
 import org.megamind.mycashpoint.ui.component.ConfirmDialog
 import org.megamind.mycashpoint.ui.component.CustomOutlinedTextField
 import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
@@ -144,6 +145,7 @@ fun TransactionScreen(
                                 "date" to Constants.formatTimestamp(transaction.horodatage),
                                 "motif" to transaction.type.name,
                                 "montant" to "${transaction.montant}",
+                                "operateur" to operateurs.find { op -> op.id == transaction.idOperateur }?.name!!,
                                 "devise" to transaction.devise.symbole,
                                 "agent" to userName,
                                 "nom" to nom,
