@@ -19,8 +19,8 @@ class DataStorageManager(private val context: Context) {
     companion object {
         private val TOKEN_KEY = stringPreferencesKey("token")
         private val LAST_SOLDE_SYNC_AT = longPreferencesKey("last_solde_sync_at")
-
         private val LAST_TRANSACTION_SYNC_AT = longPreferencesKey("last_transaction_sync_at")
+        private val URL = stringPreferencesKey("url")
     }
 
     suspend fun getToken(): String? {
@@ -54,5 +54,13 @@ class DataStorageManager(private val context: Context) {
 
     }
 
+
+    suspend fun getUrl(): String? {
+        return context.dataStore.data.firstOrNull()?.get(URL)
+    }
+
+    suspend fun saveUrl(url: String) {
+        context.dataStore.edit { it[URL] = url }
+    }
 
 }

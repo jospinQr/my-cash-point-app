@@ -118,6 +118,26 @@ fun BigDecimal.toMontant(
     }
 }
 
+fun Int.toMontant(
+    avecDecimales: Boolean = true,
+    symboleDevise: String = "",
+
+    ): String {
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+    }
+
+    val pattern = if (avecDecimales) "#,##0.00" else "#,##0"
+    val formatter = DecimalFormat(pattern, symbols)
+    val montantFormate = formatter.format(this)
+
+    return if (symboleDevise.isNotEmpty()) {
+        "$montantFormate $symboleDevise"
+    } else {
+        montantFormate
+    }
+}
+
 
 fun Long.toLocalDate(
     zoneId: ZoneId = ZoneId.systemDefault()

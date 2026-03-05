@@ -7,6 +7,7 @@ import org.megamind.mycashpoint.data.data_source.local.dao.UserDao
 import org.megamind.mycashpoint.data.data_source.local.entity.UserEntity
 import org.megamind.mycashpoint.data.data_source.local.mapper.toUser
 import org.megamind.mycashpoint.data.data_source.remote.dto.auth.AuthResponse
+import org.megamind.mycashpoint.data.data_source.remote.dto.auth.EditUserRequeste
 import org.megamind.mycashpoint.data.data_source.remote.dto.auth.LoginRequest
 import org.megamind.mycashpoint.data.data_source.remote.dto.auth.RegisterRequest
 import org.megamind.mycashpoint.data.data_source.remote.service.AuthService
@@ -83,6 +84,37 @@ class UserRepositoryImpl(
 
         }
     }
+
+    override fun editInfo(
+        token: String,
+        editUserRequeste: EditUserRequeste
+    ) = flow {
+        emit(Result.Loading)
+        try {
+            when (val result = authService.editInfo(editUserRequeste, token)) {
+                is Result.Success -> {
+
+
+                    val tkn = result.data?.token
+                    if (!tkn.isNullOrBlank()) {
+                        dataStorageManager.saveToken(tkn)
+                    }
+                    emit(Result.Success(result.data))
+                }
+
+                is Result.Error<*> -> {
+                    emit(Result.Error(Exception(result.e?.message)))
+                }
+
+                else -> {}
+            }
+
+        } catch (e: Exception) {
+            emit(Result.Error(e))
+        }
+
+    }
+
 
     override fun getUserById(id: Long): Flow<Result<User?>> = flow {
         emit(Result.Loading)

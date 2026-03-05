@@ -31,7 +31,7 @@ val agentNavBarItem = listOf(
 
 
     MenuItem(
-        title = "Rapport",
+        title = "Previsualisation",
         selectedIcon = R.drawable.rapport_fill,
         unSelectedIcon = R.drawable.rapport_out,
         route = Destination.RAPPORT.name

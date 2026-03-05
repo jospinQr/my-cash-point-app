@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.HomeWork
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.MonetizationOn
 import androidx.compose.material.icons.outlined.PeopleOutline
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.AttachMoney
 import androidx.compose.material3.AlertDialog
@@ -111,7 +112,8 @@ fun DashBoardScreen(
     snackbarHostState: SnackbarHostState,
     navigateToLoginScreen: () -> Unit,
     navigateToEtablissement: () -> Unit,
-    navigateToOperationCaisse: () -> Unit
+    navigateToOperationCaisse: () -> Unit,
+    navigateToEditUser: () -> Unit
 
 ) {
 
@@ -141,7 +143,8 @@ fun DashBoardScreen(
         onSaveClick = viewModel::onConfirmDialogShown,
         onLogOut = viewModel::onLogOut,
         onAnalyticsClick = viewModel::onAnalyticsDialogShown,
-        navigateToOperationCaisse = navigateToOperationCaisse
+        navigateToOperationCaisse = navigateToOperationCaisse,
+        navigateToEditUser = navigateToEditUser
 
     )
 
@@ -190,11 +193,13 @@ fun DashBoardScreenContent(
     onSaveClick: () -> Unit = {},
     onLogOut: () -> Unit = {},
     onAnalyticsClick: () -> Unit = {},
-    navigateToOperationCaisse: () -> Unit = {}
+    navigateToOperationCaisse: () -> Unit = {},
+    navigateToEditUser: () -> Unit = {}
 
 
 ) {
-    Scaffold(topBar = {
+    Scaffold(
+        topBar = {
         StyledTopAppBar(
             title = "Dashboard",
             customTitleContent = {
@@ -264,7 +269,8 @@ fun DashBoardScreenContent(
                         onInitSoldeClick = onInitSoldeClick,
                         onLogoutClick = onLogOut,
                         onAnalyticsClick = onAnalyticsClick,
-                        onOperationCaisseClick = navigateToOperationCaisse
+                        onOperationCaisseClick = navigateToOperationCaisse,
+                        onEditUserClick = navigateToEditUser
                     )
                 }
             }
@@ -682,7 +688,8 @@ fun ActionRappide(
     onInitSoldeClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onAnalyticsClick: () -> Unit,
-    onOperationCaisseClick: () -> Unit
+    onOperationCaisseClick: () -> Unit,
+    onEditUserClick: () -> Unit
 
     ) {
 
@@ -697,6 +704,7 @@ fun ActionRappide(
         Action(Icons.Outlined.Warning, "Solde en rupture"),
         Action(Icons.Outlined.Business, "Info de l'entreprise"),
         Action(Icons.Outlined.MonetizationOn, "Opérations Caisse"),
+        Action(Icons.Outlined.Person, "Modifier Profil"),
         Action(Icons.AutoMirrored.Outlined.Logout, "Se deconnecter"),
 
         )
@@ -726,7 +734,9 @@ fun ActionRappide(
                                 4 -> onSoldeInRuptureClick()
                                 5 -> onSoldeInRuptureClick()
                                 6 -> onOperationCaisseClick()
-                                7 -> onLogoutClick()
+                                6 -> onOperationCaisseClick()
+                                7 -> onEditUserClick()
+                                8 -> onLogoutClick()
 
                             }
                         },

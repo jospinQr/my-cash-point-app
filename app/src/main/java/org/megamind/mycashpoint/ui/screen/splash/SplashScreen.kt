@@ -34,10 +34,11 @@ fun SplashScreen(
     navigateToLoginScreen: () -> Unit = {},
     navigateToAgentHomeScreen: () -> Unit = {},
     navigateToAdminHomeScreen: () -> Unit = {},
+    navigateToEtablissement: () -> Unit = {}
 ) {
 
 
-    LaunchedEffect(viewModel) {
+    LaunchedEffect(Unit) {
 
         viewModel.uiEvent.collect {
             when (it) {
@@ -52,6 +53,10 @@ fun SplashScreen(
                 SplashUiEvent.NavigateToLogin -> {
                     navigateToLoginScreen()
                 }
+
+//                SplashUiEvent.NavigateToEtablissement -> {
+//                    navigateToEtablissement()
+//                }
             }
         }
     }

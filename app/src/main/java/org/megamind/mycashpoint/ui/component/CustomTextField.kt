@@ -124,6 +124,7 @@ fun AuthTextField(
                 focusedIndicatorColor = Color.Transparent,
                 cursorColor = contentColor,
                 focusedTextColor = contentColor,
+                unfocusedTextColor = contentColor,
                 errorIndicatorColor = MaterialTheme.colorScheme.error,
                 errorContainerColor = containerColor,
                 unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
@@ -135,6 +136,11 @@ fun AuthTextField(
                 disabledTextColor = contentColor,
                 disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
                 disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+                errorCursorColor = MaterialTheme.colorScheme.error,
+                    errorLabelColor = contentColor,
+                errorLeadingIconColor = MaterialTheme.colorScheme.onSurface,
+                errorTextColor = contentColor
+
 
                 ),
             shape = RoundedCornerShape(100),

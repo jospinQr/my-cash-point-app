@@ -254,8 +254,13 @@ class TransactionViewModel(
         return isValid
     }
 
-}
+    fun onBenefInfoShown() {
+        _uiState.update {
+            it.copy(isBenfInfoShown = !it.isBenfInfoShown)
+        }
 
+    }
+}
 
 data class TransactionUiState(
 
@@ -280,9 +285,10 @@ data class TransactionUiState(
     val isTelephBenefError: Boolean = false,
     val solde: BigDecimal = BigDecimal(0),
     val isConfirmDialogShown: Boolean = false,
-    val etablissement: Etablissement? = null
+    val etablissement: Etablissement? = null,
+    val isBenfInfoShown: Boolean = false,
 
-)
+    )
 
 
 sealed class TransactionUiEvent() {
@@ -294,7 +300,7 @@ sealed class TransactionUiEvent() {
     data class ReprintReceipt(
         val transaction: Transaction,
         val user: String,
-        val etablissement: Etablissement? = null
+        val etablissement: Etablissement? = null,
     ) :
         TransactionUiEvent()
 

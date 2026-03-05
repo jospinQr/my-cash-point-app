@@ -1,9 +1,7 @@
 package org.megamind.mycashpoint.ui.screen.transaction
 
 import android.content.Context
-import android.os.Build
 import android.print.PrintManager
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -11,6 +9,8 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,15 +30,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Note
-import androidx.compose.material.icons.filled.Money
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.AttachMoney
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -47,7 +48,10 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -83,6 +87,7 @@ import org.megamind.mycashpoint.ui.screen.operateur.OperateurUiState
 import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.utils.Constants
 import org.megamind.mycashpoint.utils.MyPrintDocumentAdapter
+import org.megamind.mycashpoint.utils.toMontant
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -188,7 +193,8 @@ fun TransactionScreen(
         onSave = viewModel::onSaveClick,
         onConfirmDialogDismiss = viewModel::onConfirmDialogDismiss,
         onConfirmDialogShown = viewModel::onConfirmDialogShown,
-        onCommissionChange = viewModel::onCommissionChange
+        onCommissionChange = viewModel::onCommissionChange,
+        onShowBenefInfo = viewModel::onBenefInfoShown
     )
 
 }
@@ -213,9 +219,11 @@ fun TransactionScreenContent(
     onSave: (Long) -> Unit,
     onConfirmDialogDismiss: () -> Unit,
     onConfirmDialogShown: () -> Unit,
-    onCommissionChange: (String) -> Unit
+    onShowBenefInfo: () -> Unit = {},
+    onCommissionChange: (String) -> Unit,
 
-) {
+
+    ) {
 
     val selectedOperateur = operateurUiState.selectedOperateur
 
@@ -382,7 +390,24 @@ fun TransactionScreenContent(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    val quickUsdAmounts = if(uiState.selectedDevise== Constants.Devise.USD) listOf(5, 10, 20, 50, 100, 200, 500) else listOf(5000, 10000, 20000, 50000, 100000, 200000, 500000)
+                    Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement = Arrangement.Center) {
 
+                        quickUsdAmounts.forEachIndexed { index, it ->
+                            SuggestionChip(
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                label = {Text("${it.toMontant(avecDecimales = false)} ${uiState.selectedDevise.symbole}")},
+                                onClick = {
+                                    onMontantChange(it.toString())
+                                },
+                                shape = MaterialTheme.shapes.small,
+                                colors = SuggestionChipDefaults.suggestionChipColors(
+                                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                )
+                            )
+
+                        }
+                    }
                     CustomOutlinedTextField(
                         value = uiState.montant,
                         onValueChange = {
@@ -439,77 +464,109 @@ fun TransactionScreenContent(
                             )
                         }
                     )
-                    if (uiState.selectedType == TransactionType.DEPOT) {
-                        CustomOutlinedTextField(
-                            value = uiState.nomBenef,
-                            onValueChange = {
-                                onNomBeneFChange(it)
-                            },
-                            label = "Beneficiaire",
-                            imeAction = ImeAction.Next,
-                            isError = uiState.isNomBenefError,
-                            errorMessage = "Champs obligatoire",
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Rounded.Person,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        )
-                        CustomOutlinedTextField(
 
-                            value = uiState.telephBenef,
-                            onValueChange = {
-                                onTelephBenefChange(it)
-                            },
-                            label = "Telephone Beneficiaire",
-                            keyboardType = KeyboardType.Phone,
-                            imeAction = ImeAction.Next,
-                            isError = uiState.isTelephBenefError,
-                            errorMessage = "Champs obligatoire",
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Rounded.Phone,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+
+
+                        Row(
+                            modifier = Modifier.clickable { onShowBenefInfo() },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                if (uiState.selectedType == TransactionType.DEPOT) "Beneficiaire" else "Note",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Icon(
+                                imageVector = if (uiState.isBenfInfoShown) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+
+                            )
+                        }
+
+
+                    }
+                    AnimatedVisibility(uiState.selectedType == TransactionType.DEPOT && uiState.isBenfInfoShown) {
+                        Column() {
+                            CustomOutlinedTextField(
+                                value = uiState.nomBenef,
+                                onValueChange = {
+                                    onNomBeneFChange(it)
+                                },
+                                label = "Beneficiaire",
+                                imeAction = ImeAction.Next,
+                                isError = uiState.isNomBenefError,
+                                errorMessage = "Champs obligatoire",
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Person,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            )
+                            CustomOutlinedTextField(
+
+                                value = uiState.telephBenef,
+                                onValueChange = {
+                                    onTelephBenefChange(it)
+                                },
+                                label = "Telephone Beneficiaire",
+                                keyboardType = KeyboardType.Phone,
+                                imeAction = ImeAction.Next,
+                                isError = uiState.isTelephBenefError,
+                                errorMessage = "Champs obligatoire",
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Phone,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            )
+                        }
                     }
 
-                    CustomOutlinedTextField(
-                        value = uiState.commission,
-                        onValueChange = {
-                            onCommissionChange(it)
-                        },
-                        label = "Commission en %",
-                        imeAction = ImeAction.Done,
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Money,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+//                    CustomOutlinedTextField(
+//                        value = uiState.commission,
+//                        onValueChange = {
+//                            onCommissionChange(it)
+//                        },
+//                        label = "Commission en %",
+//                        imeAction = ImeAction.Done,
+//                        leadingIcon = {
+//                            Icon(
+//                                imageVector = Icons.Default.Money,
+//                                contentDescription = null,
+//                                tint = MaterialTheme.colorScheme.primary
+//                            )
+//                        }
+//
+//                    )
 
-                    )
-                    CustomOutlinedTextField(
-                        value = uiState.note,
-                        onValueChange = {
-                            onNoteChange(it)
-                        },
-                        label = "Note",
-                        imeAction = ImeAction.Done,
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.Note,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
 
-                    )
+                    AnimatedVisibility(uiState.isBenfInfoShown) {
+                        CustomOutlinedTextField(
+                            value = uiState.note,
+                            onValueChange = {
+                                onNoteChange(it)
+                            },
+                            label = "Note",
+                            imeAction = ImeAction.Done,
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Rounded.Note,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                        )
+                    }
                     CustomerButton(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
@@ -609,7 +666,7 @@ fun TransactionScreenContentPreview() {
                         nomBenef = "Marie Dupont",
                         telephBenef = "+243 987 654 321",
                         note = "Transaction test",
-                        isFormVisble = false,
+                        isFormVisble = true,
                         isMontantError = false,
                         isNomError = false,
                         isTelephClientError = false,

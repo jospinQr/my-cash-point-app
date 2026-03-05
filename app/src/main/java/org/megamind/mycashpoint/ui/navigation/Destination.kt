@@ -5,6 +5,7 @@ enum class Destination(route: String) {
 
     LOGIN("login"),
     REGISTER("register"),
+    EDIT_USER("edit_user"),
     MAIN("main"),
     CHASPOINT("cashpoint"),
     SPLASH("splash"),
@@ -25,5 +26,6 @@ enum class Destination(route: String) {
     ETABLISSEMENT("etablissement"),
 
     MOUVEMENT("mouvement"),
-    OPERATION_CAISSE("operation_caisse")
+    OPERATION_CAISSE("operation_caisse"),
+    URL("url")
 }

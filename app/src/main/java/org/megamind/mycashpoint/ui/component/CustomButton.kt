@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun CustomerButton(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(12.dp),
+    shape: Shape = MaterialTheme.shapes.small,
     contenairColor: Color = MaterialTheme.colorScheme.primary,
     contentColor: Color = MaterialTheme.colorScheme.onPrimary,
     borderColor: Color = MaterialTheme.colorScheme.primary,

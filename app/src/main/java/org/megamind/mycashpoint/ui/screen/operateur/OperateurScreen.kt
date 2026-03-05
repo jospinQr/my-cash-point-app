@@ -61,6 +61,7 @@ fun OperateurScreen(
     viewModel: OperateurViewModel = koinViewModel(),
     navigateToTransactionScreen: () -> Unit,
     navigateToSignIn: () -> Unit,
+    navigateToEditUser: () -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
     sharedTransitionScope: SharedTransitionScope,
     snackBarHostState: SnackbarHostState
@@ -104,9 +105,11 @@ fun OperateurScreen(
         onIsConfirmDownLoadDialogShown = viewModel::onConfirmDownLoadDialogShown,
         onIsConfirmDownLoadDialogHidden = viewModel::onConfirmDownLoadDialogHidden,
         downloadAllData = viewModel::getAllSoldeFromServerAndInsertInLocaldb,
-        getEtsInfo = viewModel::getEtablissement
+        getEtsInfo = viewModel::getEtablissement,
+        onEditUserClick = navigateToEditUser
 
     )
+
 
     if (uiState.isGetAllSoldeLoading) {
         LoadinDialog(text = "Téléchargement solde en cours")
@@ -142,7 +145,8 @@ private fun OperateurScreenContent(
     onIsConfirmDownLoadDialogShown: () -> Unit,
     onIsConfirmDownLoadDialogHidden: () -> Unit,
     downloadAllData: () -> Unit,
-    getEtsInfo: () -> Unit
+    getEtsInfo: () -> Unit,
+    onEditUserClick: () -> Unit
 
 
 ) {
@@ -179,6 +183,10 @@ private fun OperateurScreenContent(
                                 }
 
                                 2 -> {
+                                    onEditUserClick()
+                                }
+
+                                3 -> {
                                     onIsConfirmLogOutDialogShown()
                                 }
 
@@ -206,7 +214,7 @@ private fun OperateurScreenContent(
             LazyHorizontalGrid(
                 modifier = Modifier.fillMaxWidth(),
                 rows = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp,Alignment.CenterHorizontally),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
@@ -215,7 +223,7 @@ private fun OperateurScreenContent(
 
 
                     OperateurItem(
-                        modifier = Modifier,
+                        modifier = Modifier.fillMaxWidth(.1f),
                         operateur = operateur,
                         onOperateurSelected = {
                             onOperateurSelected(it)
@@ -277,8 +285,8 @@ fun OperateurItem(
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .width(180.dp)
-                .height(24.dp)
+                .width(200.dp)
+                //.height(16.dp)
                 .background(operateur.color.copy(.08f))
                 .clickable {
                     onOperateurSelected(operateur)
@@ -315,5 +323,5 @@ fun OperateurItem(
 
 
 private val mainMenu = listOf(
-    "Premier sync", "Actualiser Ets Info", "Se deconnecter"
+    "Télécharger les données initiales", "Actualiser Ets Info", "Modifier Profil", "Se deconnecter"
 )

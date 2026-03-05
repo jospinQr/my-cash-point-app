@@ -20,12 +20,14 @@ import org.megamind.mycashpoint.ui.screen.splash.SplashScreen
 import org.megamind.mycashpoint.ui.screen.admin.rapport.AdminRepportScreen
 import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardScreen
 import org.megamind.mycashpoint.ui.screen.admin.caisse_mouvement.CaisseMouvementScreen
-import org.megamind.mycashpoint.ui.screen.admin.etablissement.EtablissementScreen
+import org.megamind.mycashpoint.ui.screen.auth.etablissement.EtablissementScreen
 import org.megamind.mycashpoint.ui.screen.admin.transaction.AdminTransactionScreen
 import org.megamind.mycashpoint.ui.screen.admin.operation.OperationCaisseScreen
 
 import org.megamind.mycashpoint.ui.screen.auth.LoginInScreen
 import org.megamind.mycashpoint.ui.screen.auth.RegisterScreen
+import org.megamind.mycashpoint.ui.screen.auth.edit_user.EditUserScreen
+import org.megamind.mycashpoint.ui.screen.auth.url.UrlScreen
 import org.megamind.mycashpoint.ui.screen.solde.SoldeScreen
 
 import org.megamind.mycashpoint.ui.screen.rapport.RapportScreen
@@ -78,6 +80,9 @@ fun MyNavHost(
                                 inclusive = true
                             }
                         }
+                    },
+                    navigateToEtablissement = {
+                        navController.navigate(Destination.ETABLISSEMENT.name)
                     }
                 )
 
@@ -108,10 +113,27 @@ fun MyNavHost(
             }
 
             composable(route = Destination.REGISTER.name) {
-                RegisterScreen(onNavigateToSignUp = {
-                    navController.navigate(Destination.AGENCE.name)
-                }, windowSizeClass = windowSizeClass, navigateToHome = {})
+                RegisterScreen(
+                    onNavigateToSignUp = {
+                        navController.navigate(Destination.AGENCE.name)
+                    },
+                    windowSizeClass = windowSizeClass,
+                    navigateToHome = {},
+                    snackbarHostState = snackbarHostState
+                )
 
+            }
+
+            composable(route = Destination.EDIT_USER.name) {
+                EditUserScreen(
+                    onBack = { navController.popBackStack() },
+                    navigateToLogin = {
+                        navController.navigate(Destination.LOGIN.name) {
+                            popUpTo(0)
+                        }
+                    },
+                    snackbarHostState = snackbarHostState
+                )
             }
 
 
@@ -134,7 +156,11 @@ fun MyNavHost(
                     snackBarHostState = snackbarHostState,
                     navigateToTransactionScreen = {
                         navController.navigate(Destination.TRANSACTION.name)
-                    })
+                    },
+                    navigateToEditUser = {
+                        navController.navigate(Destination.EDIT_USER.name)
+                    }
+                )
             }
 
             composable(route = Destination.CAISSE.name) {
@@ -189,6 +215,9 @@ fun MyNavHost(
                     },
                     navigateToOperationCaisse = {
                         navController.navigate(Destination.OPERATION_CAISSE.name)
+                    },
+                    navigateToEditUser = {
+                        navController.navigate(Destination.EDIT_USER.name)
                     }
                 )
             }
@@ -196,7 +225,10 @@ fun MyNavHost(
             composable(route = Destination.ETABLISSEMENT.name) {
                 EtablissementScreen(
                     snackbarHostState = snackbarHostState,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    navigateToUrlScreen = {
+                        navController.navigate(Destination.URL.name)
+                    }
                 )
             }
 
@@ -223,6 +255,10 @@ fun MyNavHost(
 
             composable(route = Destination.OPERATION_CAISSE.name) {
                 OperationCaisseScreen(navController = navController)
+            }
+
+            composable(route = Destination.URL.name) {
+                UrlScreen(navController = navController)
             }
 
 

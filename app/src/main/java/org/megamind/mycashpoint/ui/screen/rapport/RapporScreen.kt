@@ -440,7 +440,7 @@ fun RapportScreenContent(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
 
-                        Text("Aucune transaction non synchronisé")
+                        Text("Aucune transaction")
                         Button(onClick = { onNavigateToAllTransactions() }) { Text("Transactions synchronisées") }
                     }
                 }

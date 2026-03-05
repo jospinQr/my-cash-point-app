@@ -5,7 +5,6 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import org.megamind.mycashpoint.data.repositoryImpl.AgenceRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.AnalyticsRepositryImpl
-import org.megamind.mycashpoint.data.repositoryImpl.CommissionRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.EtablissementRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.ExcelReportRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.OperationCaisseRepositoryImpl
@@ -15,7 +14,6 @@ import org.megamind.mycashpoint.data.repositoryImpl.TransactionRepositoryImpl
 import org.megamind.mycashpoint.data.repositoryImpl.UserRepositoryImpl
 import org.megamind.mycashpoint.domain.repository.AgenceRepository
 import org.megamind.mycashpoint.domain.repository.AnalyticsRepository
-import org.megamind.mycashpoint.domain.repository.CommissionRepository
 import org.megamind.mycashpoint.domain.repository.EtablissementRepository
 import org.megamind.mycashpoint.domain.repository.ExcelReportRepository
 import org.megamind.mycashpoint.domain.repository.SoldeMouvementRepository
@@ -29,14 +27,7 @@ import org.megamind.mycashpoint.domain.usecase.analytics.GetAgenceAnalyticsUseCa
 import org.megamind.mycashpoint.domain.usecase.auth.GetUserByIdUseCase
 import org.megamind.mycashpoint.domain.usecase.auth.LoginUseCase
 import org.megamind.mycashpoint.domain.usecase.auth.RegisterUseCase
-import org.megamind.mycashpoint.domain.usecase.commission.DeleteCommissionUseCase
-import org.megamind.mycashpoint.domain.usecase.commission.GetAllCommissionsUseCase
-import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionStatsParDeviseUseCase
-import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionStatsParOperateurUseCase
-import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionUseCase
-import org.megamind.mycashpoint.domain.usecase.commission.GetCommissionsByOperateurUseCase
-import org.megamind.mycashpoint.domain.usecase.commission.SaveOrUpdateCommissionUseCase
-import org.megamind.mycashpoint.domain.usecase.commission.SearchCommissionsUseCase
+
 import org.megamind.mycashpoint.domain.usecase.rapport.GetNonSyncTransactByOperatorAndDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.rapport.GetSyncTransactByOperatorAndDeviseUseCase
 import org.megamind.mycashpoint.domain.usecase.solde.AdminSaveSoldeUseCase
@@ -77,7 +68,7 @@ import org.megamind.mycashpoint.ui.screen.admin.dash_board.DashBoardViewModel
 import org.megamind.mycashpoint.ui.screen.admin.rapport.AdminRapportViewModel
 import org.megamind.mycashpoint.ui.screen.auth.RegisterViewModel
 import org.megamind.mycashpoint.ui.screen.auth.LoginViewModel
-import org.megamind.mycashpoint.ui.screen.admin.etablissement.EtablissementViewModel
+import org.megamind.mycashpoint.ui.screen.auth.etablissement.EtablissementViewModel
 import org.megamind.mycashpoint.ui.screen.admin.caisse_mouvement.CaisseMouvementViewModel
 import org.megamind.mycashpoint.ui.screen.admin.operation.OperationCaisseViewModel
 import org.megamind.mycashpoint.ui.screen.solde.SoldeViewModel
@@ -87,6 +78,10 @@ import org.megamind.mycashpoint.ui.screen.operateur.OperateurViewModel
 import org.megamind.mycashpoint.ui.screen.rapport.RapportViewModel
 import org.megamind.mycashpoint.ui.screen.splash.SplashViewModel
 import org.megamind.mycashpoint.ui.screen.transaction.AllTransactionViewModel
+import org.megamind.mycashpoint.ui.screen.auth.edit_user.EditUserViewModel
+import org.megamind.mycashpoint.domain.usecase.auth.EditUserNameOrPasswordUseCase
+import org.megamind.mycashpoint.domain.usecase.etablissement.SaveEtablissementUseCase
+import org.megamind.mycashpoint.ui.screen.auth.url.UrlViewModel
 import org.megamind.mycashpoint.ui.screen.transaction.TransactionViewModel
 
 val appModule = module {
@@ -112,9 +107,7 @@ val appModule = module {
         AgenceRepositoryImpl(get())
     }
 
-    single<CommissionRepository> {
-        CommissionRepositoryImpl(get())
-    }
+
 
     single<AnalyticsRepository> {
         AnalyticsRepositryImpl(get())
@@ -134,18 +127,12 @@ val appModule = module {
     single { SaveOrUpdateSoldeUseCase(get()) }
     single { InsertTransactionAndUpdateSoldesUseCase(get()) }
     single { GetNonSyncTransactByOperatorAndDeviseUseCase(get()) }
-    single { GetCommissionUseCase(get()) }
-    single { GetCommissionsByOperateurUseCase(get()) }
-    single { GetAllCommissionsUseCase(get()) }
-    single { SaveOrUpdateCommissionUseCase(get()) }
-    single { DeleteCommissionUseCase(get()) }
-    single { SearchCommissionsUseCase(get()) }
-    single { GetCommissionStatsParOperateurUseCase(get()) }
-    single { GetCommissionStatsParDeviseUseCase(get()) }
+
     single { DeleteTransactionUseCase(get()) }
     single { UpdateTransactionUseCase(get()) }
     single { LoginUseCase(get()) }
     single { RegisterUseCase(get()) }
+    single { EditUserNameOrPasswordUseCase(get()) }
     single { GetUserByIdUseCase(get()) }
     single { SendOneTransactToServerUseCase(get()) }
     single { SyncSoldesUseCase(get()) }
@@ -173,6 +160,8 @@ val appModule = module {
     single { GetTransactionsByCriteriaUseCase(get()) }
     single { GetSoldeMouvementUseCase(get()) }
     single { SaveOperationCaisseUseCase(get(), get()) }
+    single { SaveEtablissementUseCase(get()) }
+
 
     // Excel use cases
     single { GetGrandLivreExcelUseCase(get()) }
@@ -183,6 +172,10 @@ val appModule = module {
 //view models
     viewModel {
         LoginViewModel(get())
+    }
+
+    viewModel {
+        EditUserViewModel(get(), get())
     }
 
     viewModel {
@@ -230,7 +223,7 @@ val appModule = module {
     }
 
     viewModel {
-        EtablissementViewModel(get(), get())
+        EtablissementViewModel(get(), get(), get())
     }
 
     viewModel {
@@ -239,6 +232,10 @@ val appModule = module {
 
     viewModel {
         OperationCaisseViewModel(get(), get())
+    }
+
+    viewModel {
+        UrlViewModel()
     }
 
 

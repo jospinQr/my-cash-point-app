@@ -3,11 +3,11 @@ package org.megamind.mycashpoint.ui.screen.splash
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.megamind.mycashpoint.data.data_source.remote.dto.auth.Role
-import org.megamind.mycashpoint.domain.usecase.auth.GetUserByIdUseCase
 import org.megamind.mycashpoint.utils.DataStorageManager
 
 import org.megamind.mycashpoint.utils.decodeJwtPayload
@@ -18,7 +18,8 @@ class SplashViewModel(
 
 
     val TAG = "loginViewModel"
-    private val _uiEvent = MutableSharedFlow<SplashUiEvent>()
+    private val _uiEvent =
+        MutableSharedFlow<SplashUiEvent>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val uiEvent = _uiEvent.asSharedFlow()
 
     init {
@@ -27,7 +28,14 @@ class SplashViewModel(
 
     private fun checkUserConnection() = viewModelScope.launch {
         val token = dataStorageManager.getToken()
+        val url = dataStorageManager.getUrl()
 
+
+//        if(url.isNullOrBlank()){
+//            _uiEvent.emit(SplashUiEvent.NavigateToEtablissement)
+//            Log.e(TAG, "url null")
+//            return@launch
+//        }
         // 1. Pas de token  login direct
         if (token.isNullOrBlank()) {
             _uiEvent.emit(SplashUiEvent.NavigateToLogin)
@@ -81,6 +89,8 @@ sealed class SplashUiEvent {
     object NavigateToLogin : SplashUiEvent()
     object NavigateToAgentHomeScreen : SplashUiEvent()
     object NavigateToAdminHomeScreen : SplashUiEvent()
+
+//    object NavigateToEtablissement: SplashUiEvent()
 
 
 }

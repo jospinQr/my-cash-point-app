@@ -87,6 +87,8 @@ fun MyCashPointApp(
     val showAgentBottomBar = currentRoute in agentBottomBarRoutes
     val showAdminBottomBar = currentRoute in adminBottomBarRoutes
 
+    val showAdminSidebar = isAdmin && currentRoute in adminBottomBarRoutes
+
     val isCompact = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
     val isMedium = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
     val isExpanded = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
@@ -137,7 +139,7 @@ fun MyCashPointApp(
                 )
 
 
-        } else if (isMedium && isAdmin) {
+        } else if (isMedium && showAdminSidebar) {
 
             NavigationRailBar(
                 modifier = Modifier
@@ -220,7 +222,8 @@ fun AdminBottomBar(navController: NavController, currentDestination: NavDestinat
                     selectedTextColor = MaterialTheme.colorScheme.primary,
                 ),
 
-                selected = selected, onClick = {
+                selected = selected,
+                onClick = {
                     safeNavigate(
                         navController = navController,
                         currentRoute = currentDestination?.route,

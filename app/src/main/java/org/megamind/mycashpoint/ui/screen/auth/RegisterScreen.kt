@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
@@ -59,9 +60,11 @@ import org.megamind.mycashpoint.data.data_source.remote.dto.auth.Role
 import org.megamind.mycashpoint.domain.model.Agence
 import org.megamind.mycashpoint.ui.screen.agence.AgenceViewModel
 import org.megamind.mycashpoint.ui.component.AuthTextField
+import org.megamind.mycashpoint.ui.component.CustomSnackbarVisuals
 import org.megamind.mycashpoint.ui.component.CustomerButton
 import org.megamind.mycashpoint.ui.component.CustomerTextButton
 import org.megamind.mycashpoint.ui.component.LoadinDialog
+import org.megamind.mycashpoint.ui.component.SnackbarType
 import org.megamind.mycashpoint.ui.theme.MyCashPointTheme
 
 
@@ -73,30 +76,13 @@ fun RegisterScreen(
     navigateToHome: () -> Unit,
     onNavigateToSignUp: () -> Unit,
     windowSizeClass: WindowSizeClass,
-
-
-
-    ) {
+    snackbarHostState: SnackbarHostState
+) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+
     val agences by agenceViewModel.agences.collectAsStateWithLifecycle()
-
-    LaunchedEffect(viewModel) {
-
-        viewModel.uiEvent.collect { uiEvent ->
-
-            when (uiEvent) {
-                RegisterUiEvent.NavigateToHome -> {
-
-                }
-
-                is RegisterUiEvent.ShowError -> {
-                    Toast.makeText(context, uiEvent.message, Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
+    RegisterEventHandler(viewModel = viewModel, snackbarHostState = snackbarHostState)
 
     RegisterScreenContent(
         uiState = uiState,
@@ -112,6 +98,7 @@ fun RegisterScreen(
         onSelectedAgenceChange = { viewModel.onAgenceChange(it) },
         agences = agences,
         onUserRoleChange = viewModel::onUserRoleChange,
+
     )
 
 }
@@ -119,7 +106,6 @@ fun RegisterScreen(
 @Composable
 fun RegisterScreenContent(
     uiState: RegisterUiState,
-
     onPasswordChange: (String) -> Unit,
     onNameChange: (String) -> Unit,
     onPasswordRepeatChange: (String) -> Unit,
@@ -131,13 +117,13 @@ fun RegisterScreenContent(
     onAgenceMenuDismiss: () -> Unit,
     onSelectedAgenceChange: (Agence) -> Unit,
     agences: List<Agence>,
-    onUserRoleChange: (Role) -> Unit
-
-
+    onUserRoleChange: (Role) -> Unit,
 ) {
     val isCompact = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
 
-    Scaffold { innerPadding ->
+    Scaffold(
+
+    ) { innerPadding ->
         AdaptiveRegisterLayout(
             modifier = Modifier.padding(innerPadding),
             isCompact = isCompact,
@@ -330,8 +316,8 @@ private fun RegisterContent(
                 onPasswordVisibilityChange = onPasswordVisibilityChange
             )
         },
-        isError = uiState.isPasswordError,
-        supportText = "Entrer un mot de passe valide(8 caractères minimum)"
+        isError = uiState.isPasswordRepError,
+        supportText = "Mot de passe non identique"
     )
     Spacer(modifier = Modifier.height(4.dp))
     Column {
@@ -501,19 +487,35 @@ private fun RegisterButtonContent(
 @Composable
 private fun RegisterEventHandler(
     viewModel: RegisterViewModel,
+    snackbarHostState: SnackbarHostState
 
-    ) {
+) {
     LaunchedEffect(viewModel) {
         viewModel.uiEvent.collect { event ->
             when (event) {
 
                 RegisterUiEvent.NavigateToHome -> {}
-                is RegisterUiEvent.ShowError -> {}
+                is RegisterUiEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            message = event.message,
+                            type = SnackbarType.ERROR
+                        )
+                    )
+                }
+
+                is RegisterUiEvent.RegisterSuccess -> {
+                    snackbarHostState.showSnackbar(
+                        visuals = CustomSnackbarVisuals(
+                            message = event.message,
+                            type = SnackbarType.SUCCESS
+                        )
+                    )
+                }
             }
         }
     }
 }
-
 
 
 @Preview(showBackground = true)
@@ -536,8 +538,7 @@ fun RegisterScreePreview() {
             onSelectedAgenceChange = {},
             agences = emptyList(),
             windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
-            onUserRoleChange = {}
-
+            onUserRoleChange = {},
 
         )
 

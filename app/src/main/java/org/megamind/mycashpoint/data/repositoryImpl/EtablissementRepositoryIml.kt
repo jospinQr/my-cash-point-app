@@ -20,6 +20,25 @@ class EtablissementRepositoryImpl(
 ) : EtablissementRepository {
 
     private val TAG = "EtablissementRepository"
+    override fun saveEtablissement(etablissement: Etablissement): Flow<Result<Unit>> = flow {
+
+        emit(Result.Loading)
+        when (val result = service.saveEtablissement(etablissement.toEtablissementRequest())) {
+            is Result.Success -> {
+                emit(Result.Success(Unit))
+                Log.d(TAG, "Etablissement saved successfully")
+            }
+
+            is Result.Error -> {
+                emit(Result.Error(result.e ?: Exception("Erreur de sauvegarde")))
+                Log.e(TAG, "Error saving etablissement", result.e)
+            }
+
+            else -> Unit
+        }
+
+
+    }
 
     override fun getEtablissementFromServer(): Flow<Result<Etablissement>> = flow {
         emit(Result.Loading)

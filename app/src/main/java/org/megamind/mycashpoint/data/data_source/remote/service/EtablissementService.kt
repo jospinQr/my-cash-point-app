@@ -2,6 +2,7 @@ package org.megamind.mycashpoint.data.data_source.remote.service
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import org.megamind.mycashpoint.data.data_source.remote.dto.etablissement.EtablissementRequest
@@ -24,6 +25,15 @@ class EtablissementService(private val httpClient: HttpClient) {
     ): Result<Unit> {
         return safeApiCall<Unit> {
             httpClient.put("etablisement/$id") {
+                setBody(request)
+            }
+        }
+    }
+
+
+    suspend fun saveEtablissement(request: EtablissementRequest): Result<Unit> {
+        return safeApiCall<Unit> {
+            httpClient.post("etablisement") {
                 setBody(request)
             }
         }

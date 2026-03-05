@@ -57,7 +57,40 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
 
     fun onRegister() {
 
-        if (!validateForm()) return
+        if (_uiState.value.userName.isEmpty()) {
+            _uiState.update {
+                it.copy(isNameError = true)
+            }
+
+            return
+
+        }
+
+        if (_uiState.value.password.isEmpty() || _uiState.value.password.length < 8) {
+            _uiState.update {
+                it.copy(isPasswordError = true)
+            }
+
+            return
+
+        }
+
+        if (_uiState.value.passWordRepeat.isEmpty() || _uiState.value.passWordRepeat != _uiState.value.password) {
+            _uiState.update {
+                it.copy(isPasswordRepError = true)
+            }
+            return
+
+        }
+
+        if (_uiState.value.selecteRole == Role.AGENT && _uiState.value.selectedAgence == null) {
+            _uiState.update {
+                it.copy(isAgenceExpanded = true)
+            }
+            return
+
+        }
+
 
         val userName = _uiState.value.userName
         val password = _uiState.value.password
@@ -86,6 +119,7 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
                         _uiState.update {
                             it.copy(isLoading = false)
                         }
+                        _uiEvent.emit(RegisterUiEvent.RegisterSuccess("Agent créé avec succès"))
                         _uiEvent.emit(RegisterUiEvent.NavigateToHome)
 
                     }
@@ -138,41 +172,41 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
             it.copy(selecteRole = role)
         }
     }
-
-    private fun validateForm(): Boolean {
-        var isValid = true
-
-        if (_uiState.value.userName.isEmpty()) {
-            _uiState.update {
-                it.copy(isNameError = true)
-            }
-            isValid = false
-        }
-
-        if (_uiState.value.password.isEmpty() || _uiState.value.password.length <= 8) {
-            _uiState.update {
-                it.copy(isPasswordError = true)
-            }
-            isValid = false
-
-        }
-
-        if (_uiState.value.passWordRepeat.isEmpty() || _uiState.value.passWordRepeat != _uiState.value.password) {
-            _uiState.update {
-                it.copy(isPasswordRepError = true)
-            }
-            isValid = false
-        }
-
-        if (_uiState.value.selecteRole == Role.AGENT && _uiState.value.selectedAgence == null) {
-            _uiState.update {
-                it.copy(isAgenceExpanded = true)
-            }
-            isValid = false
-        }
-
-        return isValid
-    }
+//
+//    private fun validateForm(): Boolean {
+//        var isValid = true
+//
+//        if (_uiState.value.userName.isEmpty()) {
+//            _uiState.update {
+//                it.copy(isNameError = true)
+//            }
+//            isValid = false
+//        }
+//
+//        if (_uiState.value.password.isEmpty() || _uiState.value.password.length < 8) {
+//            _uiState.update {
+//                it.copy(isPasswordError = true)
+//            }
+//            isValid = false
+//
+//        }
+//
+//        if (_uiState.value.passWordRepeat.isEmpty() || _uiState.value.passWordRepeat != _uiState.value.password) {
+//            _uiState.update {
+//                it.copy(isPasswordRepError = true)
+//            }
+//            isValid = false
+//        }
+//
+//        if (_uiState.value.selecteRole == Role.AGENT && _uiState.value.selectedAgence == null) {
+//            _uiState.update {
+//                it.copy(isAgenceExpanded = true)
+//            }
+//            isValid = false
+//        }
+//
+//        return isValid
+//    }
 
 }
 
@@ -202,7 +236,7 @@ sealed class RegisterUiEvent {
 
     object NavigateToHome : RegisterUiEvent()
     data class ShowError(val message: String) : RegisterUiEvent()
-
+    data class RegisterSuccess(val message: String) : RegisterUiEvent()
 
 }
 
